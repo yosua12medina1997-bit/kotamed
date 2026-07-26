@@ -330,6 +330,13 @@ function TreeItem({
 
         <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
           <button
+            onClick={() => setResourcesOpen((v) => !v)}
+            title="Recursos (archivos, videos, enlaces)"
+            className={`p-1.5 rounded-lg hover:bg-black/[0.05] ${resourcesOpen ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Paperclip className="size-3.5" />
+          </button>
+          <button
             onClick={() =>
               onUpdate({ id: node.id, is_published: !node.is_published })
             }
