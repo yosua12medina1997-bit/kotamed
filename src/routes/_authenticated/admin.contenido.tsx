@@ -281,6 +281,7 @@ function TreeItem({
   const children = tree.get(node.id) ?? [];
   const [open, setOpen] = useState(depth < 1);
   const [editing, setEditing] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   const [title, setTitle] = useState(node.title);
   const [slug, setSlug] = useState(node.slug);
   const [description, setDescription] = useState(node.description ?? "");
