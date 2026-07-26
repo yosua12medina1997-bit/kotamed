@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PROGRAM_LABELS, useIsAdmin, useSupabaseUser, type ProgramSlug } from "@/lib/session";
-import { ArrowLeft, Loader2, Shield, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Loader2, Shield, Trash2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -113,7 +113,32 @@ function AdminPage() {
           </span>
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight">Panel de administración</h1>
-            <p className="text-sm text-muted-foreground">Matricular usuarios en programas de Pediatría</p>
+            <p className="text-sm text-muted-foreground">Control total de matrículas y contenido</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+          <Link
+            to="/admin/contenido"
+            className="glass rounded-2xl p-5 flex items-center gap-4 hover:-translate-y-0.5 hover:shadow-lg transition-all group"
+          >
+            <span className="size-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <BookOpen className="size-5" strokeWidth={2.25} />
+            </span>
+            <div className="flex-1">
+              <div className="font-bold text-sm">Editor de contenido</div>
+              <div className="text-xs text-muted-foreground">Cursos, programas, áreas, subáreas, capítulos y lecciones</div>
+            </div>
+            <ArrowRight className="size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" strokeWidth={2.5} />
+          </Link>
+          <div className="glass rounded-2xl p-5 flex items-center gap-4">
+            <span className="size-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <Users className="size-5" strokeWidth={2.25} />
+            </span>
+            <div className="flex-1">
+              <div className="font-bold text-sm">Matrículas de estudiantes</div>
+              <div className="text-xs text-muted-foreground">Otorga o revoca acceso por programa</div>
+            </div>
           </div>
         </div>
 
