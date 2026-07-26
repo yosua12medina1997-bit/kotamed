@@ -101,9 +101,12 @@ function Nav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button className="hidden sm:inline-flex text-sm font-semibold px-4 py-2 text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            to="/auth"
+            className="hidden sm:inline-flex text-sm font-semibold px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
             Iniciar sesión
-          </button>
+          </Link>
           <Link
             to="/dashboard"
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-foreground text-background rounded-lg text-sm font-bold hover:-translate-y-0.5 transition-transform shadow-sm"
