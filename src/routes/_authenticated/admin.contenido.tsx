@@ -657,7 +657,7 @@ function ResourcesPanel({ nodeId, nodeTitle }: { nodeId: string; nodeTitle: stri
   const updateMut = useMutation({
     mutationFn: async (input: { id: string; patch: Partial<ContentResource> }) => {
       setError(null);
-      const { error } = await supabase.from("content_resources").update(input.patch).eq("id", input.id);
+      const { error } = await supabase.from("content_resources").update(input.patch as never).eq("id", input.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["content-resources", nodeId] }),
