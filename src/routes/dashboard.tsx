@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import doctorAvatar from "@/assets/doctor-avatar.jpg";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "Panel de estudio · Kotaro Academy" },
