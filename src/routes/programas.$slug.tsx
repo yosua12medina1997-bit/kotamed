@@ -18,7 +18,7 @@ import {
 } from "@/lib/pediatria-programs";
 
 export const Route = createFileRoute("/programas/$slug")({
-  loader: ({ params }) => {
+  loader: ({ params }): { program: Program } => {
     const program = getProgram(params.slug);
     if (!program) throw notFound();
     return { program };
