@@ -644,7 +644,7 @@ function ResourcesPanel({ nodeId, nodeTitle }: { nodeId: string; nodeTitle: stri
         mime_type: r.mime_type ?? null,
         size_bytes: r.size_bytes ?? null,
         content: r.content ?? null,
-        metadata: r.metadata ?? {},
+        metadata: (r.metadata ?? {}) as never,
         sort_order: siblings.length,
         created_by: user?.id,
       });
