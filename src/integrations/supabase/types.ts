@@ -67,6 +67,68 @@ export type Database = {
           },
         ]
       }
+      content_resources: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          kind: string
+          metadata: Json
+          mime_type: string | null
+          node_id: string
+          size_bytes: number | null
+          sort_order: number
+          storage_path: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          kind: string
+          metadata?: Json
+          mime_type?: string | null
+          node_id: string
+          size_bytes?: number | null
+          sort_order?: number
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          kind?: string
+          metadata?: Json
+          mime_type?: string | null
+          node_id?: string
+          size_bytes?: number | null
+          sort_order?: number
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_resources_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "content_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           created_at: string
