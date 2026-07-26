@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PROGRAM_LABELS, useIsAdmin, useSupabaseUser, type ProgramSlug } from "@/lib/session";
-import { ArrowLeft, Loader2, Shield, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Loader2, Shield, Trash2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
