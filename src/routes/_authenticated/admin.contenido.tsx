@@ -16,6 +16,14 @@ import {
   X,
   Eye,
   EyeOff,
+  Paperclip,
+  Upload,
+  Film,
+  Link2,
+  FileText,
+  Image as ImageIcon,
+  ExternalLink,
+  Download,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/contenido")({
