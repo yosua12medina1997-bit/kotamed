@@ -31,13 +31,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 
 export const Route = createFileRoute("/programas/residentado/areas/$area")({
-  loader: ({ params }): { meta: EnamAreaMeta } => {
+  loader: ({ params }) => {
     const meta = getEnamArea(params.area);
     if (!meta) throw notFound();
-    return { meta };
+    return { slug: params.area };
   },
   head: ({ loaderData }) => {
-    if (!loaderData) {
+    const meta = loaderData ? getEnamArea(loaderData.slug) : null;
+    if (!meta) {
       return {
         meta: [
           { title: "Módulo no encontrado · Kotaro Academy" },
@@ -45,7 +46,6 @@ export const Route = createFileRoute("/programas/residentado/areas/$area")({
         ],
       };
     }
-    const { meta } = loaderData;
     return {
       meta: [
         { title: `${meta.title} · Residentado · Kotaro Academy` },
@@ -127,7 +127,8 @@ function slugify(s: string) {
 }
 
 function AreaModule() {
-  const { meta } = Route.useLoaderData() as { meta: EnamAreaMeta };
+  const { slug } = Route.useLoaderData() as { slug: string };
+  const meta = getEnamArea(slug) as EnamAreaMeta;
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: areaNode } = useAreaNode(meta.slug);

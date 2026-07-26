@@ -20,7 +20,6 @@ export const Route = createFileRoute("/programas/residentado/areas/")({
   }),
   loader: () => {
     if (ENAM_AREAS.length === 0) throw notFound();
-    return { areas: ENAM_AREAS };
   },
   component: AreasHub,
 });
