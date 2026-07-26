@@ -17,6 +17,7 @@ import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminContenidoRouteImport } from './routes/_authenticated/admin.contenido'
+import { Route as ProgramasResidentadoAreasIndexRouteImport } from './routes/programas.residentado.areas.index'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -58,6 +59,12 @@ const AuthenticatedAdminContenidoRoute =
     path: '/contenido',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const ProgramasResidentadoAreasIndexRoute =
+  ProgramasResidentadoAreasIndexRouteImport.update({
+    id: '/programas/residentado/areas/',
+    path: '/programas/residentado/areas/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
+  '/programas/residentado/areas/': typeof ProgramasResidentadoAreasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesByTo {
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas': typeof ProgramasIndexRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
+  '/programas/residentado/areas': typeof ProgramasResidentadoAreasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,6 +96,7 @@ export interface FileRoutesById {
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
   '/_authenticated/admin/contenido': typeof AuthenticatedAdminContenidoRoute
+  '/programas/residentado/areas/': typeof ProgramasResidentadoAreasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/programas/$slug'
     | '/programas/'
     | '/admin/contenido'
+    | '/programas/residentado/areas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/programas/$slug'
     | '/programas'
     | '/admin/contenido'
+    | '/programas/residentado/areas'
   id:
     | '__root__'
     | '/'
@@ -117,6 +129,7 @@ export interface FileRouteTypes {
     | '/programas/$slug'
     | '/programas/'
     | '/_authenticated/admin/contenido'
+    | '/programas/residentado/areas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -125,6 +138,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ProgramasSlugRoute: typeof ProgramasSlugRoute
   ProgramasIndexRoute: typeof ProgramasIndexRoute
+  ProgramasResidentadoAreasIndexRoute: typeof ProgramasResidentadoAreasIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -185,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminContenidoRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/programas/residentado/areas/': {
+      id: '/programas/residentado/areas/'
+      path: '/programas/residentado/areas'
+      fullPath: '/programas/residentado/areas/'
+      preLoaderRoute: typeof ProgramasResidentadoAreasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -218,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ProgramasSlugRoute: ProgramasSlugRoute,
   ProgramasIndexRoute: ProgramasIndexRoute,
+  ProgramasResidentadoAreasIndexRoute: ProgramasResidentadoAreasIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
