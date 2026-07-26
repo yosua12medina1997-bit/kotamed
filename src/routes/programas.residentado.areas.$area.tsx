@@ -127,7 +127,8 @@ function slugify(s: string) {
 }
 
 function AreaModule() {
-  const { meta } = Route.useLoaderData() as { meta: EnamAreaMeta };
+  const { slug } = Route.useLoaderData() as { slug: string };
+  const meta = getEnamArea(slug) as EnamAreaMeta;
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: areaNode } = useAreaNode(meta.slug);
