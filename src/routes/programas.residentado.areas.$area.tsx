@@ -31,13 +31,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 
 export const Route = createFileRoute("/programas/residentado/areas/$area")({
-  loader: ({ params }): { meta: EnamAreaMeta } => {
+  loader: ({ params }) => {
     const meta = getEnamArea(params.area);
     if (!meta) throw notFound();
-    return { meta };
+    return { slug: params.area };
   },
   head: ({ loaderData }) => {
-    if (!loaderData) {
+    const meta = loaderData ? getEnamArea(loaderData.slug) : null;
+    if (!meta) {
       return {
         meta: [
           { title: "Módulo no encontrado · Kotaro Academy" },
@@ -45,7 +46,6 @@ export const Route = createFileRoute("/programas/residentado/areas/$area")({
         ],
       };
     }
-    const { meta } = loaderData;
     return {
       meta: [
         { title: `${meta.title} · Residentado · Kotaro Academy` },
