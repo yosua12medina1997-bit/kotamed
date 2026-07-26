@@ -14,6 +14,7 @@ import {
   CHAPTER_TEMPLATE,
   getProgram,
   PROGRAMS,
+  type Program,
 } from "@/lib/pediatria-programs";
 
 export const Route = createFileRoute("/programas/$slug")({
