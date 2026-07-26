@@ -449,9 +449,6 @@ function TreeItem({
         </div>
       )}
 
-      {/* placeholder */}
-      {false && (
-
       {open && (
         <>
           {allowed.length > 0 && (
