@@ -440,6 +440,18 @@ function TreeItem({
         </div>
       )}
 
+      {resourcesOpen && (
+        <div
+          className="mb-2 rounded-xl border border-primary/20 bg-primary/[0.03] p-3"
+          style={{ marginLeft: 8 + depth * 18 + 24 }}
+        >
+          <ResourcesPanel nodeId={node.id} nodeTitle={node.title} />
+        </div>
+      )}
+
+      {/* placeholder */}
+      {false && (
+
       {open && (
         <>
           {allowed.length > 0 && (
