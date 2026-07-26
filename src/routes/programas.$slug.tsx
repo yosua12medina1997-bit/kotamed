@@ -46,7 +46,7 @@ export const Route = createFileRoute("/programas/$slug")({
 });
 
 function ProgramDetail() {
-  const { program } = Route.useLoaderData();
+  const { program } = Route.useLoaderData() as { program: Program };
   const accent = ACCENT_CLASSES[program.accent];
   const others = PROGRAMS.filter((p) => p.id !== program.id);
 
