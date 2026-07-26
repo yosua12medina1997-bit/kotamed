@@ -78,6 +78,7 @@ function ContenidoPage() {
   const navigate = useNavigate();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
   const qc = useQueryClient();
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user === null) navigate({ to: "/auth", replace: true });
@@ -118,6 +119,8 @@ function ContenidoPage() {
       slug: string;
       description?: string;
     }) => {
+      if (!user) throw new Error("Necesitas iniciar sesión para editar contenido.");
+      setMutationError(null);
       const siblings = tree.get(input.parent_id) ?? [];
       const sort_order = siblings.length;
       const { error } = await supabase.from("content_nodes").insert({
@@ -127,11 +130,12 @@ function ContenidoPage() {
         slug: input.slug || slugify(input.title),
         description: input.description || null,
         sort_order,
-        created_by: user!.id,
+        created_by: user.id,
       });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo crear el contenido."),
   });
 
   const updateMut = useMutation({
@@ -143,19 +147,23 @@ function ContenidoPage() {
       is_published?: boolean;
       sort_order?: number;
     }) => {
+      setMutationError(null);
       const { id, ...rest } = input;
       const { error } = await supabase.from("content_nodes").update(rest).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo guardar el cambio."),
   });
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
+      setMutationError(null);
       const { error } = await supabase.from("content_nodes").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo eliminar el contenido."),
   });
 
   if (adminLoading || isAdmin === undefined) {
@@ -201,6 +209,12 @@ function ContenidoPage() {
               onCreate={(v) => createMut.mutateAsync(v)}
             />
           </div>
+
+          {(mutationError || nodesQ.error) && (
+            <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+              {mutationError || (nodesQ.error instanceof Error ? nodesQ.error.message : "No se pudo cargar el contenido.")}
+            </div>
+          )}
 
           {nodesQ.isLoading ? (
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -305,7 +319,7 @@ function TreeItem({
           <div className="text-[11px] text-muted-foreground font-mono truncate">/{node.slug}</div>
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
           <button
             onClick={() =>
               onUpdate({ id: node.id, is_published: !node.is_published })
@@ -457,6 +471,7 @@ function AddInline({
   const [kind, setKind] = useState<NodeKind>(allowedKinds[0]);
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!open) {
     return (
@@ -476,6 +491,7 @@ function AddInline({
         e.preventDefault();
         if (!title.trim()) return;
         setBusy(true);
+        setError(null);
         try {
           await onCreate({
             parent_id: parentId,
@@ -485,6 +501,8 @@ function AddInline({
           });
           setTitle("");
           setOpen(false);
+        } catch (e) {
+          setError(e instanceof Error ? e.message : "No se pudo crear.");
         } finally {
           setBusy(false);
         }
@@ -524,6 +542,7 @@ function AddInline({
       >
         <X className="size-3.5" />
       </button>
+      {error && <span className="basis-full text-[11px] font-semibold text-destructive">{error}</span>}
     </form>
   );
 }
