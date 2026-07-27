@@ -28,6 +28,33 @@ import {
   PROGRAMS,
   type Program,
 } from "@/lib/pediatria-programs";
+import { ENAM_AREAS, type EnamAreaSlug } from "@/lib/enam-modules";
+
+/** Match a free-text area title to an ENAM module slug (residentado only). */
+function matchEnamSlug(title: string): EnamAreaSlug | null {
+  const norm = title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  for (const a of ENAM_AREAS) {
+    const t = a.title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (norm === t || norm.includes(t) || t.includes(norm)) return a.slug;
+  }
+  // heuristics by keyword
+  if (/\bmedicina\s+interna\b/.test(norm)) return "medicina-interna";
+  if (/\b(cirug|quirurg)/.test(norm)) return "ciencias-quirurgicas";
+  if (/\b(gineco|obstetr)/.test(norm)) return "ginecologia-obstetricia";
+  if (/\b(pediatr|neonat)/.test(norm)) return "pediatria-neonatologia";
+  if (/\bsalud\s+publica\b|\bepidemiolog/.test(norm)) return "salud-publica";
+  return null;
+}
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 
@@ -444,17 +471,38 @@ function AreasSection({
 
       {!editing && (
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-          {areas.map((area, i) => (
-            <div
-              key={`${area}-${i}`}
-              className="group flex items-center gap-3 rounded-xl border border-border bg-white/60 hover:bg-white/90 transition p-3"
-            >
-              <span className={`size-7 rounded-lg flex items-center justify-center text-[10px] font-bold tabular-nums ${accent.chip} border`}>
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="text-xs font-semibold text-foreground/85 leading-tight">{area}</span>
-            </div>
-          ))}
+          {areas.map((area, i) => {
+            const enamSlug = program.id === "residentado" ? matchEnamSlug(area) : null;
+            const inner = (
+              <>
+                <span className={`size-7 rounded-lg flex items-center justify-center text-[10px] font-bold tabular-nums ${accent.chip} border`}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="text-xs font-semibold text-foreground/85 leading-tight flex-1">{area}</span>
+                {enamSlug && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary opacity-0 group-hover:opacity-100 transition">
+                    Abrir →
+                  </span>
+                )}
+              </>
+            );
+            const cls =
+              "group flex items-center gap-3 rounded-xl border border-border bg-white/60 hover:bg-white/90 transition p-3";
+            return enamSlug ? (
+              <Link
+                key={`${area}-${i}`}
+                to="/programas/residentado/areas/$area"
+                params={{ area: enamSlug }}
+                className={cls + " hover:border-primary/40 hover:-translate-y-0.5"}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <div key={`${area}-${i}`} className={cls}>
+                {inner}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -510,9 +558,17 @@ function AreasSection({
       )}
 
       {program.id === "residentado" && !editing && (
-        <p className="mt-5 text-[11px] text-muted-foreground italic">
-          Cada área contendrá múltiples capítulos y subcapítulos. Estructura lista para incorporar contenido académico.
-        </p>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <p className="text-[11px] text-foreground/80 leading-relaxed max-w-xl">
+            Cada área es un ecosistema independiente con ruta académica, contenido, casos, banco, flashcards, simuladores, biblioteca y tutor IA.
+          </p>
+          <Link
+            to="/programas/residentado/areas/"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold bg-primary text-primary-foreground hover:opacity-90 transition"
+          >
+            Ver módulos ENAM <Sparkles className="size-3.5" />
+          </Link>
+        </div>
       )}
     </section>
   );
