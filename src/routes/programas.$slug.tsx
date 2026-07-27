@@ -28,6 +28,33 @@ import {
   PROGRAMS,
   type Program,
 } from "@/lib/pediatria-programs";
+import { ENAM_AREAS, type EnamAreaSlug } from "@/lib/enam-modules";
+
+/** Match a free-text area title to an ENAM module slug (residentado only). */
+function matchEnamSlug(title: string): EnamAreaSlug | null {
+  const norm = title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  for (const a of ENAM_AREAS) {
+    const t = a.title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (norm === t || norm.includes(t) || t.includes(norm)) return a.slug;
+  }
+  // heuristics by keyword
+  if (/\bmedicina\s+interna\b/.test(norm)) return "medicina-interna";
+  if (/\b(cirug|quirurg)/.test(norm)) return "ciencias-quirurgicas";
+  if (/\b(gineco|obstetr)/.test(norm)) return "ginecologia-obstetricia";
+  if (/\b(pediatr|neonat)/.test(norm)) return "pediatria-neonatologia";
+  if (/\bsalud\s+publica\b|\bepidemiolog/.test(norm)) return "salud-publica";
+  return null;
+}
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 
