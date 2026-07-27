@@ -235,7 +235,10 @@ function AreaModule() {
               isAdmin={!!isAdmin}
             />
           )}
-          {section === "contenido" && (
+          {section === "contenido" && meta.slug === "pediatria-neonatologia" && (
+            <PediatriaNeoContenido meta={meta} />
+          )}
+          {section === "contenido" && meta.slug !== "pediatria-neonatologia" && (
             <ContenidoSection meta={meta} areaNode={areaNode ?? null} isAdmin={!!isAdmin} />
           )}
           {section !== "presentacion" &&
