@@ -471,17 +471,38 @@ function AreasSection({
 
       {!editing && (
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-          {areas.map((area, i) => (
-            <div
-              key={`${area}-${i}`}
-              className="group flex items-center gap-3 rounded-xl border border-border bg-white/60 hover:bg-white/90 transition p-3"
-            >
-              <span className={`size-7 rounded-lg flex items-center justify-center text-[10px] font-bold tabular-nums ${accent.chip} border`}>
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="text-xs font-semibold text-foreground/85 leading-tight">{area}</span>
-            </div>
-          ))}
+          {areas.map((area, i) => {
+            const enamSlug = program.id === "residentado" ? matchEnamSlug(area) : null;
+            const inner = (
+              <>
+                <span className={`size-7 rounded-lg flex items-center justify-center text-[10px] font-bold tabular-nums ${accent.chip} border`}>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="text-xs font-semibold text-foreground/85 leading-tight flex-1">{area}</span>
+                {enamSlug && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary opacity-0 group-hover:opacity-100 transition">
+                    Abrir →
+                  </span>
+                )}
+              </>
+            );
+            const cls =
+              "group flex items-center gap-3 rounded-xl border border-border bg-white/60 hover:bg-white/90 transition p-3";
+            return enamSlug ? (
+              <Link
+                key={`${area}-${i}`}
+                to="/programas/residentado/areas/$area"
+                params={{ area: enamSlug }}
+                className={cls + " hover:border-primary/40 hover:-translate-y-0.5"}
+              >
+                {inner}
+              </Link>
+            ) : (
+              <div key={`${area}-${i}`} className={cls}>
+                {inner}
+              </div>
+            );
+          })}
         </div>
       )}
 
