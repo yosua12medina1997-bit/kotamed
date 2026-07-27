@@ -29,6 +29,7 @@ import {
 } from "@/lib/enam-modules";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { PediatriaNeoContenido } from "@/components/PediatriaNeoContenido";
 
 export const Route = createFileRoute("/programas/residentado/areas/$area")({
   loader: ({ params }) => {
@@ -234,7 +235,10 @@ function AreaModule() {
               isAdmin={!!isAdmin}
             />
           )}
-          {section === "contenido" && (
+          {section === "contenido" && meta.slug === "pediatria-neonatologia" && (
+            <PediatriaNeoContenido meta={meta} />
+          )}
+          {section === "contenido" && meta.slug !== "pediatria-neonatologia" && (
             <ContenidoSection meta={meta} areaNode={areaNode ?? null} isAdmin={!!isAdmin} />
           )}
           {section !== "presentacion" &&
