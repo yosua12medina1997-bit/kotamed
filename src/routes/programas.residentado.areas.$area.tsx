@@ -29,6 +29,7 @@ import {
 } from "@/lib/enam-modules";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { PediatriaNeoContenido } from "@/components/PediatriaNeoContenido";
 
 export const Route = createFileRoute("/programas/residentado/areas/$area")({
   loader: ({ params }) => {
