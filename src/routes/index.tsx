@@ -21,11 +21,11 @@ export const Route = createFileRoute("/")({
         content:
           "Plataforma premium de educación médica: ENAM, ESSALUD, internado y residencia de Pediatría. Tutor IA con evidencia AAP, Nelson y UpToDate.",
       },
-      { property: "og:title", content: "Kotaro Academy · Educación médica premium" },
+      { property: "og:title", content: "Kotaro Academy · Preparación médica premium con IA" },
       {
         property: "og:description",
         content:
-          "Prepárate para el Residentado y formación durante toda la residencia. Aprendizaje inteligente con IA basada en fuentes oficiales.",
+          "Plataforma premium de educación médica: ENAM, ESSALUD, internado y residencia de Pediatría. Tutor IA con evidencia AAP, Nelson y UpToDate.",
       },
       { property: "og:type", content: "website" },
     ],
