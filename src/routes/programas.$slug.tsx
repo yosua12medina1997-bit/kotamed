@@ -558,9 +558,17 @@ function AreasSection({
       )}
 
       {program.id === "residentado" && !editing && (
-        <p className="mt-5 text-[11px] text-muted-foreground italic">
-          Cada área contendrá múltiples capítulos y subcapítulos. Estructura lista para incorporar contenido académico.
-        </p>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <p className="text-[11px] text-foreground/80 leading-relaxed max-w-xl">
+            Cada área es un ecosistema independiente con ruta académica, contenido, casos, banco, flashcards, simuladores, biblioteca y tutor IA.
+          </p>
+          <Link
+            to="/programas/residentado/areas/"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold bg-primary text-primary-foreground hover:opacity-90 transition"
+          >
+            Ver módulos ENAM <Sparkles className="size-3.5" />
+          </Link>
+        </div>
       )}
     </section>
   );
