@@ -547,6 +547,3 @@ function filterBlock(block: BlueprintBlock, q: string): BlueprintBlock {
   }
   return { ...block, categories };
 }
-
-// silence unused import warning in strict setups
-void useEffect;
