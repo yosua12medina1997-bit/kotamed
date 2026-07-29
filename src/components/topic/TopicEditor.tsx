@@ -209,19 +209,23 @@ export function TopicEditor({
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-4 md:px-6 pt-2 border-b border-border/40">
+      <div className="flex gap-1 px-4 md:px-6 pt-2 border-b border-border/40 overflow-x-auto">
         {(
           [
             ["structure", "Estructura"],
             ["slide", "Editar slide"],
             ["ai", "IA"],
+            ["notebook", "Notebook IA"],
             ["import", "Fuente"],
-          ] as const
+            ["templates", "Plantillas"],
+            ...(nodeId ? ([["resources", "Recursos"]] as const) : []),
+            ["versions", "Versiones"],
+          ] as [Tab, string][]
         ).map(([id, label]) => (
           <button
             key={id}
             onClick={() => setTab(id)}
-            className={`px-3 py-2 text-xs font-bold rounded-t-lg transition ${
+            className={`shrink-0 px-3 py-2 text-xs font-bold rounded-t-lg transition ${
               tab === id
                 ? "bg-background border border-b-background border-border/40 -mb-px text-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -231,6 +235,7 @@ export function TopicEditor({
           </button>
         ))}
       </div>
+
 
       <div className="flex-1 overflow-hidden grid md:grid-cols-[minmax(280px,340px)_1fr]">
         {/* Left: slide list */}
