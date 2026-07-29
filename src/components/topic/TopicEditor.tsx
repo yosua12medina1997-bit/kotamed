@@ -466,18 +466,8 @@ function SlideForm({
   slide: Slide;
   accent: string;
   onPatch: (patch: Partial<Slide>) => void;
-  onTransform: (
-    a:
-      | "expand"
-      | "summarize"
-      | "improve"
-      | "update-guidelines"
-      | "add-references"
-      | "to-table"
-      | "to-flowchart"
-      | "to-cards"
-      | "to-case",
-  ) => void;
+  onTransform: (a: SlideAction) => void;
+
   transforming: boolean;
 }) {
   const bullets = slide.bullets ?? [];
