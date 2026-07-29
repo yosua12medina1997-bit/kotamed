@@ -281,7 +281,9 @@ function TopicDetail({
   accent: string;
   isAdmin: boolean;
 }) {
-  const isPharma = /farmacolog/i.test(topic.title) || (topic as any).key === "farmacologia";
+  const isPharma =
+    category.key === "farmacologia" ||
+    /farmacolog|dosis|calculadora/i.test(topic.title);
   const [tab, setTab] = useState<"plantilla" | "recursos" | "farmacologia">(
     isPharma ? "farmacologia" : isAdmin ? "recursos" : "plantilla",
   );
