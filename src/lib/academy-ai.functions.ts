@@ -23,7 +23,7 @@ async function assertAdmin(supabase: any, userId: string) {
 function model() {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("Falta LOVABLE_API_KEY.");
-  return createLovableAiGatewayProvider(key).chatModel("google/gemini-3.6-flash");
+  return createLovableAiGatewayProvider(key, { structuredOutputs: true }).chatModel("google/gemini-3.6-flash");
 }
 
 const SYSTEM = `Eres un editor médico académico senior (Pediatría y Neonatología) que produce material educativo en español (Perú / Latinoamérica).
