@@ -637,8 +637,8 @@ function ResourceRow({
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={5}
-              className="bg-background border border-border rounded-lg px-2.5 py-2 text-xs outline-none focus:ring-2 focus:ring-ring font-mono"
+              rows={12}
+              className="bg-background border border-border rounded-lg px-2.5 py-2 text-xs outline-none focus:ring-2 focus:ring-ring font-mono min-h-56"
             />
           )}
           <div className="flex justify-end gap-2">
