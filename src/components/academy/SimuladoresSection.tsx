@@ -22,8 +22,8 @@ type SimRow = {
   title: string;
   level: string;
   mode: string;
-  summary: string | null;
-  content: any;
+  topic: string | null;
+  scenario: any;
 };
 
 export function SimuladoresSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdmin: boolean }) {
@@ -92,10 +92,10 @@ export function SimuladoresSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAd
                 <div className="flex flex-wrap gap-1.5">
                   <Chip accent={accent}>{s.level}</Chip>
                   <Chip>{s.mode}</Chip>
-                  <Chip>{s.content?.events?.length ?? 0} eventos</Chip>
+                  <Chip>{s.scenario?.events?.length ?? 0} eventos</Chip>
                 </div>
                 <h3 className="mt-2 text-sm font-bold tracking-tight">{s.title}</h3>
-                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{s.summary}</p>
+                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{s.scenario?.summary}</p>
               </div>
               {isAdmin && (
                 <button
@@ -171,14 +171,14 @@ function SimCreator({
     setBusy(true);
     try {
       const res: any = await gen({ data: { prompt, level, mode } });
-      const { title, summary, ...content } = res;
+      const { title, ...scenario } = res;
       const { error } = await db.from("academy_simulators").insert({
         area_slug: meta.slug,
         title,
-        summary,
+        topic: prompt,
         level,
         mode,
-        content,
+        scenario,
       });
       if (error) throw new Error(error.message);
       toast.success("Simulador creado");
@@ -241,7 +241,7 @@ function SimRunner({
   areaSlug: string;
   onClose: () => void;
 }) {
-  const c = row.content ?? {};
+  const c = row.scenario ?? {};
   const events: any[] = c.events ?? [];
   const [step, setStep] = useState(0);
   const [picked, setPicked] = useState<Record<number, number>>({});

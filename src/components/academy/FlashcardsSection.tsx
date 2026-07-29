@@ -282,14 +282,13 @@ function ReviewRunner({
       await db.from("academy_flashcard_reviews").upsert(
         {
           card_id: card.id,
-          area_slug: areaSlug,
-          grade: g,
+          last_grade: g,
           interval_days: days,
           ease: g >= 4 ? 2.6 : 2.2,
           due_at: due,
-          reviewed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         },
-        { onConflict: "card_id,user_id" },
+        { onConflict: "user_id,card_id" },
       );
     } catch {
       /* noop */

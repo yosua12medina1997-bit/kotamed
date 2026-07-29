@@ -21,7 +21,7 @@ type Ev = {
   created_at: string;
 };
 
-type Attempt = { is_correct: boolean; time_seconds: number; created_at: string };
+type Attempt = { is_correct: boolean; seconds: number; created_at: string };
 
 function dayKey(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -52,7 +52,7 @@ export function ProgresoSection({ meta }: { meta: EnamAreaMeta; isAdmin?: boolea
     queryFn: async () => {
       const { data, error } = await db
         .from("academy_attempts")
-        .select("is_correct,time_seconds,created_at")
+        .select("is_correct,seconds,created_at")
         .eq("area_slug", meta.slug)
         .order("created_at", { ascending: false })
         .limit(2000);
@@ -84,7 +84,7 @@ export function ProgresoSection({ meta }: { meta: EnamAreaMeta; isAdmin?: boolea
     }
     const correct = at.filter((a) => a.is_correct).length;
     const avgTime = at.length
-      ? Math.round(at.reduce((s, a) => s + (a.time_seconds ?? 0), 0) / at.length)
+      ? Math.round(at.reduce((s, a) => s + (a.seconds ?? 0), 0) / at.length)
       : 0;
     const byActivity = new Map<string, number>();
     for (const e of evs) byActivity.set(e.activity, (byActivity.get(e.activity) ?? 0) + e.minutes);

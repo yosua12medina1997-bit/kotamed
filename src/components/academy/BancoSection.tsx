@@ -37,7 +37,7 @@ type QRow = {
   tags: string[];
   difficulty: number;
   time_seconds: number;
-  source: string;
+  bank: string;
 };
 
 export function BancoSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdmin: boolean }) {
@@ -76,7 +76,7 @@ export function BancoSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdmin: b
     const t = topic.trim().toLowerCase();
     return all.filter(
       (q) =>
-        (bank === "all" || q.source === bank) &&
+        (bank === "all" || q.bank === bank) &&
         (!level || q.level === level) &&
         (!t ||
           q.stem.toLowerCase().includes(t) ||
@@ -85,8 +85,8 @@ export function BancoSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdmin: b
     );
   }, [list.data, bank, level, topic]);
 
-  const personal = (list.data ?? []).filter((q) => q.source === "personal").length;
-  const ia = (list.data ?? []).filter((q) => q.source === "ia").length;
+  const personal = (list.data ?? []).filter((q) => q.bank === "personal").length;
+  const ia = (list.data ?? []).filter((q) => q.bank === "ia").length;
 
   return (
     <Panel
@@ -279,7 +279,7 @@ function QBankTool({
       tags: q.tags ?? [],
       difficulty: Number(q.difficulty) || difficulty,
       time_seconds: Number(q.timeSeconds) || 60,
-      source,
+      bank: source,
     }));
     for (let i = 0; i < payload.length; i += 100) {
       const { error } = await db.from("academy_questions").insert(payload.slice(i, i + 100));
@@ -506,9 +506,10 @@ function PracticeRunner({
       await db.from("academy_attempts").insert({
         question_id: q.id,
         area_slug: areaSlug,
-        selected_index: oi,
+        chosen_index: oi,
         is_correct: ok,
-        time_seconds: Math.round((Date.now() - start) / 1000),
+        seconds: Math.round((Date.now() - start) / 1000),
+        topic: q.topic,
       });
     } catch {
       /* noop */

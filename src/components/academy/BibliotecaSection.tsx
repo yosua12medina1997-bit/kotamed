@@ -45,7 +45,7 @@ type Item = {
 type VideoRow = {
   id: string;
   title: string;
-  content: any;
+  storyboard: any;
 };
 
 export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdmin: boolean }) {
@@ -76,7 +76,7 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
     queryFn: async () => {
       const { data, error } = await db
         .from("academy_video_scripts")
-        .select("id,title,content")
+        .select("id,title,storyboard")
         .eq("area_slug", meta.slug)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -241,12 +241,12 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
                 <Chip accent={accent}>
                   <Film className="size-3" /> storyboard
                 </Chip>
-                <Chip>{v.content?.scenes?.length ?? 0} escenas</Chip>
-                <Chip>{v.content?.durationMinutes ?? "?"} min</Chip>
+                <Chip>{v.storyboard?.scenes?.length ?? 0} escenas</Chip>
+                <Chip>{v.storyboard?.durationMinutes ?? "?"} min</Chip>
               </div>
               <h3 className="mt-2 text-sm font-bold tracking-tight">{v.title}</h3>
               <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                {v.content?.logline}
+                {v.storyboard?.logline}
               </p>
               <div className="mt-3">
                 <Btn variant="solid" accent={accent} onClick={() => setOpenVideo(v)}>
@@ -293,7 +293,7 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
 
       {openVideo && (
         <Modal title={openVideo.title} onClose={() => setOpenVideo(null)} wide>
-          <StoryboardView content={openVideo.content} accent={accent} title={openVideo.title} />
+          <StoryboardView content={openVideo.storyboard} accent={accent} title={openVideo.title} />
         </Modal>
       )}
     </Panel>
@@ -451,12 +451,12 @@ function VideoCreator({
     setBusy(true);
     try {
       const res: any = await gen({ data: { prompt, minutes } });
-      const { title, ...content } = res;
+      const { title, ...storyboard } = res;
       const { error } = await db.from("academy_video_scripts").insert({
         area_slug: meta.slug,
         title,
-        prompt,
-        content,
+        topic: prompt,
+        storyboard,
       });
       if (error) throw new Error(error.message);
       toast.success("Storyboard generado");
