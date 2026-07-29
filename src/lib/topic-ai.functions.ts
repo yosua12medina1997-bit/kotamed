@@ -232,13 +232,30 @@ const SLIDE_ACTIONS = [
   "expand",
   "summarize",
   "improve",
+  "rewrite",
+  "level-student",
+  "level-resident",
+  "level-specialist",
   "update-guidelines",
+  "update-aap",
+  "update-nelson",
+  "update-minsa",
+  "update-who",
   "add-references",
+  "vancouver",
   "to-table",
+  "to-comparison",
   "to-flowchart",
   "to-cards",
   "to-case",
+  "to-timeline",
+  "to-steps",
+  "to-pearls",
+  "to-mistakes",
+  "to-summary",
+  "to-diagram",
 ] as const;
+
 
 export const transformSlide = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
