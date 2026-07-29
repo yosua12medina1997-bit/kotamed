@@ -450,7 +450,17 @@ function TopicDetail({
         </div>
       )}
 
-      {tab === "recursos" && isAdmin ? (
+      {tab === "farmacologia" && isPharma ? (
+        <PharmaWorkspace
+          nodeId={nodeQ.data?.id ?? null}
+          isAdmin={isAdmin}
+          accent={accent}
+          initialDrugs={
+            ((nodeQ.data?.metadata as any)?.pharma?.drugs as PharmaDrug[] | undefined) ?? null
+          }
+        />
+      ) : tab === "recursos" && isAdmin ? (
+
         <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3">
           {nodeQ.isLoading || !nodeQ.data ? (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
