@@ -138,17 +138,18 @@ export function TopicEditor({
     });
   };
 
-  const addSlide = () => {
+  const addSlide = (kind: SlideKind = "intro") => {
     setTopic((t) => ({
       ...t,
       slides: [
         ...t.slides,
-        { id: randomId(), kind: "intro", title: "Nueva diapositiva", body: "" },
+        { id: randomId(), kind, title: SLIDE_KIND_LABEL[kind], body: "" },
       ],
     }));
     setActiveIdx(topic.slides.length);
     setTab("slide");
   };
+
   const duplicateAt = (i: number) => {
     setTopic((t) => {
       const src = t.slides[i];
