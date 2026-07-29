@@ -15,13 +15,16 @@ import {
   ListChecks,
   Loader2,
   Pencil,
+  Play,
   Save,
   Search,
   Shield,
+  Sparkles,
   Stethoscope,
   X,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import {
@@ -33,6 +36,9 @@ import {
 } from "@/lib/pediatria-neonatologia-blueprint";
 import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
+import { TopicPresenter } from "@/components/topic/TopicPresenter";
+import { TopicEditor } from "@/components/topic/TopicEditor";
+import type { Topic } from "@/lib/topic-schema";
 
 type BlockKey = BlueprintBlock["key"];
 
