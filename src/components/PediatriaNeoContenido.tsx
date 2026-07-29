@@ -63,6 +63,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
   const [query, setQuery] = useState("");
   const [openCat, setOpenCat] = useState<string | null>(null);
   const [openTopic, setOpenTopic] = useState<string | null>(null);
+  const [pharmaOpen, setPharmaOpen] = useState(false);
 
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
