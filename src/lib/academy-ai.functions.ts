@@ -40,6 +40,12 @@ async function structured<T>(schema: z.ZodType<T>, prompt: string, system = SYST
     });
     return output as T;
   } catch (error) {
+    console.error("[academy-ai] structured error", {
+      name: (error as any)?.name,
+      message: (error as any)?.message?.slice?.(0, 800),
+      text: (error as any)?.text?.slice?.(0, 800),
+      cause: String((error as any)?.cause ?? "").slice(0, 800),
+    });
     if (NoObjectGeneratedError.isInstance(error)) {
       try {
         return schema.parse(JSON.parse((error as any).text ?? "{}"));
