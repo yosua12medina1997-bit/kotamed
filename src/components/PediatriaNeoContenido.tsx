@@ -106,15 +106,25 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
             {isAdmin && " Como admin, puedes editar cada tema, subir archivos e insertar videos."}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Stat label="Bloques" value="2" accent={meta.accent} />
-          <Stat
-            label="Categorías"
-            value={PEDIATRIA_NEONATOLOGIA_BLUEPRINT.reduce((a, b) => a + b.categories.length, 0)}
-            accent={meta.accent}
-          />
-          <Stat label="Temas" value={totalTopics} accent={meta.accent} />
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-3">
+            <Stat label="Bloques" value="2" accent={meta.accent} />
+            <Stat
+              label="Categorías"
+              value={PEDIATRIA_NEONATOLOGIA_BLUEPRINT.reduce((a, b) => a + b.categories.length, 0)}
+              accent={meta.accent}
+            />
+            <Stat label="Temas" value={totalTopics} accent={meta.accent} />
+          </div>
+          <button
+            onClick={() => setPharmaOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
+          >
+            <Calculator className="size-3.5" style={{ color: meta.accent }} />
+            Calculadora farmacológica
+          </button>
         </div>
+
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
