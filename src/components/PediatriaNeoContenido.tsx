@@ -264,8 +264,12 @@ function TopicDetail({
   accent: string;
   isAdmin: boolean;
 }) {
-  const [tab, setTab] = useState<"plantilla" | "recursos">(isAdmin ? "recursos" : "plantilla");
+  const isPharma = /farmacolog/i.test(topic.title) || (topic as any).key === "farmacologia";
+  const [tab, setTab] = useState<"plantilla" | "recursos" | "farmacologia">(
+    isPharma ? "farmacologia" : isAdmin ? "recursos" : "plantilla",
+  );
   const nodeQ = useTopicNode(block, category, topic, { create: isAdmin });
+
   const [editing, setEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(topic.title);
   const [presenterOpen, setPresenterOpen] = useState(false);
