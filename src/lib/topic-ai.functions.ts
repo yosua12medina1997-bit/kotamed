@@ -287,7 +287,32 @@ export const transformSlide = createServerFn({ method: "POST" })
       "to-cards": "Convierte el contenido en tarjetas (kind='cards') con 3-6 cards.",
       "to-case":
         "Convierte el contenido en un caso clínico (kind='case') con caseText breve y 2-3 caseQuestions.",
+      rewrite: "Reescribe el contenido con otro enfoque didáctico manteniendo el mismo kind.",
+      "level-student":
+        "Reescribe el contenido para estudiantes de pregrado: lenguaje claro, conceptos base.",
+      "level-resident":
+        "Reescribe el contenido para residentes: enfoque práctico, manejo y toma de decisiones.",
+      "level-specialist":
+        "Reescribe el contenido para especialistas: matices, evidencia reciente y controversias.",
+      "update-aap": "Actualiza el contenido según las recomendaciones vigentes de la AAP.",
+      "update-nelson": "Actualiza el contenido según Nelson Textbook of Pediatrics 21ed.",
+      "update-minsa": "Actualiza el contenido según normas y guías del MINSA (Perú).",
+      "update-who": "Actualiza el contenido según las guías de la OMS/WHO.",
+      vancouver:
+        "Cambia el kind a 'references' y devuelve 5-8 referencias en formato Vancouver correcto.",
+      "to-comparison":
+        "Convierte el contenido en una comparación (kind='comparison') con tableHeaders y tableRows.",
+      "to-timeline":
+        "Convierte el contenido en una cronología (kind='timeline') con 4-8 hitos.",
+      "to-steps": "Convierte el contenido en pasos numerados (kind='steps') con 3-8 pasos.",
+      "to-pearls": "Convierte el contenido en perlas clínicas (kind='pearls') con 4-6 bullets.",
+      "to-mistakes":
+        "Convierte el contenido en errores frecuentes (kind='mistakes') con 4-6 bullets.",
+      "to-summary": "Convierte el contenido en un resumen ejecutivo (kind='summary').",
+      "to-diagram":
+        "Convierte el contenido en un diagrama conceptual (kind='diagram') usando flowchartNodes y flowchartEdges.",
     };
+
 
     try {
       const { output } = await generateText({
