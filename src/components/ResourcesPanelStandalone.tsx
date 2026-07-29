@@ -450,6 +450,8 @@ function ResourceRow({
   const [content, setContent] = useState(r.content ?? "");
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [inlineOpen, setInlineOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   async function getSigned() {
     if (!r.storage_path || signedUrl) return;
