@@ -15,13 +15,16 @@ import {
   ListChecks,
   Loader2,
   Pencil,
+  Play,
   Save,
   Search,
   Shield,
+  Sparkles,
   Stethoscope,
   X,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import {
@@ -33,6 +36,9 @@ import {
 } from "@/lib/pediatria-neonatologia-blueprint";
 import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
+import { TopicPresenter } from "@/components/topic/TopicPresenter";
+import { TopicEditor } from "@/components/topic/TopicEditor";
+import type { Topic } from "@/lib/topic-schema";
 
 type BlockKey = BlueprintBlock["key"];
 
@@ -259,10 +265,17 @@ function TopicDetail({
   isAdmin: boolean;
 }) {
   const [tab, setTab] = useState<"plantilla" | "recursos">(isAdmin ? "recursos" : "plantilla");
-  const nodeQ = useTopicNode(block, category, topic, isAdmin);
+  const nodeQ = useTopicNode(block, category, topic, { create: isAdmin });
   const [editing, setEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(topic.title);
+  const [presenterOpen, setPresenterOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
   const qc = useQueryClient();
+
+  const storedTopic: Topic | null = useMemo(() => {
+    const md = nodeQ.data?.metadata as { topic?: Topic } | null | undefined;
+    return md?.topic ?? null;
+  }, [nodeQ.data]);
 
   const renameMut = useMutation({
     mutationFn: async (title: string) => {
@@ -279,73 +292,132 @@ function TopicDetail({
     },
   });
 
+  const saveTopicMut = useMutation({
+    mutationFn: async (t: Topic) => {
+      if (!nodeQ.data) throw new Error("Nodo aún no listo");
+      const currentMd = (nodeQ.data.metadata ?? {}) as Record<string, unknown>;
+      const nextMd = { ...currentMd, topic: t };
+      const { error } = await supabase
+        .from("content_nodes")
+        .update({ metadata: nextMd })
+        .eq("id", nodeQ.data.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pednn-topic-node"] });
+      toast.success("Tema guardado");
+      setEditorOpen(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar"),
+  });
+
+  const openPresenter = () => {
+    if (!storedTopic) {
+      toast.info(
+        isAdmin
+          ? "Este tema aún no tiene contenido. Ábrelo con IA para generarlo."
+          : "Este tema aún no tiene contenido publicado.",
+      );
+      return;
+    }
+    setPresenterOpen(true);
+  };
+
   return (
     <div className="px-4 pb-4 pt-1">
-      {isAdmin && (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <button
+          onClick={openPresenter}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-white shadow-sm"
+          style={{ background: accent }}
+        >
+          <Play className="size-3" /> Abrir tema
+        </button>
+        {isAdmin && (
           <button
-            onClick={() => setTab("recursos")}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-              tab === "recursos"
-                ? "bg-primary text-primary-foreground border-primary"
-                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-            }`}
+            onClick={() => setEditorOpen(true)}
+            disabled={!nodeQ.data}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/[0.06] px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10 disabled:opacity-40"
           >
-            Editor de recursos
+            <Sparkles className="size-3" /> Editar con IA
           </button>
-          <button
-            onClick={() => setTab("plantilla")}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-              tab === "plantilla"
-                ? "bg-primary text-primary-foreground border-primary"
-                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Plantilla estándar
-          </button>
-          <div className="flex-1" />
-          {editing ? (
-            <div className="flex items-center gap-1">
-              <input
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                className="bg-background border border-border rounded-lg px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-ring"
-              />
-              <button
-                onClick={() => renameMut.mutate(newTitle.trim() || topic.title)}
-                disabled={renameMut.isPending}
-                className="p-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold disabled:opacity-50"
-                title="Guardar título"
-              >
-                {renameMut.isPending ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Save className="size-3.5" />
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setNewTitle(topic.title);
-                  setEditing(false);
-                }}
-                className="p-1.5 rounded-lg text-muted-foreground hover:bg-foreground/[0.05]"
-              >
-                <X className="size-3.5" />
-              </button>
-            </div>
-          ) : (
+        )}
+        {isAdmin && (
+          <>
+            <button
+              onClick={() => setTab("recursos")}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
+                tab === "recursos"
+                  ? "bg-foreground text-background border-foreground"
+                  : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Recursos
+            </button>
+            <button
+              onClick={() => setTab("plantilla")}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
+                tab === "plantilla"
+                  ? "bg-foreground text-background border-foreground"
+                  : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Plantilla
+            </button>
+          </>
+        )}
+        <div className="flex-1" />
+        {isAdmin && editing ? (
+          <div className="flex items-center gap-1">
+            <input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              className="bg-background border border-border rounded-lg px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-ring"
+            />
+            <button
+              onClick={() => renameMut.mutate(newTitle.trim() || topic.title)}
+              disabled={renameMut.isPending}
+              className="p-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold disabled:opacity-50"
+              title="Guardar título"
+            >
+              {renameMut.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Save className="size-3.5" />
+              )}
+            </button>
             <button
               onClick={() => {
-                setNewTitle(nodeQ.data?.title ?? topic.title);
-                setEditing(true);
+                setNewTitle(topic.title);
+                setEditing(false);
               }}
-              disabled={!nodeQ.data}
-              title="Renombrar sección"
-              className="inline-flex items-center gap-1 rounded-lg border border-border bg-background/60 px-2 py-1 text-[11px] font-bold text-muted-foreground hover:text-foreground disabled:opacity-40"
+              className="p-1.5 rounded-lg text-muted-foreground hover:bg-foreground/[0.05]"
             >
-              <Pencil className="size-3" /> Renombrar
+              <X className="size-3.5" />
             </button>
-          )}
+          </div>
+        ) : isAdmin ? (
+          <button
+            onClick={() => {
+              setNewTitle(nodeQ.data?.title ?? topic.title);
+              setEditing(true);
+            }}
+            disabled={!nodeQ.data}
+            title="Renombrar sección"
+            className="inline-flex items-center gap-1 rounded-lg border border-border bg-background/60 px-2 py-1 text-[11px] font-bold text-muted-foreground hover:text-foreground disabled:opacity-40"
+          >
+            <Pencil className="size-3" /> Renombrar
+          </button>
+        ) : null}
+      </div>
+
+      {storedTopic && (
+        <div className="mb-3 rounded-xl border border-border/50 bg-background/40 px-3 py-2 text-[11px] text-muted-foreground">
+          <span className="font-bold text-foreground">{storedTopic.slides.length}</span>{" "}
+          diapositivas · última actualización{" "}
+          {storedTopic.meta?.updatedAt
+            ? new Date(storedTopic.meta.updatedAt).toLocaleDateString()
+            : "—"}
         </div>
       )}
 
@@ -412,19 +484,39 @@ function TopicDetail({
           </div>
         </div>
       )}
+
+      {presenterOpen && storedTopic && (
+        <TopicPresenter
+          topic={storedTopic}
+          accent={accent}
+          onClose={() => setPresenterOpen(false)}
+        />
+      )}
+      {editorOpen && isAdmin && (
+        <TopicEditor
+          initialTopic={storedTopic}
+          fallbackTitle={topic.title}
+          accent={accent}
+          onClose={() => setEditorOpen(false)}
+          onSave={(t) => saveTopicMut.mutateAsync(t)}
+          saving={saveTopicMut.isPending}
+        />
+      )}
     </div>
   );
 }
 
 /**
  * Asegura la ruta root → block → category → topic en `content_nodes` y
- * devuelve el nodo del tema. Solo se ejecuta si el usuario es admin.
+ * devuelve el nodo del tema con su metadata.
+ * - Admin (`create: true`): crea nodos faltantes.
+ * - Estudiante (`create: false`): sólo lookup; devuelve null si falta algún nivel.
  */
 function useTopicNode(
   block: BlueprintBlock,
   category: BlueprintCategory,
   topic: BlueprintTopic,
-  enabled: boolean,
+  opts: { create: boolean },
 ) {
   const user = useSupabaseUser();
   return useQuery({
@@ -433,64 +525,56 @@ function useTopicNode(
       block.key,
       category.key,
       slugify(topic.title),
+      opts.create,
     ],
-    enabled: enabled && !!user?.id,
+    enabled: !!user?.id,
     queryFn: async () => {
       const uid = user!.id;
-      const root = await ensureNode({
-        parent_id: null,
-        kind: "course",
-        title: ROOT_TITLE,
-        slug: ROOT_SLUG,
-        userId: uid,
-      });
-      const blockNode = await ensureNode({
-        parent_id: root.id,
-        kind: "program",
-        title: block.title,
-        slug: block.key,
-        userId: uid,
-      });
-      const catNode = await ensureNode({
-        parent_id: blockNode.id,
-        kind: "area",
-        title: category.title,
-        slug: category.key,
-        userId: uid,
-      });
-      const topicNode = await ensureNode({
-        parent_id: catNode.id,
-        kind: "chapter",
-        title: topic.title,
-        slug: slugify(topic.title),
-        userId: uid,
-      });
+      const step = async (
+        parent_id: string | null,
+        kind: "course" | "program" | "area" | "chapter",
+        title: string,
+        slug: string,
+      ) => {
+        const existing = await selectNode(parent_id, slug);
+        if (existing) return existing;
+        if (!opts.create) return null;
+        return await insertNode({ parent_id, kind, title, slug, userId: uid });
+      };
+      const root = await step(null, "course", ROOT_TITLE, ROOT_SLUG);
+      if (!root) return null;
+      const blockNode = await step(root.id, "program", block.title, block.key);
+      if (!blockNode) return null;
+      const catNode = await step(blockNode.id, "area", category.title, category.key);
+      if (!catNode) return null;
+      const topicNode = await step(catNode.id, "chapter", topic.title, slugify(topic.title));
       return topicNode;
     },
     staleTime: 60_000,
   });
 }
 
-async function ensureNode(input: {
+async function selectNode(parent_id: string | null, slug: string) {
+  let query = supabase
+    .from("content_nodes")
+    .select("id,parent_id,kind,title,slug,is_published,metadata")
+    .eq("slug", slug)
+    .limit(1);
+  if (parent_id === null) query = query.is("parent_id", null);
+  else query = query.eq("parent_id", parent_id);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data && data.length > 0 ? data[0] : null;
+}
+
+async function insertNode(input: {
   parent_id: string | null;
   kind: "course" | "program" | "area" | "subarea" | "chapter" | "lesson";
   title: string;
   slug: string;
   userId: string;
 }) {
-  // Look up by (parent_id, slug)
-  let query = supabase
-    .from("content_nodes")
-    .select("id,parent_id,kind,title,slug,is_published")
-    .eq("slug", input.slug)
-    .limit(1);
-  if (input.parent_id === null) query = query.is("parent_id", null);
-  else query = query.eq("parent_id", input.parent_id);
-  const { data: found, error: selErr } = await query;
-  if (selErr) throw selErr;
-  if (found && found.length > 0) return found[0];
-
-  const { data: created, error: insErr } = await supabase
+  const { data, error } = await supabase
     .from("content_nodes")
     .insert({
       parent_id: input.parent_id,
@@ -500,10 +584,10 @@ async function ensureNode(input: {
       sort_order: 0,
       created_by: input.userId,
     })
-    .select("id,parent_id,kind,title,slug,is_published")
+    .select("id,parent_id,kind,title,slug,is_published,metadata")
     .single();
-  if (insErr) throw insErr;
-  return created!;
+  if (error) throw error;
+  return data!;
 }
 
 function Stat({
