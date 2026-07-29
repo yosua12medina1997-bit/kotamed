@@ -11,17 +11,19 @@ import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
 async function assertAdmin(supabase: any, userId: string) {
-  const { data, error } = await supabase.rpc("has_role", {
-    _user_id: userId,
-    _role: "admin",
-  });
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
   if (error || !data) throw new Error("Forbidden: solo admin puede usar esta acción.");
 }
 
 function model() {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("Falta LOVABLE_API_KEY.");
-  return createLovableAiGatewayProvider(key).chatModel("google/gemini-3.6-flash");
+  return createLovableAiGatewayProvider(key, { structuredOutputs: true }).chatModel("google/gemini-3.6-flash");
 }
 
 const SYSTEM = `Eres un editor médico académico senior (Pediatría y Neonatología) que produce material educativo en español (Perú / Latinoamérica).
@@ -38,6 +40,7 @@ async function structured<T>(schema: z.ZodType<T>, prompt: string, system = SYST
     });
     return output as T;
   } catch (error) {
+    console.error("[academy-ai] structured error", (error as any)?.message);
     if (NoObjectGeneratedError.isInstance(error)) {
       try {
         return schema.parse(JSON.parse((error as any).text ?? "{}"));

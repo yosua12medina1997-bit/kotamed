@@ -11,17 +11,19 @@ import type { Topic, Slide, SlideKind } from "./topic-schema";
 import { randomId } from "./topic-schema";
 
 async function assertAdmin(supabase: any, userId: string) {
-  const { data, error } = await supabase.rpc("has_role", {
-    _user_id: userId,
-    _role: "admin",
-  });
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
   if (error || !data) throw new Error("Forbidden: solo admin puede usar IA.");
 }
 
 function getGateway() {
   const key = process.env.LOVABLE_API_KEY;
   if (!key) throw new Error("Falta LOVABLE_API_KEY.");
-  return createLovableAiGatewayProvider(key).chatModel("google/gemini-3.6-flash");
+  return createLovableAiGatewayProvider(key, { structuredOutputs: true }).chatModel("google/gemini-3.6-flash");
 }
 
 // Schema Zod lean, sin bounds. Los límites van en el prompt.
