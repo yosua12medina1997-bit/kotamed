@@ -241,9 +241,14 @@ function AreaModule() {
           {section === "contenido" && meta.slug !== "pediatria-neonatologia" && (
             <ContenidoSection meta={meta} areaNode={areaNode ?? null} isAdmin={!!isAdmin} />
           )}
-          {section !== "presentacion" &&
-            section !== "ruta" &&
-            section !== "contenido" && <PlaceholderSection sectionId={section} meta={meta} />}
+          {section === "casos" && <CasosSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "banco" && <BancoSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "flashcards" && <FlashcardsSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "simuladores" && <SimuladoresSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "biblioteca" && <BibliotecaSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "tutor-ia" && <TutorSection meta={meta} />}
+          {section === "progreso" && <ProgresoSection meta={meta} />}
+          {section === "configuracion" && <PlaceholderSection sectionId={section} meta={meta} />}
         </main>
       </div>
     </div>
