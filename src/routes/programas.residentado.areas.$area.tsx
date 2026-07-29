@@ -30,6 +30,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import { PediatriaNeoContenido } from "@/components/PediatriaNeoContenido";
+import { CasosSection } from "@/components/academy/CasosSection";
+import { BancoSection } from "@/components/academy/BancoSection";
+import { FlashcardsSection } from "@/components/academy/FlashcardsSection";
+import { SimuladoresSection } from "@/components/academy/SimuladoresSection";
+import { BibliotecaSection } from "@/components/academy/BibliotecaSection";
+import { TutorSection } from "@/components/academy/TutorSection";
+import { ProgresoSection } from "@/components/academy/ProgresoSection";
 
 export const Route = createFileRoute("/programas/residentado/areas/$area")({
   loader: ({ params }) => {
