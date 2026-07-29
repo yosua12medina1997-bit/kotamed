@@ -30,6 +30,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import { PediatriaNeoContenido } from "@/components/PediatriaNeoContenido";
+import { CasosSection } from "@/components/academy/CasosSection";
+import { BancoSection } from "@/components/academy/BancoSection";
+import { FlashcardsSection } from "@/components/academy/FlashcardsSection";
+import { SimuladoresSection } from "@/components/academy/SimuladoresSection";
+import { BibliotecaSection } from "@/components/academy/BibliotecaSection";
+import { TutorSection } from "@/components/academy/TutorSection";
+import { ProgresoSection } from "@/components/academy/ProgresoSection";
 
 export const Route = createFileRoute("/programas/residentado/areas/$area")({
   loader: ({ params }) => {
@@ -241,9 +248,14 @@ function AreaModule() {
           {section === "contenido" && meta.slug !== "pediatria-neonatologia" && (
             <ContenidoSection meta={meta} areaNode={areaNode ?? null} isAdmin={!!isAdmin} />
           )}
-          {section !== "presentacion" &&
-            section !== "ruta" &&
-            section !== "contenido" && <PlaceholderSection sectionId={section} meta={meta} />}
+          {section === "casos" && <CasosSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "banco" && <BancoSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "flashcards" && <FlashcardsSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "simuladores" && <SimuladoresSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "biblioteca" && <BibliotecaSection meta={meta} isAdmin={!!isAdmin} />}
+          {section === "tutor-ia" && <TutorSection meta={meta} />}
+          {section === "progreso" && <ProgresoSection meta={meta} />}
+          {section === "configuracion" && <PlaceholderSection sectionId={section} meta={meta} />}
         </main>
       </div>
     </div>

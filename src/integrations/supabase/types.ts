@@ -14,6 +14,439 @@ export type Database = {
   }
   public: {
     Tables: {
+      academy_attempts: {
+        Row: {
+          area_slug: string
+          chosen_index: number
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          seconds: number
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          area_slug?: string
+          chosen_index: number
+          created_at?: string
+          id?: string
+          is_correct: boolean
+          question_id: string
+          seconds?: number
+          topic?: string | null
+          user_id?: string
+        }
+        Update: {
+          area_slug?: string
+          chosen_index?: number
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          seconds?: number
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_attempts_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "academy_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_cases: {
+        Row: {
+          area_slug: string
+          content: Json
+          created_at: string
+          created_by: string | null
+          difficulty: number
+          id: string
+          is_published: boolean
+          level: string
+          source: string | null
+          specialty: string | null
+          subspecialty: string | null
+          tags: string[]
+          title: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          area_slug?: string
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          difficulty?: number
+          id?: string
+          is_published?: boolean
+          level?: string
+          source?: string | null
+          specialty?: string | null
+          subspecialty?: string | null
+          tags?: string[]
+          title: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area_slug?: string
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          difficulty?: number
+          id?: string
+          is_published?: boolean
+          level?: string
+          source?: string | null
+          specialty?: string | null
+          subspecialty?: string | null
+          tags?: string[]
+          title?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      academy_flashcard_reviews: {
+        Row: {
+          card_id: string
+          due_at: string
+          ease: number
+          id: string
+          interval_days: number
+          last_grade: number | null
+          repetitions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          due_at?: string
+          ease?: number
+          id?: string
+          interval_days?: number
+          last_grade?: number | null
+          repetitions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          card_id?: string
+          due_at?: string
+          ease?: number
+          id?: string
+          interval_days?: number
+          last_grade?: number | null
+          repetitions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_flashcard_reviews_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "academy_flashcards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_flashcards: {
+        Row: {
+          area_slug: string
+          back: string
+          block: string | null
+          created_at: string
+          created_by: string | null
+          difficulty: number
+          front: string
+          id: string
+          is_published: boolean
+          tags: string[]
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          area_slug?: string
+          back: string
+          block?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: number
+          front: string
+          id?: string
+          is_published?: boolean
+          tags?: string[]
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area_slug?: string
+          back?: string
+          block?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: number
+          front?: string
+          id?: string
+          is_published?: boolean
+          tags?: string[]
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      academy_library_items: {
+        Row: {
+          area_slug: string
+          author: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          keywords: string[]
+          kind: string
+          specialty: string | null
+          storage_path: string | null
+          subtopic: string | null
+          summary: string | null
+          title: string
+          topic: string | null
+          updated_at: string
+          url: string | null
+          year: number | null
+        }
+        Insert: {
+          area_slug?: string
+          author?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          keywords?: string[]
+          kind?: string
+          specialty?: string | null
+          storage_path?: string | null
+          subtopic?: string | null
+          summary?: string | null
+          title: string
+          topic?: string | null
+          updated_at?: string
+          url?: string | null
+          year?: number | null
+        }
+        Update: {
+          area_slug?: string
+          author?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          keywords?: string[]
+          kind?: string
+          specialty?: string | null
+          storage_path?: string | null
+          subtopic?: string | null
+          summary?: string | null
+          title?: string
+          topic?: string | null
+          updated_at?: string
+          url?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
+      academy_questions: {
+        Row: {
+          answer_index: number
+          area_slug: string
+          bank: string
+          bibliography: string | null
+          created_at: string
+          created_by: string | null
+          difficulty: number
+          exam_type: string
+          explanation: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean
+          level: string
+          options: Json
+          specialty: string | null
+          stem: string
+          subtopic: string | null
+          tags: string[]
+          time_seconds: number
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          answer_index?: number
+          area_slug?: string
+          bank?: string
+          bibliography?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: number
+          exam_type?: string
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          level?: string
+          options?: Json
+          specialty?: string | null
+          stem: string
+          subtopic?: string | null
+          tags?: string[]
+          time_seconds?: number
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answer_index?: number
+          area_slug?: string
+          bank?: string
+          bibliography?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: number
+          exam_type?: string
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          level?: string
+          options?: Json
+          specialty?: string | null
+          stem?: string
+          subtopic?: string | null
+          tags?: string[]
+          time_seconds?: number
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      academy_simulators: {
+        Row: {
+          area_slug: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          level: string
+          mode: string
+          scenario: Json
+          title: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          area_slug?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          level?: string
+          mode?: string
+          scenario?: Json
+          title: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area_slug?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          level?: string
+          mode?: string
+          scenario?: Json
+          title?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      academy_study_events: {
+        Row: {
+          activity: string
+          area_slug: string
+          created_at: string
+          id: string
+          metadata: Json
+          minutes: number
+          score: number | null
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          activity: string
+          area_slug?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          minutes?: number
+          score?: number | null
+          topic?: string | null
+          user_id?: string
+        }
+        Update: {
+          activity?: string
+          area_slug?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          minutes?: number
+          score?: number | null
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      academy_video_scripts: {
+        Row: {
+          area_slug: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          storyboard: Json
+          title: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          area_slug?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          storyboard?: Json
+          title: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area_slug?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          storyboard?: Json
+          title?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_nodes: {
         Row: {
           created_at: string
