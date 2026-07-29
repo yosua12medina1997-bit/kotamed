@@ -550,8 +550,41 @@ function ResourceRow({
               className="mt-2 max-w-xl w-full rounded-lg border border-border"
             />
           )}
+          {docUrl && (
+            <div className="mt-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setInlineOpen((v) => !v)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-background/60 px-2 py-1 text-[10px] font-bold text-muted-foreground hover:text-foreground"
+                >
+                  {inlineOpen ? <Minimize2 className="size-3" /> : <Eye className="size-3" />}
+                  {inlineOpen ? "Ocultar vista previa" : "Vista previa"}
+                </button>
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-primary/40 bg-primary/[0.06] px-2 py-1 text-[10px] font-bold text-primary hover:bg-primary/10"
+                >
+                  <Maximize2 className="size-3" /> Abrir en ventana grande
+                </button>
+              </div>
+              {inlineOpen && (
+                <div className="mt-2 h-[26rem] w-full overflow-hidden rounded-lg border border-border bg-background">
+                  <iframe src={docUrl} title={r.title} className="h-full w-full" />
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          {canExpand && (
+            <button
+              onClick={() => setExpanded(true)}
+              title="Ventana grande"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
+            >
+              <Maximize2 className="size-3.5" />
+            </button>
+          )}
           <button
             onClick={() => onUpdate({ is_published: !r.is_published })}
             title={r.is_published ? "Ocultar" : "Publicar"}
