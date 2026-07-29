@@ -264,7 +264,36 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
         algoritmo, tratamiento basado en guías (MINSA / AAP / ESPGHAN / WHO), caso clínico
         interactivo, flashcards y banco de preguntas.
       </div>
+
+      {pharmaOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 backdrop-blur p-4"
+          onClick={() => setPharmaOpen(false)}
+        >
+          <div
+            className="w-full max-w-4xl my-8 rounded-3xl border border-border/60 bg-card p-4 md:p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Calculator className="size-4" style={{ color: meta.accent }} />
+              <h3 className="text-sm font-extrabold tracking-tight">
+                Calculadora farmacológica pediátrica
+              </h3>
+              <div className="flex-1" />
+              <button
+                onClick={() => setPharmaOpen(false)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:bg-foreground/[0.05]"
+                aria-label="Cerrar calculadora"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <PharmaWorkspace nodeId={null} isAdmin={false} accent={meta.accent} />
+          </div>
+        </div>
+      )}
     </section>
+
   );
 }
 
