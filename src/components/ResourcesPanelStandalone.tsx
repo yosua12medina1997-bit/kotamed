@@ -17,6 +17,8 @@ import {
   Image as ImageIcon,
   Link2,
   Loader2,
+  Maximize2,
+  Minimize2,
   Paperclip,
   Pencil,
   Plus,
