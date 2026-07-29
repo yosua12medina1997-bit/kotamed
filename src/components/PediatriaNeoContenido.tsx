@@ -370,6 +370,31 @@ function TopicDetail({
             </button>
           </>
         )}
+        {isPharma && (
+          <button
+            onClick={() => setTab("farmacologia")}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
+              tab === "farmacologia"
+                ? "bg-foreground text-background border-foreground"
+                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Calculadoras
+          </button>
+        )}
+        {isPharma && !isAdmin && (
+          <button
+            onClick={() => setTab("plantilla")}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
+              tab === "plantilla"
+                ? "bg-foreground text-background border-foreground"
+                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Plantilla
+          </button>
+        )}
+
         <div className="flex-1" />
         {isAdmin && editing ? (
           <div className="flex items-center gap-1">
