@@ -471,6 +471,16 @@ function ResourceRow({
 
   const embedUrl = r.url ? (toYouTubeEmbed(r.url) ?? toVimeoEmbed(r.url)) : null;
 
+  /** Documento visualizable en ventana (PDF u otro archivo/enlace no multimedia). */
+  const docUrl =
+    r.kind === "file" || r.kind === "link" || r.kind === "text"
+      ? (signedUrl ?? (r.url && !embedUrl ? r.url : null))
+      : null;
+  const isPdf =
+    (r.mime_type ?? "").includes("pdf") ||
+    /\.pdf(\?|$)/i.test(r.storage_path ?? r.url ?? "");
+  const canExpand = !!docUrl || r.kind === "text";
+
   return (
     <li className="rounded-xl border border-border bg-background/60 p-3">
       <div className="flex items-start gap-3">
