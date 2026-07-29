@@ -752,7 +752,8 @@ function ResourceRow({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </li>
   );
