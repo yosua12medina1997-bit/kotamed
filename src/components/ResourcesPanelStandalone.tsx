@@ -677,9 +677,7 @@ function ResourceRow({
         </div>
       )}
       {expanded && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 z-[70] flex flex-col bg-background/95 backdrop-blur">,
-        document.body,
-      )}
+        <div className="fixed inset-0 z-[70] flex flex-col bg-background/95 backdrop-blur">
           <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
             <span className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <ResourceIcon kind={r.kind} className="size-3.5" />
