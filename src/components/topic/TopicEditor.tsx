@@ -31,6 +31,17 @@ import {
   transformSlide,
 } from "@/lib/topic-ai.functions";
 import { SlideRenderer } from "./slides";
+import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
+import {
+  NotebookPane,
+  SlideCatalog,
+  SLIDE_ACTION_GROUPS,
+  TemplatesPane,
+  VersionsPane,
+  templateSlides,
+  useTopicVersions,
+  type SlideAction,
+} from "./editor-panes";
 
 interface Props {
   initialTopic: Topic | null;
@@ -39,9 +50,20 @@ interface Props {
   onSave: (topic: Topic) => Promise<void> | void;
   onClose: () => void;
   saving?: boolean;
+  /** Nodo de contenido asociado (habilita la pestaña Recursos). */
+  nodeId?: string | null;
+  nodeTitle?: string;
 }
 
-type Tab = "structure" | "slide" | "ai" | "import";
+type Tab =
+  | "structure"
+  | "slide"
+  | "ai"
+  | "notebook"
+  | "import"
+  | "templates"
+  | "resources"
+  | "versions";
 
 export function TopicEditor({
   initialTopic,
@@ -50,11 +72,16 @@ export function TopicEditor({
   onSave,
   onClose,
   saving,
+  nodeId,
+  nodeTitle,
 }: Props) {
   const [topic, setTopic] = useState<Topic>(() => initialTopic ?? createEmptyTopic(fallbackTitle));
   const [tab, setTab] = useState<Tab>("structure");
   const [activeIdx, setActiveIdx] = useState(0);
   const [importText, setImportText] = useState("");
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const { versions, snapshot, remove } = useTopicVersions(fallbackTitle);
+
 
   const generateFn = useServerFn(generateTopic);
   const importFn = useServerFn(slidesFromText);
