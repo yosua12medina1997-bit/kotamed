@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import {
   Baby,
   BookMarked,
+  Calculator,
   ChevronRight,
   FileText,
   GraduationCap,
@@ -62,6 +63,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
   const [query, setQuery] = useState("");
   const [openCat, setOpenCat] = useState<string | null>(null);
   const [openTopic, setOpenTopic] = useState<string | null>(null);
+  const [pharmaOpen, setPharmaOpen] = useState(false);
 
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
@@ -104,15 +106,25 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
             {isAdmin && " Como admin, puedes editar cada tema, subir archivos e insertar videos."}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Stat label="Bloques" value="2" accent={meta.accent} />
-          <Stat
-            label="Categorías"
-            value={PEDIATRIA_NEONATOLOGIA_BLUEPRINT.reduce((a, b) => a + b.categories.length, 0)}
-            accent={meta.accent}
-          />
-          <Stat label="Temas" value={totalTopics} accent={meta.accent} />
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-3">
+            <Stat label="Bloques" value="2" accent={meta.accent} />
+            <Stat
+              label="Categorías"
+              value={PEDIATRIA_NEONATOLOGIA_BLUEPRINT.reduce((a, b) => a + b.categories.length, 0)}
+              accent={meta.accent}
+            />
+            <Stat label="Temas" value={totalTopics} accent={meta.accent} />
+          </div>
+          <button
+            onClick={() => setPharmaOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
+          >
+            <Calculator className="size-3.5" style={{ color: meta.accent }} />
+            Calculadora farmacológica
+          </button>
         </div>
+
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -168,26 +180,39 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
               key={cat.key}
               className="rounded-2xl border border-border/50 bg-background/40 backdrop-blur overflow-hidden"
             >
-              <button
-                onClick={() => setOpenCat((prev) => (prev === cat.key ? null : cat.key))}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-background/60 transition"
-              >
-                <span
-                  className="inline-flex size-8 items-center justify-center rounded-lg text-[11px] font-extrabold text-white shrink-0"
-                  style={{ background: block.accent }}
+              <div className="flex items-center">
+                <button
+                  onClick={() => setOpenCat((prev) => (prev === cat.key ? null : cat.key))}
+                  className="flex-1 flex items-center gap-3 px-4 py-3.5 text-left hover:bg-background/60 transition"
                 >
-                  <ListChecks className="size-4" strokeWidth={2.5} />
-                </span>
-                <span className="flex-1 text-sm md:text-base font-bold tracking-tight">
-                  {cat.title}
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  {cat.topics.length} temas
-                </span>
-                <ChevronRight
-                  className={`size-4 text-muted-foreground transition ${isOpen ? "rotate-90" : ""}`}
-                />
-              </button>
+                  <span
+                    className="inline-flex size-8 items-center justify-center rounded-lg text-[11px] font-extrabold text-white shrink-0"
+                    style={{ background: block.accent }}
+                  >
+                    <ListChecks className="size-4" strokeWidth={2.5} />
+                  </span>
+                  <span className="flex-1 text-sm md:text-base font-bold tracking-tight">
+                    {cat.title}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    {cat.topics.length} temas
+                  </span>
+                  <ChevronRight
+                    className={`size-4 text-muted-foreground transition ${isOpen ? "rotate-90" : ""}`}
+                  />
+                </button>
+                {cat.key === "farmacologia" && (
+                  <button
+                    onClick={() => setPharmaOpen(true)}
+                    className="mr-3 shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
+                  >
+                    <Calculator className="size-3.5" style={{ color: block.accent }} />
+                    Abrir calculadora
+                  </button>
+                )}
+              </div>
+
+
 
               {isOpen && (
                 <ul className="divide-y divide-border/40 border-t border-border/40">
@@ -249,7 +274,36 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
         algoritmo, tratamiento basado en guías (MINSA / AAP / ESPGHAN / WHO), caso clínico
         interactivo, flashcards y banco de preguntas.
       </div>
+
+      {pharmaOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 backdrop-blur p-4"
+          onClick={() => setPharmaOpen(false)}
+        >
+          <div
+            className="w-full max-w-4xl my-8 rounded-3xl border border-border/60 bg-card p-4 md:p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Calculator className="size-4" style={{ color: meta.accent }} />
+              <h3 className="text-sm font-extrabold tracking-tight">
+                Calculadora farmacológica pediátrica
+              </h3>
+              <div className="flex-1" />
+              <button
+                onClick={() => setPharmaOpen(false)}
+                className="p-1.5 rounded-lg text-muted-foreground hover:bg-foreground/[0.05]"
+                aria-label="Cerrar calculadora"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <PharmaWorkspace nodeId={null} isAdmin={false} accent={meta.accent} />
+          </div>
+        </div>
+      )}
     </section>
+
   );
 }
 
@@ -266,7 +320,9 @@ function TopicDetail({
   accent: string;
   isAdmin: boolean;
 }) {
-  const isPharma = /farmacolog/i.test(topic.title) || (topic as any).key === "farmacologia";
+  const isPharma =
+    category.key === "farmacologia" ||
+    /farmacolog|dosis|calculadora/i.test(topic.title);
   const [tab, setTab] = useState<"plantilla" | "recursos" | "farmacologia">(
     isPharma ? "farmacologia" : isAdmin ? "recursos" : "plantilla",
   );
