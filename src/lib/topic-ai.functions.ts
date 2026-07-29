@@ -333,3 +333,42 @@ export const transformSlide = createServerFn({ method: "POST" })
       throw error;
     }
   });
+
+/**
+ * Notebook IA: compone un tema completo usando EXCLUSIVAMENTE las fuentes
+ * (documentos indexados) que envía el administrador.
+ */
+export const notebookCompose = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        title: z.string().min(1),
+        instruction: z.string().min(3),
+        sources: z.string().min(20),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const model = getGateway();
+    const sources = data.sources.slice(0, 120000);
+    try {
+      const { output } = await generateText({
+        model,
+        system: `${SYSTEM_PROMPT_TOPIC}\n\nMODO NOTEBOOK: responde EXCLUSIVAMENTE con información contenida en las FUENTES entregadas por el usuario. No inventes datos que no estén en las fuentes. En "references" cita únicamente los documentos fuente proporcionados.`,
+        prompt: `Tema: "${data.title}".\nInstrucción del administrador: ${data.instruction}\n\n=== FUENTES ===\n${sources}\n=== FIN FUENTES ===`,
+        output: Output.object({ schema: topicSchema }),
+      });
+      return toTopic(output);
+    } catch (error) {
+      if (NoObjectGeneratedError.isInstance(error)) {
+        try {
+          return toTopic(JSON.parse(error.text ?? "{}") as RawTopic);
+        } catch {
+          throw new Error("La IA devolvió un formato inválido.");
+        }
+      }
+      throw error;
+    }
+  });
