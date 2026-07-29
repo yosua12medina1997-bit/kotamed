@@ -112,19 +112,11 @@ export function TopicEditor({
 
   const transformMut = useMutation({
     mutationFn: (payload: {
-      action:
-        | "expand"
-        | "summarize"
-        | "improve"
-        | "update-guidelines"
-        | "add-references"
-        | "to-table"
-        | "to-flowchart"
-        | "to-cards"
-        | "to-case";
+      action: SlideAction;
       slide: Slide;
       topicTitle: string;
     }) => transformFn({ data: payload }),
+
     onSuccess: (updated) => {
       setTopic((t) => {
         const next = { ...t, slides: [...t.slides] };
