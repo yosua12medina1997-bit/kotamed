@@ -298,7 +298,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
                 <X className="size-4" />
               </button>
             </div>
-            <PharmaWorkspace nodeId={null} isAdmin={false} accent={meta.accent} />
+            <PharmaWorkspace nodeId={null} isAdmin={!!isAdmin} accent={meta.accent} />
           </div>
         </div>
       )}
