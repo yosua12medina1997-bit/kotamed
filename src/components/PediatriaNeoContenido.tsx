@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import {
   Baby,
   BookMarked,
+  Calculator,
   ChevronRight,
   FileText,
   GraduationCap,
