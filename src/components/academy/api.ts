@@ -2,6 +2,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { extractTextFromFiles } from "@/lib/file-text";
 
+/** Cliente sin tipar para las tablas académicas nuevas. */
+export const db = supabase as any;
+
 export const LEVELS = [
   "internado",
   "enam",
