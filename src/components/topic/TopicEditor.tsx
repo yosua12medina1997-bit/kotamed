@@ -310,7 +310,7 @@ export function TopicEditor({
             </div>
           ))}
           <button
-            onClick={addSlide}
+            onClick={() => setCatalogOpen(true)}
             className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/60 py-2 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-background/40"
           >
             <Plus className="size-3.5" /> Agregar slide
@@ -348,6 +348,17 @@ export function TopicEditor({
               onGenerate={(ctx) => genMut.mutate({ title: topic.title, context: ctx })}
             />
           )}
+          {tab === "notebook" && (
+            <NotebookPane
+              topic={topic}
+              onTopic={(t) => {
+                snapshot(topic, "Antes de Notebook IA");
+                setTopic(t);
+                setActiveIdx(0);
+                setTab("structure");
+              }}
+            />
+          )}
           {tab === "import" && (
             <ImportPane
               text={importText}
@@ -356,11 +367,57 @@ export function TopicEditor({
               importing={importMut.isPending}
             />
           )}
+          {tab === "templates" && (
+            <TemplatesPane
+              onApply={(kinds) => {
+                snapshot(topic, "Antes de aplicar plantilla");
+                setTopic((t) => ({ ...t, slides: templateSlides(kinds) }));
+                setActiveIdx(0);
+                setTab("structure");
+                toast.success("Plantilla aplicada");
+              }}
+              onAppend={(kinds) => {
+                setTopic((t) => ({ ...t, slides: [...t.slides, ...templateSlides(kinds)] }));
+                setTab("structure");
+                toast.success("Plantilla añadida");
+              }}
+            />
+          )}
+          {tab === "resources" && nodeId && (
+            <ResourcesPanelStandalone nodeId={nodeId} nodeTitle={nodeTitle ?? topic.title} />
+          )}
+          {tab === "versions" && (
+            <VersionsPane
+              versions={versions}
+              onSnapshot={() => {
+                snapshot(topic, `Versión manual · ${topic.slides.length} slides`);
+                toast.success("Versión guardada");
+              }}
+              onRestore={(t) => {
+                setTopic(t);
+                setActiveIdx(0);
+                setTab("structure");
+                toast.success("Versión restaurada");
+              }}
+              onRemove={remove}
+            />
+          )}
         </main>
       </div>
+
+      {catalogOpen && (
+        <SlideCatalog
+          onClose={() => setCatalogOpen(false)}
+          onPick={(kind) => {
+            addSlide(kind);
+            setCatalogOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
+
 
 function StructurePane({
   topic,
