@@ -180,13 +180,13 @@ export const generateTopic = createServerFn({ method: "POST" })
     }${data.level ? `\nNivel objetivo: ${data.level}` : ""}\n\nDevuelve entre 10 y 16 diapositivas siguiendo la plantilla estándar.`;
 
     try {
-      const { experimental_output } = await generateText({
+      const { output } = await generateText({
         model,
         system: SYSTEM_PROMPT_TOPIC,
         prompt,
-        experimental_output: Output.object({ schema: topicSchema }),
+        output: Output.object({ schema: topicSchema }),
       });
-      return toTopic(experimental_output);
+      return toTopic(output);
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
@@ -209,13 +209,13 @@ export const slidesFromText = createServerFn({ method: "POST" })
     await assertAdmin(context.supabase, context.userId);
     const model = getGateway();
     try {
-      const { experimental_output } = await generateText({
+      const { output } = await generateText({
         model,
         system: SYSTEM_PROMPT_TOPIC,
         prompt: `Convierte el siguiente texto/borrador en un tema estructurado para "${data.title}". Detecta automáticamente tablas, comparaciones, algoritmos y casos. Mantén la evidencia mencionada.\n\n---\n${data.text}\n---`,
-        experimental_output: Output.object({ schema: topicSchema }),
+        output: Output.object({ schema: topicSchema }),
       });
-      return toTopic(experimental_output);
+      return toTopic(output);
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
@@ -273,13 +273,13 @@ export const transformSlide = createServerFn({ method: "POST" })
     };
 
     try {
-      const { experimental_output } = await generateText({
+      const { output } = await generateText({
         model,
         system: SYSTEM_PROMPT_TOPIC,
         prompt: `Tema: "${data.topicTitle}".\nAcción: ${actionDesc[data.action]}\n\nSlide original (JSON):\n${JSON.stringify(data.slide)}\n\nDevuelve UN solo slide en el mismo formato.`,
-        experimental_output: Output.object({ schema: slideSchema }),
+        output: Output.object({ schema: slideSchema }),
       });
-      return toSlide(experimental_output);
+      return toSlide(output);
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
