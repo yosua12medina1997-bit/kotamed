@@ -676,6 +676,84 @@ function ResourceRow({
           </div>
         </div>
       )}
+      {expanded && (
+        <div className="fixed inset-0 z-[70] flex flex-col bg-background/95 backdrop-blur">
+          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+            <span className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <ResourceIcon kind={r.kind} className="size-3.5" />
+            </span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-extrabold outline-none hover:border-border focus:border-border focus:ring-2 focus:ring-ring"
+            />
+            {isPdf && <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-widest text-muted-foreground">PDF</span>}
+            {docUrl && (
+              <a
+                href={docUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground"
+              >
+                <ExternalLink className="size-3.5" /> Nueva pestaña
+              </a>
+            )}
+            <button
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await onUpdate({ title, url: url || null, content: content || null });
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              disabled={busy}
+              className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+            >
+              {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+              Guardar
+            </button>
+            <button
+              onClick={() => setExpanded(false)}
+              className="p-1.5 rounded-lg text-muted-foreground hover:bg-foreground/[0.05]"
+              aria-label="Cerrar ventana"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <div className="grid min-h-0 flex-1 grid-rows-[1.4fr_1fr] lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:grid-rows-1">
+            <div className="min-h-0 border-b border-border lg:border-b-0 lg:border-r">
+              {docUrl ? (
+                <iframe src={docUrl} title={r.title} className="h-full w-full bg-background" />
+              ) : (
+                <div className="flex h-full items-center justify-center p-6 text-center text-xs text-muted-foreground">
+                  Este recurso no tiene archivo asociado. Usa el panel de la derecha para editar su
+                  contenido.
+                </div>
+              )}
+            </div>
+            <div className="flex min-h-0 flex-col gap-2 p-4">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {r.kind === "text" ? "Contenido" : "Notas y transcripción"}
+              </span>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Escribe aquí resúmenes, apuntes o el texto extraído del PDF…"
+                className="min-h-0 flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-xs leading-relaxed outline-none focus:ring-2 focus:ring-ring"
+              />
+              {(r.kind === "link" || r.kind === "video" || r.kind === "embed") && (
+                <input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="URL"
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-mono outline-none focus:ring-2 focus:ring-ring"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </li>
   );
 }
