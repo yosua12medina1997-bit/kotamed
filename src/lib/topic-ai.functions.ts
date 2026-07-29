@@ -232,13 +232,30 @@ const SLIDE_ACTIONS = [
   "expand",
   "summarize",
   "improve",
+  "rewrite",
+  "level-student",
+  "level-resident",
+  "level-specialist",
   "update-guidelines",
+  "update-aap",
+  "update-nelson",
+  "update-minsa",
+  "update-who",
   "add-references",
+  "vancouver",
   "to-table",
+  "to-comparison",
   "to-flowchart",
   "to-cards",
   "to-case",
+  "to-timeline",
+  "to-steps",
+  "to-pearls",
+  "to-mistakes",
+  "to-summary",
+  "to-diagram",
 ] as const;
+
 
 export const transformSlide = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -270,7 +287,32 @@ export const transformSlide = createServerFn({ method: "POST" })
       "to-cards": "Convierte el contenido en tarjetas (kind='cards') con 3-6 cards.",
       "to-case":
         "Convierte el contenido en un caso clínico (kind='case') con caseText breve y 2-3 caseQuestions.",
+      rewrite: "Reescribe el contenido con otro enfoque didáctico manteniendo el mismo kind.",
+      "level-student":
+        "Reescribe el contenido para estudiantes de pregrado: lenguaje claro, conceptos base.",
+      "level-resident":
+        "Reescribe el contenido para residentes: enfoque práctico, manejo y toma de decisiones.",
+      "level-specialist":
+        "Reescribe el contenido para especialistas: matices, evidencia reciente y controversias.",
+      "update-aap": "Actualiza el contenido según las recomendaciones vigentes de la AAP.",
+      "update-nelson": "Actualiza el contenido según Nelson Textbook of Pediatrics 21ed.",
+      "update-minsa": "Actualiza el contenido según normas y guías del MINSA (Perú).",
+      "update-who": "Actualiza el contenido según las guías de la OMS/WHO.",
+      vancouver:
+        "Cambia el kind a 'references' y devuelve 5-8 referencias en formato Vancouver correcto.",
+      "to-comparison":
+        "Convierte el contenido en una comparación (kind='comparison') con tableHeaders y tableRows.",
+      "to-timeline":
+        "Convierte el contenido en una cronología (kind='timeline') con 4-8 hitos.",
+      "to-steps": "Convierte el contenido en pasos numerados (kind='steps') con 3-8 pasos.",
+      "to-pearls": "Convierte el contenido en perlas clínicas (kind='pearls') con 4-6 bullets.",
+      "to-mistakes":
+        "Convierte el contenido en errores frecuentes (kind='mistakes') con 4-6 bullets.",
+      "to-summary": "Convierte el contenido en un resumen ejecutivo (kind='summary').",
+      "to-diagram":
+        "Convierte el contenido en un diagrama conceptual (kind='diagram') usando flowchartNodes y flowchartEdges.",
     };
+
 
     try {
       const { output } = await generateText({
@@ -284,6 +326,45 @@ export const transformSlide = createServerFn({ method: "POST" })
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
           return toSlide(JSON.parse(error.text ?? "{}") as RawSlide);
+        } catch {
+          throw new Error("La IA devolvió un formato inválido.");
+        }
+      }
+      throw error;
+    }
+  });
+
+/**
+ * Notebook IA: compone un tema completo usando EXCLUSIVAMENTE las fuentes
+ * (documentos indexados) que envía el administrador.
+ */
+export const notebookCompose = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        title: z.string().min(1),
+        instruction: z.string().min(3),
+        sources: z.string().min(20),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const model = getGateway();
+    const sources = data.sources.slice(0, 120000);
+    try {
+      const { output } = await generateText({
+        model,
+        system: `${SYSTEM_PROMPT_TOPIC}\n\nMODO NOTEBOOK: responde EXCLUSIVAMENTE con información contenida en las FUENTES entregadas por el usuario. No inventes datos que no estén en las fuentes. En "references" cita únicamente los documentos fuente proporcionados.`,
+        prompt: `Tema: "${data.title}".\nInstrucción del administrador: ${data.instruction}\n\n=== FUENTES ===\n${sources}\n=== FIN FUENTES ===`,
+        output: Output.object({ schema: topicSchema }),
+      });
+      return toTopic(output);
+    } catch (error) {
+      if (NoObjectGeneratedError.isInstance(error)) {
+        try {
+          return toTopic(JSON.parse(error.text ?? "{}") as RawTopic);
         } catch {
           throw new Error("La IA devolvió un formato inválido.");
         }

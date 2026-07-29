@@ -31,6 +31,17 @@ import {
   transformSlide,
 } from "@/lib/topic-ai.functions";
 import { SlideRenderer } from "./slides";
+import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
+import {
+  NotebookPane,
+  SlideCatalog,
+  SLIDE_ACTION_GROUPS,
+  TemplatesPane,
+  VersionsPane,
+  templateSlides,
+  useTopicVersions,
+  type SlideAction,
+} from "./editor-panes";
 
 interface Props {
   initialTopic: Topic | null;
@@ -39,9 +50,20 @@ interface Props {
   onSave: (topic: Topic) => Promise<void> | void;
   onClose: () => void;
   saving?: boolean;
+  /** Nodo de contenido asociado (habilita la pestaña Recursos). */
+  nodeId?: string | null;
+  nodeTitle?: string;
 }
 
-type Tab = "structure" | "slide" | "ai" | "import";
+type Tab =
+  | "structure"
+  | "slide"
+  | "ai"
+  | "notebook"
+  | "import"
+  | "templates"
+  | "resources"
+  | "versions";
 
 export function TopicEditor({
   initialTopic,
@@ -50,11 +72,16 @@ export function TopicEditor({
   onSave,
   onClose,
   saving,
+  nodeId,
+  nodeTitle,
 }: Props) {
   const [topic, setTopic] = useState<Topic>(() => initialTopic ?? createEmptyTopic(fallbackTitle));
   const [tab, setTab] = useState<Tab>("structure");
   const [activeIdx, setActiveIdx] = useState(0);
   const [importText, setImportText] = useState("");
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const { versions, snapshot, remove } = useTopicVersions(fallbackTitle);
+
 
   const generateFn = useServerFn(generateTopic);
   const importFn = useServerFn(slidesFromText);
@@ -85,19 +112,11 @@ export function TopicEditor({
 
   const transformMut = useMutation({
     mutationFn: (payload: {
-      action:
-        | "expand"
-        | "summarize"
-        | "improve"
-        | "update-guidelines"
-        | "add-references"
-        | "to-table"
-        | "to-flowchart"
-        | "to-cards"
-        | "to-case";
+      action: SlideAction;
       slide: Slide;
       topicTitle: string;
     }) => transformFn({ data: payload }),
+
     onSuccess: (updated) => {
       setTopic((t) => {
         const next = { ...t, slides: [...t.slides] };
@@ -119,17 +138,18 @@ export function TopicEditor({
     });
   };
 
-  const addSlide = () => {
+  const addSlide = (kind: SlideKind = "intro") => {
     setTopic((t) => ({
       ...t,
       slides: [
         ...t.slides,
-        { id: randomId(), kind: "intro", title: "Nueva diapositiva", body: "" },
+        { id: randomId(), kind, title: SLIDE_KIND_LABEL[kind], body: "" },
       ],
     }));
     setActiveIdx(topic.slides.length);
     setTab("slide");
   };
+
   const duplicateAt = (i: number) => {
     setTopic((t) => {
       const src = t.slides[i];
@@ -189,19 +209,23 @@ export function TopicEditor({
       </header>
 
       {/* Tabs */}
-      <div className="flex gap-1 px-4 md:px-6 pt-2 border-b border-border/40">
+      <div className="flex gap-1 px-4 md:px-6 pt-2 border-b border-border/40 overflow-x-auto">
         {(
           [
             ["structure", "Estructura"],
             ["slide", "Editar slide"],
             ["ai", "IA"],
+            ["notebook", "Notebook IA"],
             ["import", "Fuente"],
-          ] as const
+            ["templates", "Plantillas"],
+            ...(nodeId ? ([["resources", "Recursos"]] as const) : []),
+            ["versions", "Versiones"],
+          ] as [Tab, string][]
         ).map(([id, label]) => (
           <button
             key={id}
             onClick={() => setTab(id)}
-            className={`px-3 py-2 text-xs font-bold rounded-t-lg transition ${
+            className={`shrink-0 px-3 py-2 text-xs font-bold rounded-t-lg transition ${
               tab === id
                 ? "bg-background border border-b-background border-border/40 -mb-px text-foreground"
                 : "text-muted-foreground hover:text-foreground"
@@ -211,6 +235,7 @@ export function TopicEditor({
           </button>
         ))}
       </div>
+
 
       <div className="flex-1 overflow-hidden grid md:grid-cols-[minmax(280px,340px)_1fr]">
         {/* Left: slide list */}
@@ -285,7 +310,7 @@ export function TopicEditor({
             </div>
           ))}
           <button
-            onClick={addSlide}
+            onClick={() => setCatalogOpen(true)}
             className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/60 py-2 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-background/40"
           >
             <Plus className="size-3.5" /> Agregar slide
@@ -323,6 +348,17 @@ export function TopicEditor({
               onGenerate={(ctx) => genMut.mutate({ title: topic.title, context: ctx })}
             />
           )}
+          {tab === "notebook" && (
+            <NotebookPane
+              topic={topic}
+              onTopic={(t) => {
+                snapshot(topic, "Antes de Notebook IA");
+                setTopic(t);
+                setActiveIdx(0);
+                setTab("structure");
+              }}
+            />
+          )}
           {tab === "import" && (
             <ImportPane
               text={importText}
@@ -331,11 +367,57 @@ export function TopicEditor({
               importing={importMut.isPending}
             />
           )}
+          {tab === "templates" && (
+            <TemplatesPane
+              onApply={(kinds) => {
+                snapshot(topic, "Antes de aplicar plantilla");
+                setTopic((t) => ({ ...t, slides: templateSlides(kinds) }));
+                setActiveIdx(0);
+                setTab("structure");
+                toast.success("Plantilla aplicada");
+              }}
+              onAppend={(kinds) => {
+                setTopic((t) => ({ ...t, slides: [...t.slides, ...templateSlides(kinds)] }));
+                setTab("structure");
+                toast.success("Plantilla añadida");
+              }}
+            />
+          )}
+          {tab === "resources" && nodeId && (
+            <ResourcesPanelStandalone nodeId={nodeId} nodeTitle={nodeTitle ?? topic.title} />
+          )}
+          {tab === "versions" && (
+            <VersionsPane
+              versions={versions}
+              onSnapshot={() => {
+                snapshot(topic, `Versión manual · ${topic.slides.length} slides`);
+                toast.success("Versión guardada");
+              }}
+              onRestore={(t) => {
+                setTopic(t);
+                setActiveIdx(0);
+                setTab("structure");
+                toast.success("Versión restaurada");
+              }}
+              onRemove={remove}
+            />
+          )}
         </main>
       </div>
+
+      {catalogOpen && (
+        <SlideCatalog
+          onClose={() => setCatalogOpen(false)}
+          onPick={(kind) => {
+            addSlide(kind);
+            setCatalogOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
+
 
 function StructurePane({
   topic,
@@ -384,18 +466,8 @@ function SlideForm({
   slide: Slide;
   accent: string;
   onPatch: (patch: Partial<Slide>) => void;
-  onTransform: (
-    a:
-      | "expand"
-      | "summarize"
-      | "improve"
-      | "update-guidelines"
-      | "add-references"
-      | "to-table"
-      | "to-flowchart"
-      | "to-cards"
-      | "to-case",
-  ) => void;
+  onTransform: (a: SlideAction) => void;
+
   transforming: boolean;
 }) {
   const bullets = slide.bullets ?? [];
@@ -466,35 +538,31 @@ function SlideForm({
           <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
             Acciones IA sobre este slide
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {(
-              [
-                ["expand", "Expandir"],
-                ["summarize", "Resumir"],
-                ["improve", "Mejorar redacción"],
-                ["update-guidelines", "Actualizar guías"],
-                ["add-references", "Añadir referencias"],
-                ["to-table", "→ Tabla"],
-                ["to-flowchart", "→ Algoritmo"],
-                ["to-cards", "→ Tarjetas"],
-                ["to-case", "→ Caso clínico"],
-              ] as const
-            ).map(([action, label]) => (
-              <button
-                key={action}
-                onClick={() => onTransform(action)}
-                disabled={transforming}
-                className="inline-flex items-center gap-1 rounded-lg border border-border/60 bg-background/60 px-2 py-1 text-[11px] font-bold hover:border-primary/40 disabled:opacity-50"
-              >
-                {transforming ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <Wand2 className="size-3" />
-                )}
-                {label}
-              </button>
+          <div className="space-y-2.5">
+            {SLIDE_ACTION_GROUPS.map((g) => (
+              <div key={g.group}>
+                <div className="text-[10px] font-bold text-muted-foreground/80 mb-1">{g.group}</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {g.actions.map(([action, label]) => (
+                    <button
+                      key={action}
+                      onClick={() => onTransform(action)}
+                      disabled={transforming}
+                      className="inline-flex items-center gap-1 rounded-lg border border-border/60 bg-background/60 px-2 py-1 text-[11px] font-bold hover:border-primary/40 disabled:opacity-50"
+                    >
+                      {transforming ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Wand2 className="size-3" />
+                      )}
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
+
           <p className="mt-2 text-[10px] text-muted-foreground">
             Para tablas, algoritmos, casos y referencias detalladas, usa las acciones IA — se generan
             automáticamente y podrás refinarlas.

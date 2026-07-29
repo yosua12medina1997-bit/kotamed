@@ -38,6 +38,8 @@ import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
 import { TopicPresenter } from "@/components/topic/TopicPresenter";
 import { TopicEditor } from "@/components/topic/TopicEditor";
+import { PharmaWorkspace, type PharmaDrug } from "@/components/pharma/PharmaWorkspace";
+
 import type { Topic } from "@/lib/topic-schema";
 
 type BlockKey = BlueprintBlock["key"];
@@ -264,8 +266,12 @@ function TopicDetail({
   accent: string;
   isAdmin: boolean;
 }) {
-  const [tab, setTab] = useState<"plantilla" | "recursos">(isAdmin ? "recursos" : "plantilla");
+  const isPharma = /farmacolog/i.test(topic.title) || (topic as any).key === "farmacologia";
+  const [tab, setTab] = useState<"plantilla" | "recursos" | "farmacologia">(
+    isPharma ? "farmacologia" : isAdmin ? "recursos" : "plantilla",
+  );
   const nodeQ = useTopicNode(block, category, topic, { create: isAdmin });
+
   const [editing, setEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(topic.title);
   const [presenterOpen, setPresenterOpen] = useState(false);
@@ -366,6 +372,31 @@ function TopicDetail({
             </button>
           </>
         )}
+        {isPharma && (
+          <button
+            onClick={() => setTab("farmacologia")}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
+              tab === "farmacologia"
+                ? "bg-foreground text-background border-foreground"
+                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Calculadoras
+          </button>
+        )}
+        {isPharma && !isAdmin && (
+          <button
+            onClick={() => setTab("plantilla")}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
+              tab === "plantilla"
+                ? "bg-foreground text-background border-foreground"
+                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Plantilla
+          </button>
+        )}
+
         <div className="flex-1" />
         {isAdmin && editing ? (
           <div className="flex items-center gap-1">
@@ -421,7 +452,17 @@ function TopicDetail({
         </div>
       )}
 
-      {tab === "recursos" && isAdmin ? (
+      {tab === "farmacologia" && isPharma ? (
+        <PharmaWorkspace
+          nodeId={nodeQ.data?.id ?? null}
+          isAdmin={isAdmin}
+          accent={accent}
+          initialDrugs={
+            ((nodeQ.data?.metadata as any)?.pharma?.drugs as PharmaDrug[] | undefined) ?? null
+          }
+        />
+      ) : tab === "recursos" && isAdmin ? (
+
         <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3">
           {nodeQ.isLoading || !nodeQ.data ? (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -497,11 +538,14 @@ function TopicDetail({
           initialTopic={storedTopic}
           fallbackTitle={topic.title}
           accent={accent}
+          nodeId={nodeQ.data?.id ?? null}
+          nodeTitle={nodeQ.data?.title ?? topic.title}
           onClose={() => setEditorOpen(false)}
           onSave={(t) => saveTopicMut.mutateAsync(t)}
           saving={saveTopicMut.isPending}
         />
       )}
+
     </div>
   );
 }
