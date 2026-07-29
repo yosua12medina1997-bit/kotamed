@@ -538,35 +538,31 @@ function SlideForm({
           <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
             Acciones IA sobre este slide
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            {(
-              [
-                ["expand", "Expandir"],
-                ["summarize", "Resumir"],
-                ["improve", "Mejorar redacción"],
-                ["update-guidelines", "Actualizar guías"],
-                ["add-references", "Añadir referencias"],
-                ["to-table", "→ Tabla"],
-                ["to-flowchart", "→ Algoritmo"],
-                ["to-cards", "→ Tarjetas"],
-                ["to-case", "→ Caso clínico"],
-              ] as const
-            ).map(([action, label]) => (
-              <button
-                key={action}
-                onClick={() => onTransform(action)}
-                disabled={transforming}
-                className="inline-flex items-center gap-1 rounded-lg border border-border/60 bg-background/60 px-2 py-1 text-[11px] font-bold hover:border-primary/40 disabled:opacity-50"
-              >
-                {transforming ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <Wand2 className="size-3" />
-                )}
-                {label}
-              </button>
+          <div className="space-y-2.5">
+            {SLIDE_ACTION_GROUPS.map((g) => (
+              <div key={g.group}>
+                <div className="text-[10px] font-bold text-muted-foreground/80 mb-1">{g.group}</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {g.actions.map(([action, label]) => (
+                    <button
+                      key={action}
+                      onClick={() => onTransform(action)}
+                      disabled={transforming}
+                      className="inline-flex items-center gap-1 rounded-lg border border-border/60 bg-background/60 px-2 py-1 text-[11px] font-bold hover:border-primary/40 disabled:opacity-50"
+                    >
+                      {transforming ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Wand2 className="size-3" />
+                      )}
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
+
           <p className="mt-2 text-[10px] text-muted-foreground">
             Para tablas, algoritmos, casos y referencias detalladas, usa las acciones IA — se generan
             automáticamente y podrás refinarlas.
