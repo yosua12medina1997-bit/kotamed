@@ -170,26 +170,39 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
               key={cat.key}
               className="rounded-2xl border border-border/50 bg-background/40 backdrop-blur overflow-hidden"
             >
-              <button
-                onClick={() => setOpenCat((prev) => (prev === cat.key ? null : cat.key))}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-background/60 transition"
-              >
-                <span
-                  className="inline-flex size-8 items-center justify-center rounded-lg text-[11px] font-extrabold text-white shrink-0"
-                  style={{ background: block.accent }}
+              <div className="flex items-center">
+                <button
+                  onClick={() => setOpenCat((prev) => (prev === cat.key ? null : cat.key))}
+                  className="flex-1 flex items-center gap-3 px-4 py-3.5 text-left hover:bg-background/60 transition"
                 >
-                  <ListChecks className="size-4" strokeWidth={2.5} />
-                </span>
-                <span className="flex-1 text-sm md:text-base font-bold tracking-tight">
-                  {cat.title}
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  {cat.topics.length} temas
-                </span>
-                <ChevronRight
-                  className={`size-4 text-muted-foreground transition ${isOpen ? "rotate-90" : ""}`}
-                />
-              </button>
+                  <span
+                    className="inline-flex size-8 items-center justify-center rounded-lg text-[11px] font-extrabold text-white shrink-0"
+                    style={{ background: block.accent }}
+                  >
+                    <ListChecks className="size-4" strokeWidth={2.5} />
+                  </span>
+                  <span className="flex-1 text-sm md:text-base font-bold tracking-tight">
+                    {cat.title}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    {cat.topics.length} temas
+                  </span>
+                  <ChevronRight
+                    className={`size-4 text-muted-foreground transition ${isOpen ? "rotate-90" : ""}`}
+                  />
+                </button>
+                {cat.key === "farmacologia" && (
+                  <button
+                    onClick={() => setPharmaOpen(true)}
+                    className="mr-3 shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
+                  >
+                    <Calculator className="size-3.5" style={{ color: block.accent }} />
+                    Abrir calculadora
+                  </button>
+                )}
+              </div>
+
+
 
               {isOpen && (
                 <ul className="divide-y divide-border/40 border-t border-border/40">
