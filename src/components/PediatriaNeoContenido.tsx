@@ -497,11 +497,14 @@ function TopicDetail({
           initialTopic={storedTopic}
           fallbackTitle={topic.title}
           accent={accent}
+          nodeId={nodeQ.data?.id ?? null}
+          nodeTitle={nodeQ.data?.title ?? topic.title}
           onClose={() => setEditorOpen(false)}
           onSave={(t) => saveTopicMut.mutateAsync(t)}
           saving={saveTopicMut.isPending}
         />
       )}
+
     </div>
   );
 }
