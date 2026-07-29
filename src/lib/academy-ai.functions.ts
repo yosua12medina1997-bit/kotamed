@@ -50,7 +50,14 @@ async function structured<T>(schema: z.ZodType<T>, prompt: string, system = SYST
       try {
         return schema.parse(JSON.parse((error as any).text ?? "{}"));
       } catch {
-        throw new Error("La IA devolvió un formato inválido. Intenta de nuevo.");
+        throw new Error(
+          "DEBUG " +
+            (error as any)?.name +
+            " | " +
+            String((error as any)?.message).slice(0, 400) +
+            " | TEXT:" +
+            String((error as any)?.text).slice(0, 300),
+        );
       }
     }
     throw error;
