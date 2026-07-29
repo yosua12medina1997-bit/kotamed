@@ -1,101 +1,26 @@
+## Qué pasa
 
-# Sistema dinámico de temas — Pediatría & Neonatología
+La calculadora sí está construida (`src/components/pharma/PharmaWorkspace.tsx`), pero **hoy es inalcanzable en la interfaz**.
 
-Nada del diseño, colores, layout, sidebar, dashboard, tipografía o rutas existentes se modifica. Todo lo nuevo se **añade** encima de la estructura actual (`content_nodes` + `content_resources` + blueprint), reutilizando los mismos tokens visuales que ya tienes.
+En `src/components/PediatriaNeoContenido.tsx` (línea 269) la pestaña "Farmacología" solo aparece si el **tema abierto** cumple `/farmacolog/i.test(topic.title)` o `topic.key === "farmacologia"`. Sin embargo:
 
-Dado el tamaño del prompt, propongo entregarlo en **fases**. Esta primera fase cubre el núcleo: plantilla universal + presentación secuencial + generador IA de contenido. Las demás fases quedan listadas al final para confirmarlas después.
+- `"farmacologia"` es la **clave de la categoría** ("26. Farmacología pediátrica"), no del tema; los temas (`BlueprintTopic`) no tienen `key`.
+- Ningún tema dentro de esa categoría contiene la palabra "farmacología" en su título ("Calculadora de dosis por peso y superficie corporal", "Diluciones", "Antibióticos", etc.).
 
----
+Resultado: la condición nunca se cumple y la pestaña nunca se dibuja.
 
-## Fase 1 — Núcleo dinámico (esta entrega)
+## Qué haré (solo presentación, sin tocar arquitectura existente)
 
-### 1. Modelo de datos: plantilla universal
-Un solo esquema JSON reutilizable para **cualquier** tema (Pediatría, Neonatología y a futuro otras especialidades). Se guarda en `content_nodes.metadata.topic` cuando el nodo es un tema/subtema.
+1. **Corregir la detección**: pasar la `category` al detalle del tema y activar el modo farmacología cuando `category.key === "farmacologia"` (o el título del tema mencione dosis/calculadora). Así la pestaña **Farmacología** aparece en los 15 temas del subtema 26.
 
-```text
-topic = {
-  version: 1,
-  title, subtitle,
-  slides: [
-    { id, kind, title, data, notes }
-  ],
-  meta: { level, tags, sources, updatedAt, generatedBy }
-}
-```
+2. **Acceso directo desde la categoría**: en la tarjeta "26. Farmacología pediátrica" añadir un botón visible **"Abrir calculadora"** que lleve directo al workspace, sin tener que entrar tema por tema.
 
-`kind` cubre los bloques del prompt: `title | objectives | intro | image | diagram | animation | table | comparison | flowchart | cards | timeline | steps | drugs | epidemiology-chart | summary | case | pearls | takehome | mistakes | tips | qbank-preview | references`.
+3. **Atajo global del área**: en la cabecera de Pediatría & Neonatología, añadir un chip/botón **"Calculadora farmacológica"** que abra el mismo panel en un modal, para encontrarlo en un clic desde cualquier punto del módulo.
 
-No se crean rutas nuevas por tema. Todo se lee de este JSON.
-
-### 2. Detección automática de componente
-Función pura `inferSlideKind(rawText)` que decide qué bloque usar a partir del contenido (comparación → tabla, "algoritmo" → flowchart, "epidemiología" → chart, etc.). La IA la usa al generar y el editor la sugiere en vivo.
-
-### 3. Renderer secuencial (una sola pantalla por slide)
-Nuevo componente `TopicPresenter` (drawer/overlay full-screen, no cambia la página):
-- Un slide a la vez, transiciones suaves (framer-motion ya presente).
-- Navegación: flechas ←/→, teclado, barra inferior con progreso, "salir" (Esc).
-- Modo lectura y modo presentación (fullscreen).
-- Se abre desde cada tema/subtema de `PediatriaNeoContenido` con un botón **Abrir tema** (visible para todos) — no toca el diseño de la lista, solo añade el botón.
-
-Componentes por `kind`: `SlideTitle`, `SlideObjectives`, `SlideTable`, `SlideFlowchart` (nodos + edges básicos), `SlideCards`, `SlideTimeline`, `SlideSteps`, `SlideCase`, `SlideTakeHome`, `SlidePearls`, `SlideMistakes`, `SlideSummary`, `SlideImage`, `SlideReferences`. Todos reutilizan tokens/glass ya existentes.
-
-### 4. Editor IA del tema (solo admin)
-Nuevo drawer `TopicEditor` (solo visible con rol admin, como el resto de controles admin). Tabs:
-- **Estructura**: lista ordenable de slides (drag & drop, duplicar, eliminar, cambiar `kind`).
-- **Slide**: editor del slide activo (título, texto, tabla, pasos, etc. según `kind`).
-- **IA**: acciones por slide y por tema completo:
-  - Generar tema completo desde el título del nodo.
-  - Expandir / Resumir / Mejorar redacción / Actualizar guías / Agregar referencias.
-  - Convertir texto libre en tabla / flowchart / cards / timeline (usa `inferSlideKind`).
-- **Fuente**: pegado libre de texto → la IA lo parte en slides.
-
-Persistencia: `content_nodes.metadata.topic` vía la misma mutación que ya usas.
-
-### 5. Server function IA
-`src/lib/topic-ai.functions.ts` con `createServerFn` + `requireSupabaseAuth`, verifica rol admin en el handler antes de llamar al gateway.
-- Modelo: `google/gemini-3.6-flash` vía Lovable AI Gateway (`ai.gateway.lovable.dev/v1`), `LOVABLE_API_KEY` server-only.
-- Structured output con Zod para devolver directamente el shape `topic.slides[]`.
-- Acciones: `generateTopic`, `transformSlide`, `expandSlide`, `summarizeSlide`, `slidesFromText`.
-
-Errores 402/429 se propagan al UI como toast con mensaje claro.
-
-### 6. Integración mínima en la UI existente
-Único cambio en archivos existentes: en `src/components/PediatriaNeoContenido.tsx` añadir dos botones por tema (`Abrir` para todos, `Editar tema` solo admin) que abren los nuevos componentes. Nada más se toca.
-
----
-
-## Fase 2 y siguientes (confirmar después, NO en esta entrega)
-
-Para que quede en el plan pero sin ejecutarse ahora:
-- Importación inteligente (Word/PDF/PPTX/Excel/MD) → slides.
-- Gestor de casos clínicos interactivos.
-- QBank + generador IA de 100/500/1000 preguntas.
-- Simuladores IA (escenario + monitores + eventos).
-- Generador de storyboards de video.
-- Flashcards SRS.
-- Tutor IA por tema (chat con citas).
-- Progreso avanzado + heatmap + recomendador IA.
-- Biblioteca multimedia indexada.
-- CMS drag-and-drop, versionado, papelera, publicación programada.
-- Modo Docente, generador de diapositivas exportables, modo Congreso, dashboard de calidad, motor de referencias.
-
-Cada bloque se abordará como fase independiente para poder validar diseño y comportamiento antes de escalarlo al resto de especialidades.
-
----
+4. **Verificación en navegador**: abrir `/programas/residentado/areas/pediatria-neonatologia`, confirmar con capturas que el atajo y la pestaña se renderizan y que los cálculos (dosis, SC, Holliday-Segar, goteo) responden.
 
 ## Detalles técnicos
 
-- Nuevos archivos:
-  - `src/lib/topic-schema.ts` (tipos + `inferSlideKind`).
-  - `src/lib/topic-ai.functions.ts` (server fn IA, admin-gated).
-  - `src/components/topic/TopicPresenter.tsx` + `slides/*` (renderers por kind).
-  - `src/components/topic/TopicEditor.tsx` (drawer admin).
-- Sin migraciones: se usa `content_nodes.metadata` (jsonb) ya existente.
-- Sin cambios de RLS: la lectura ya está gateada por enrollment; la escritura ya es admin-only.
-- Sin nuevas rutas ni cambios en `routeTree.gen.ts`.
-- Sin librerías nuevas obligatorias; si hace falta drag&drop se usa `@dnd-kit` (ya común, se instala solo si se aprueba).
-
-## Criterio de aceptación Fase 1
-1. Desde cualquier tema de Pediatría o Neonatología, un usuario matriculado puede abrir el tema y navegar slide por slide con animaciones.
-2. Un admin puede: generar el tema completo con un clic, editar slide por slide, cambiar el tipo de bloque, reordenar y guardar — todo persiste en `content_nodes.metadata.topic`.
-3. Nada del diseño, layout, colores, sidebar, dashboard ni rutas existentes cambia visualmente para el usuario final.
+- Cambios acotados a `src/components/PediatriaNeoContenido.tsx` (props y condición `isPharma`, botón de atajo y modal).
+- `PharmaWorkspace` se reutiliza sin modificar; sigue guardando el catálogo en `content_nodes.metadata.pharma` solo para admin.
+- Sin migraciones, sin cambios de rutas ni de estilos globales.
