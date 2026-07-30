@@ -206,14 +206,15 @@ function ProgramDetail() {
               Programa académico
             </span>
             <h1 className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight text-balance leading-[1.05]">
-              {program.title}
+              {liveTitle}
             </h1>
             <p className="mt-4 text-lg text-foreground/85 font-medium text-pretty">
               {program.tagline}
             </p>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed text-pretty">
-              {program.description}
+              {liveDescription}
             </p>
+
             <div className="mt-6 inline-flex items-center gap-2 text-xs text-muted-foreground">
               <Target className="size-3.5" />
               <span className="font-semibold">Dirigido a:</span>
