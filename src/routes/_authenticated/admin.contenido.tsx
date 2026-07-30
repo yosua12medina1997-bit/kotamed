@@ -287,6 +287,7 @@ function TreeItem({
   const [description, setDescription] = useState(node.description ?? "");
   const [busy, setBusy] = useState(false);
   const allowed = CHILD_KINDS[node.kind];
+  const expandable = children.length > 0 || allowed.length > 0;
 
   return (
     <li>
@@ -296,15 +297,17 @@ function TreeItem({
       >
         <button
           onClick={() => setOpen((v) => !v)}
-          className="p-1 text-muted-foreground shrink-0"
+          className="p-1 text-muted-foreground shrink-0 disabled:opacity-30"
           aria-label={open ? "Contraer" : "Expandir"}
+          disabled={!expandable}
         >
-          {children.length > 0 ? (
+          {expandable ? (
             open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />
           ) : (
             <span className="inline-block w-4" />
           )}
         </button>
+
 
         <span
           className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md border shrink-0 ${
