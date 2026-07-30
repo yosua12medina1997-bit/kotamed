@@ -763,7 +763,11 @@ function RutaSection({
   });
 
   return (
-    <section className="glass rounded-3xl p-7 animate-slide-up">
+    <div className="space-y-6">
+      <RutaCinematica meta={meta} stages={items} />
+
+      {isAdmin && (
+        <section className="glass rounded-3xl p-7 animate-slide-up">
       <div className="flex items-center gap-2">
         <Sparkles
           className="size-4"
@@ -774,12 +778,13 @@ function RutaSection({
           Roadmap
         </span>
       </div>
-      <h2 className="mt-2 text-2xl font-extrabold tracking-tight">Ruta académica</h2>
+      <h2 className="mt-2 text-2xl font-extrabold tracking-tight">Editor de la ruta</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Cada etapa desbloquea la siguiente. Solo el admin puede reordenarla.
       </p>
 
       <ol className="mt-6 space-y-2">
+
         {items.map((stage, idx) => (
           <li
             key={`${idx}-${stage}`}
