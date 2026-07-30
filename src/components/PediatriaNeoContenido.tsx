@@ -320,12 +320,10 @@ function TopicDetail({
   accent: string;
   isAdmin: boolean;
 }) {
-  const isPharma =
-    category.key === "farmacologia" ||
-    /farmacolog|dosis|calculadora/i.test(topic.title);
-  const [tab, setTab] = useState<"plantilla" | "recursos" | "farmacologia">(
-    isPharma ? "farmacologia" : isAdmin ? "recursos" : "plantilla",
+  const [tab, setTab] = useState<"plantilla" | "recursos">(
+    isAdmin ? "recursos" : "plantilla",
   );
+
   const nodeQ = useTopicNode(block, category, topic, { create: isAdmin });
 
   const [editing, setEditing] = useState(false);
@@ -428,30 +426,8 @@ function TopicDetail({
             </button>
           </>
         )}
-        {isPharma && (
-          <button
-            onClick={() => setTab("farmacologia")}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-              tab === "farmacologia"
-                ? "bg-foreground text-background border-foreground"
-                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Calculadoras
-          </button>
-        )}
-        {isPharma && !isAdmin && (
-          <button
-            onClick={() => setTab("plantilla")}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-              tab === "plantilla"
-                ? "bg-foreground text-background border-foreground"
-                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Plantilla
-          </button>
-        )}
+
+
 
         <div className="flex-1" />
         {isAdmin && editing ? (
@@ -508,16 +484,8 @@ function TopicDetail({
         </div>
       )}
 
-      {tab === "farmacologia" && isPharma ? (
-        <PharmaWorkspace
-          nodeId={nodeQ.data?.id ?? null}
-          isAdmin={isAdmin}
-          accent={accent}
-          initialDrugs={
-            ((nodeQ.data?.metadata as any)?.pharma?.drugs as PharmaDrug[] | undefined) ?? null
-          }
-        />
-      ) : tab === "recursos" && isAdmin ? (
+      {tab === "recursos" && isAdmin ? (
+
 
         <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3">
           {nodeQ.isLoading || !nodeQ.data ? (
