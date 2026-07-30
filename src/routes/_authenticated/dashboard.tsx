@@ -330,9 +330,9 @@ function LockedView({
           Vista previa · Programas disponibles
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(Object.keys(PROGRAM_LABELS) as (keyof typeof PROGRAM_LABELS)[]).map((p) => (
+          {programs.map((p) => (
             <div
-              key={p}
+              key={p.slug}
               className="glass rounded-2xl p-6 relative overflow-hidden opacity-90"
             >
               <div className="absolute top-3 right-3 size-7 rounded-lg bg-black/[0.04] flex items-center justify-center">
@@ -341,12 +341,13 @@ function LockedView({
               <div className="size-10 rounded-xl bg-black/[0.04] text-muted-foreground flex items-center justify-center mb-3">
                 <BookOpen className="size-5" strokeWidth={2} />
               </div>
-              <h3 className="font-bold text-sm tracking-tight">{PROGRAM_LABELS[p]}</h3>
+              <h3 className="font-bold text-sm tracking-tight">{p.title}</h3>
               <p className="text-[11px] text-muted-foreground mt-1">
                 Bloqueado hasta que el administrador te matricule.
               </p>
             </div>
           ))}
+
         </div>
       </section>
     </div>
