@@ -37,6 +37,8 @@ import { SimuladoresSection } from "@/components/academy/SimuladoresSection";
 import { BibliotecaSection } from "@/components/academy/BibliotecaSection";
 import { TutorSection } from "@/components/academy/TutorSection";
 import { ProgresoSection } from "@/components/academy/ProgresoSection";
+import { RutaCinematica } from "@/components/academy/RutaCinematica";
+
 
 export const Route = createFileRoute("/programas/residentado/areas/$area")({
   loader: ({ params }) => {
