@@ -204,6 +204,8 @@ export function NotebookPane({
   const [docs, setDocs] = useState<SourceDoc[]>([]);
   const [pasted, setPasted] = useState("");
   const [reading, setReading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
   const [instruction, setInstruction] = useState(
     "Redacta el tema completo basándote únicamente en estas fuentes, con enfoque clínico y estructura estándar.",
   );
