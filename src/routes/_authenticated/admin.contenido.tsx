@@ -332,6 +332,16 @@ function TreeItem({
         </div>
 
         <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+          {allowed.length > 0 && (
+            <button
+              onClick={() => setOpen(true)}
+              title={`Añadir ${allowed.map((k) => KIND_LABEL[k]).join(" / ").toLowerCase()}`}
+              className="p-1.5 rounded-lg text-primary hover:bg-primary/10"
+            >
+              <Plus className="size-3.5" strokeWidth={2.5} />
+            </button>
+          )}
+
           <button
             onClick={() => setResourcesOpen((v) => !v)}
             title="Recursos (archivos, videos, enlaces)"
