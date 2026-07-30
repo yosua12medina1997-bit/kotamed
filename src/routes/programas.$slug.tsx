@@ -156,8 +156,11 @@ function ProgramDetail() {
   const areas: string[] = dbAreas && dbAreas.length > 0
     ? dbAreas.map((a) => a.title)
     : program.areas;
+  const liveTitle = programNode?.title || program.title;
+  const liveDescription = programNode?.description || program.description;
   const chapterFeatures = meta.chapterFeatures ?? program.chapterFeatures;
   const chapterTemplate = meta.chapterTemplate ?? CHAPTER_TEMPLATE.map((c) => c.title);
+
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
