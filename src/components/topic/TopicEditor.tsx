@@ -2,7 +2,7 @@
  * Editor de tema (solo admin). Se abre como drawer full-screen.
  * Estructura + editor por slide + acciones IA + importación desde texto.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -10,14 +10,17 @@ import {
   ArrowDown,
   ArrowUp,
   Copy,
+  FileDown,
   Loader2,
   Plus,
   Save,
   Sparkles,
   Trash2,
+  Upload,
   Wand2,
   X,
 } from "lucide-react";
+
 import type { Slide, SlideKind, Topic } from "@/lib/topic-schema";
 import {
   ALL_SLIDE_KINDS,
