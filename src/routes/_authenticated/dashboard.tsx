@@ -24,6 +24,8 @@ import {
   type Enrollment,
 } from "@/lib/session";
 import { useQueryClient } from "@tanstack/react-query";
+import { useProgramCatalog } from "@/lib/content-catalog";
+
 import doctorAvatar from "@/assets/doctor-avatar.jpg";
 import { useEffect } from "react";
 
