@@ -8,13 +8,24 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Download, Film, Library, Plus, Search, Sparkles, Trash2, Upload } from "lucide-react";
+import {
+  BookOpen,
+  Download,
+  Film,
+  Library,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { generateVideoScript } from "@/lib/academy-ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Chip, Empty, Field, Input, Panel, Select, Textarea } from "./ui";
 import { db } from "./api";
 import { Modal } from "./CasosSection";
+import { ComicCreator, ComicEditor, ComicReader, type ComicDoc } from "./ComicWorkspace";
 
 const KINDS = [
   "libro",
@@ -51,12 +62,15 @@ type VideoRow = {
 export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdmin: boolean }) {
   const accent = meta.accent;
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"biblioteca" | "videos">("biblioteca");
+  const [tab, setTab] = useState<"biblioteca" | "videos" | "comics">("biblioteca");
   const [q, setQ] = useState("");
   const [kind, setKind] = useState("");
   const [adding, setAdding] = useState(false);
   const [genVideo, setGenVideo] = useState(false);
+  const [genComic, setGenComic] = useState(false);
   const [openVideo, setOpenVideo] = useState<VideoRow | null>(null);
+  const [openComic, setOpenComic] = useState<VideoRow | null>(null);
+  const [editComic, setEditComic] = useState<VideoRow | null>(null);
 
   const items = useQuery({
     queryKey: ["academy-library", meta.slug],
@@ -82,6 +96,14 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
       if (error) throw error;
       return (data ?? []) as VideoRow[];
     },
+  });
+
+  const delVideo = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db.from("academy_video_scripts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["academy-videos", meta.slug] }),
   });
 
   const delItem = useMutation({
@@ -114,13 +136,19 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
       actions={
         isAdmin && (
           <>
-            {tab === "biblioteca" ? (
+            {tab === "biblioteca" && (
               <Btn variant="solid" accent={accent} onClick={() => setAdding(true)}>
                 <Plus className="size-3" /> Añadir material
               </Btn>
-            ) : (
+            )}
+            {tab === "videos" && (
               <Btn variant="solid" accent={accent} onClick={() => setGenVideo(true)}>
                 <Sparkles className="size-3" /> Generar video IA
+              </Btn>
+            )}
+            {tab === "comics" && (
+              <Btn variant="solid" accent={accent} onClick={() => setGenComic(true)}>
+                <Sparkles className="size-3" /> Generar cómic IA
               </Btn>
             )}
           </>
@@ -128,7 +156,7 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
       }
     >
       <div className="flex flex-wrap gap-2">
-        {(["biblioteca", "videos"] as const).map((t) => (
+        {(["biblioteca", "videos", "comics"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -138,7 +166,11 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
                 : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
             }`}
           >
-            {t === "videos" ? "Generador de videos" : "Material"}
+            {t === "videos"
+              ? "Generador de videos"
+              : t === "comics"
+                ? "Cómic interactivo"
+                : "Material"}
           </button>
         ))}
       </div>
@@ -235,7 +267,7 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
 
       {tab === "videos" && (
         <div className="mt-4 grid gap-2 md:grid-cols-2">
-          {(videos.data ?? []).map((v) => (
+          {(videos.data ?? []).filter((v) => v.storyboard?.kind !== "comic").map((v) => (
             <div key={v.id} className="rounded-2xl border border-border/50 bg-background/40 p-4">
               <div className="flex flex-wrap gap-1.5">
                 <Chip accent={accent}>
@@ -269,6 +301,52 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
         </div>
       )}
 
+      {tab === "comics" && (
+        <div className="mt-4 grid gap-2 md:grid-cols-2">
+          {(videos.data ?? [])
+            .filter((v) => v.storyboard?.kind === "comic")
+            .map((v) => (
+              <div key={v.id} className="rounded-2xl border border-border/50 bg-background/40 p-4">
+                <div className="flex flex-wrap gap-1.5">
+                  <Chip accent={accent}>
+                    <BookOpen className="size-3" /> cómic interactivo
+                  </Chip>
+                  <Chip>{v.storyboard?.nodes?.length ?? 0} nodos</Chip>
+                </div>
+                <h3 className="mt-2 text-sm font-bold tracking-tight">{v.title}</h3>
+                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                  {v.storyboard?.logline}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Btn variant="solid" accent={accent} onClick={() => setOpenComic(v)}>
+                    Leer cómic
+                  </Btn>
+                  {isAdmin && (
+                    <>
+                      <Btn onClick={() => setEditComic(v)}>Editar todo</Btn>
+                      <Btn onClick={() => delVideo.mutate(v.id)}>
+                        <Trash2 className="size-3" /> Eliminar
+                      </Btn>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          {!videos.isLoading &&
+            (videos.data ?? []).filter((v) => v.storyboard?.kind === "comic").length === 0 && (
+              <div className="md:col-span-2">
+                <Empty
+                  text={
+                    isAdmin
+                      ? 'Escribe "Shock séptico en lactante" y la IA creará un cómic ilustrado donde el usuario toma decisiones clínicas.'
+                      : "Aún no hay cómics interactivos publicados."
+                  }
+                />
+              </div>
+            )}
+        </div>
+      )}
+
       {adding && (
         <LibraryForm
           meta={meta}
@@ -291,11 +369,44 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
         />
       )}
 
+      {genComic && (
+        <ComicCreator
+          meta={meta}
+          onClose={() => setGenComic(false)}
+          onSaved={() => {
+            setGenComic(false);
+            qc.invalidateQueries({ queryKey: ["academy-videos", meta.slug] });
+          }}
+        />
+      )}
+
       {openVideo && (
         <Modal title={openVideo.title} onClose={() => setOpenVideo(null)} wide>
           <StoryboardView content={openVideo.storyboard} accent={accent} title={openVideo.title} />
         </Modal>
       )}
+
+      {openComic && (
+        <Modal title={openComic.title} onClose={() => setOpenComic(null)} wide>
+          <ComicReader doc={openComic.storyboard as ComicDoc} accent={accent} />
+        </Modal>
+      )}
+
+      {editComic && (
+        <Modal title={`Editar · ${editComic.title}`} onClose={() => setEditComic(null)} wide>
+          <ComicEditor
+            meta={meta}
+            id={editComic.id}
+            title={editComic.title}
+            doc={editComic.storyboard as ComicDoc}
+            onSaved={() => {
+              setEditComic(null);
+              qc.invalidateQueries({ queryKey: ["academy-videos", meta.slug] });
+            }}
+          />
+        </Modal>
+      )}
+
     </Panel>
   );
 }
