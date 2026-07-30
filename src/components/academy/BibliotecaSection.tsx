@@ -293,6 +293,52 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
         </div>
       )}
 
+      {tab === "comics" && (
+        <div className="mt-4 grid gap-2 md:grid-cols-2">
+          {(videos.data ?? [])
+            .filter((v) => v.storyboard?.kind === "comic")
+            .map((v) => (
+              <div key={v.id} className="rounded-2xl border border-border/50 bg-background/40 p-4">
+                <div className="flex flex-wrap gap-1.5">
+                  <Chip accent={accent}>
+                    <BookOpen className="size-3" /> cómic interactivo
+                  </Chip>
+                  <Chip>{v.storyboard?.nodes?.length ?? 0} nodos</Chip>
+                </div>
+                <h3 className="mt-2 text-sm font-bold tracking-tight">{v.title}</h3>
+                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                  {v.storyboard?.logline}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Btn variant="solid" accent={accent} onClick={() => setOpenComic(v)}>
+                    Leer cómic
+                  </Btn>
+                  {isAdmin && (
+                    <>
+                      <Btn onClick={() => setEditComic(v)}>Editar todo</Btn>
+                      <Btn onClick={() => delVideo.mutate(v.id)}>
+                        <Trash2 className="size-3" /> Eliminar
+                      </Btn>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          {!videos.isLoading &&
+            (videos.data ?? []).filter((v) => v.storyboard?.kind === "comic").length === 0 && (
+              <div className="md:col-span-2">
+                <Empty
+                  text={
+                    isAdmin
+                      ? 'Escribe "Shock séptico en lactante" y la IA creará un cómic ilustrado donde el usuario toma decisiones clínicas.'
+                      : "Aún no hay cómics interactivos publicados."
+                  }
+                />
+              </div>
+            )}
+        </div>
+      )}
+
       {adding && (
         <LibraryForm
           meta={meta}
@@ -315,11 +361,44 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
         />
       )}
 
+      {genComic && (
+        <ComicCreator
+          meta={meta}
+          onClose={() => setGenComic(false)}
+          onSaved={() => {
+            setGenComic(false);
+            qc.invalidateQueries({ queryKey: ["academy-videos", meta.slug] });
+          }}
+        />
+      )}
+
       {openVideo && (
         <Modal title={openVideo.title} onClose={() => setOpenVideo(null)} wide>
           <StoryboardView content={openVideo.storyboard} accent={accent} title={openVideo.title} />
         </Modal>
       )}
+
+      {openComic && (
+        <Modal title={openComic.title} onClose={() => setOpenComic(null)} wide>
+          <ComicReader doc={openComic.storyboard as ComicDoc} accent={accent} />
+        </Modal>
+      )}
+
+      {editComic && (
+        <Modal title={`Editar · ${editComic.title}`} onClose={() => setEditComic(null)} wide>
+          <ComicEditor
+            meta={meta}
+            id={editComic.id}
+            title={editComic.title}
+            doc={editComic.storyboard as ComicDoc}
+            onSaved={() => {
+              setEditComic(null);
+              qc.invalidateQueries({ queryKey: ["academy-videos", meta.slug] });
+            }}
+          />
+        </Modal>
+      )}
+
     </Panel>
   );
 }
