@@ -614,24 +614,33 @@ export function Modal({
   children,
   onClose,
   wide,
+  full,
 }: {
   title: string;
   children: React.ReactNode;
   onClose: () => void;
   wide?: boolean;
+  full?: boolean;
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 backdrop-blur p-4"
+      className={`fixed inset-0 z-50 flex overflow-y-auto bg-background/80 backdrop-blur ${
+        full ? "items-stretch justify-stretch p-0" : "items-start justify-center p-4"
+      }`}
       onClick={onClose}
     >
       <div
-        className={`w-full ${wide ? "max-w-4xl" : "max-w-2xl"} my-8 rounded-3xl border border-border/60 bg-card p-5 md:p-6 shadow-xl`}
+        className={
+          full
+            ? "w-full min-h-full rounded-none border-0 bg-card p-4 md:p-8 shadow-none"
+            : `w-full ${wide ? "max-w-4xl" : "max-w-2xl"} my-8 rounded-3xl border border-border/60 bg-card p-5 md:p-6 shadow-xl`
+        }
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 mb-4">
           <h3 className="text-sm font-extrabold tracking-tight">{title}</h3>
           <div className="flex-1" />
+
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-muted-foreground hover:bg-foreground/[0.05]"
