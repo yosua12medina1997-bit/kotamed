@@ -11,6 +11,8 @@ import {
   Stethoscope,
   Trophy,
 } from "lucide-react";
+import { useProgramCatalog } from "@/lib/content-catalog";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
