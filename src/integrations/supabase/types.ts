@@ -447,6 +447,45 @@ export type Database = {
         }
         Relationships: []
       }
+      command_center: {
+        Row: {
+          area_slug: string
+          coach: Json
+          created_at: string
+          id: string
+          identity: Json
+          legacy: Json
+          missions: Json
+          system_prefs: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area_slug: string
+          coach?: Json
+          created_at?: string
+          id?: string
+          identity?: Json
+          legacy?: Json
+          missions?: Json
+          system_prefs?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area_slug?: string
+          coach?: Json
+          created_at?: string
+          id?: string
+          identity?: Json
+          legacy?: Json
+          missions?: Json
+          system_prefs?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       content_nodes: {
         Row: {
           created_at: string
