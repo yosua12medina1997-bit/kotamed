@@ -729,3 +729,113 @@ function ImportPane({
   );
 }
 
+
+/* ------------------------------------------------------------------ */
+/* Exportación a PDF (imprimir → guardar como PDF)                     */
+/* ------------------------------------------------------------------ */
+
+function esc(s: string) {
+  return String(s ?? "").replace(/[&<>]/g, (c) =>
+    c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;",
+  );
+}
+
+function slideHtml(s: Slide, i: number): string {
+  const parts: string[] = [];
+  parts.push(`<h2>${i + 1}. ${esc(s.title)}</h2>`);
+  parts.push(`<div class="kind">${esc(SLIDE_KIND_LABEL[s.kind] ?? s.kind)}</div>`);
+  if (s.body) parts.push(`<p>${esc(s.body).replace(/\n/g, "<br/>")}</p>`);
+  if (s.bullets?.length)
+    parts.push(`<ul>${s.bullets.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>`);
+  if (s.cards?.length)
+    parts.push(
+      `<div class="cards">${s.cards
+        .map((c) => `<div class="card"><b>${esc(c.title)}</b><div>${esc(c.body)}</div></div>`)
+        .join("")}</div>`,
+    );
+  if (s.table)
+    parts.push(
+      `<table><thead><tr>${s.table.headers
+        .map((h) => `<th>${esc(h)}</th>`)
+        .join("")}</tr></thead><tbody>${s.table.rows
+        .map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`)
+        .join("")}</tbody></table>`,
+    );
+  if (s.steps?.length)
+    parts.push(
+      `<ol>${s.steps
+        .map((st) => `<li><b>${esc(st.title)}</b>${st.body ? ` — ${esc(st.body)}` : ""}</li>`)
+        .join("")}</ol>`,
+    );
+  if (s.timeline?.length)
+    parts.push(
+      `<ul>${s.timeline
+        .map(
+          (t) =>
+            `<li><b>${esc(t.time)}</b> · ${esc(t.label)}${t.body ? ` — ${esc(t.body)}` : ""}</li>`,
+        )
+        .join("")}</ul>`,
+    );
+  if (s.flowchart)
+    parts.push(
+      `<ul class="flow">${s.flowchart.edges
+        .map((e) => {
+          const n = (id: string) =>
+            esc(s.flowchart!.nodes.find((x) => x.id === id)?.label ?? id);
+          return `<li>${n(e.from)} → ${e.label ? `<i>${esc(e.label)}</i> → ` : ""}${n(e.to)}</li>`;
+        })
+        .join("")}</ul>`,
+    );
+  if (s.clinicalCase) {
+    parts.push(`<p><b>Caso:</b> ${esc(s.clinicalCase.presentation)}</p>`);
+    parts.push(
+      `<ol>${s.clinicalCase.questions
+        .map((q) => `<li><b>${esc(q.q)}</b><br/>${esc(q.a)}</li>`)
+        .join("")}</ol>`,
+    );
+  }
+  if (s.references?.length)
+    parts.push(
+      `<ol class="refs">${s.references
+        .map((r) => `<li>${esc(r.label)}${r.source ? ` — ${esc(r.source)}` : ""}</li>`)
+        .join("")}</ol>`,
+    );
+  return `<section>${parts.join("")}</section>`;
+}
+
+export function exportTopicPdf(topic: Topic) {
+  const win = window.open("", "_blank", "width=900,height=1000");
+  if (!win) {
+    toast.error("Permite las ventanas emergentes para exportar el PDF.");
+    return;
+  }
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"/>
+<title>${esc(topic.title)}</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:#111; font-size: 11.5pt; line-height:1.5; }
+  h1 { font-size: 22pt; margin:0 0 4px; letter-spacing:-.02em; }
+  .sub { color:#555; margin-bottom: 18px; }
+  section { page-break-inside: avoid; border-top:1px solid #e5e5e5; padding-top:10px; margin-top:14px; }
+  h2 { font-size: 13.5pt; margin:0 0 2px; }
+  .kind { font-size: 8pt; text-transform: uppercase; letter-spacing:.12em; color:#888; margin-bottom:6px; }
+  table { border-collapse: collapse; width:100%; margin:8px 0; font-size:10pt; }
+  th, td { border:1px solid #ddd; padding:5px 7px; text-align:left; vertical-align:top; }
+  th { background:#f5f5f5; }
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .card { border:1px solid #e5e5e5; border-radius:8px; padding:8px; font-size:10pt; }
+  ul, ol { margin:6px 0 6px 18px; padding:0; }
+  .refs { font-size:9.5pt; color:#333; }
+  footer { margin-top:22px; font-size:8.5pt; color:#999; }
+</style></head><body>
+<h1>${esc(topic.title)}</h1>
+${topic.subtitle ? `<div class="sub">${esc(topic.subtitle)}</div>` : ""}
+${topic.slides.map(slideHtml).join("")}
+<footer>Kotaro Academy · generado el ${new Date().toLocaleDateString("es-PE")}</footer>
+</body></html>`;
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 400);
+}
