@@ -387,7 +387,7 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
       )}
 
       {openComic && (
-        <Modal title={openComic.title} onClose={() => setOpenComic(null)} wide>
+        <Modal title={openComic.title} onClose={() => setOpenComic(null)} full>
           <ComicReader doc={openComic.storyboard as ComicDoc} accent={accent} />
         </Modal>
       )}
