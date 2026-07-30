@@ -72,7 +72,7 @@ function ProgramsIndex() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {PROGRAMS.map((p, i) => {
+          {programs.map((p, i) => {
             const accent = ACCENT_CLASSES[p.accent];
             return (
               <Link
