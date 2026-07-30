@@ -660,6 +660,7 @@ function ImportPane({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [reading, setReading] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -682,14 +683,32 @@ function ImportPane({
 
   return (
     <div className="max-w-3xl">
-      <div className="rounded-2xl border border-border/40 bg-background/40 p-4">
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!dragging) setDragging(true);
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          void handleFiles(e.dataTransfer.files);
+        }}
+        className={`relative rounded-2xl border p-4 transition ${
+          dragging
+            ? "border-primary border-dashed bg-primary/[0.06]"
+            : "border-border/40 bg-background/40"
+        }`}
+      >
         <div className="flex items-center gap-2 mb-2">
           <Wand2 className="size-4 text-primary" />
           <span className="text-sm font-bold">Convertir texto o archivos en diapositivas</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Sube <b>PDF</b>, Word, Excel/CSV o texto, o pega tus apuntes. La IA detectará tablas,
-          comparaciones, algoritmos y casos, y los convertirá en el formato del tema.
+          Arrastra y suelta <b>PDF</b>, Word, Excel/CSV o texto, o pega tus apuntes. La IA detectará
+          tablas, comparaciones, algoritmos y casos, y los convertirá en el formato del tema.
         </p>
         <input
           ref={fileRef}
@@ -705,11 +724,23 @@ function ImportPane({
         <button
           onClick={() => fileRef.current?.click()}
           disabled={reading}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground disabled:opacity-50"
+          className="mt-3 w-full inline-flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/60 px-3 py-5 text-xs font-bold text-muted-foreground hover:text-foreground hover:border-primary/40 disabled:opacity-50"
         >
-          {reading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
-          {reading ? "Extrayendo texto…" : "Subir PDF / Word / Excel"}
+          {reading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+          {reading ? "Extrayendo texto…" : "Arrastra y suelta aquí tus archivos"}
+          <span className="font-medium text-[10px] text-muted-foreground/80">
+            o haz clic para elegir · PDF, Word, Excel o texto
+          </span>
         </button>
+
+        {dragging && (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/80 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-sm font-bold text-primary">
+              <Upload className="size-4" /> Suelta para extraer el texto
+            </div>
+          </div>
+        )}
+
         <textarea
           value={text}
           onChange={(e) => onChange(e.target.value)}

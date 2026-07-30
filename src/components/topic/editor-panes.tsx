@@ -204,6 +204,8 @@ export function NotebookPane({
   const [docs, setDocs] = useState<SourceDoc[]>([]);
   const [pasted, setPasted] = useState("");
   const [reading, setReading] = useState(false);
+  const [dragging, setDragging] = useState(false);
+
   const [instruction, setInstruction] = useState(
     "Redacta el tema completo basándote únicamente en estas fuentes, con enfoque clínico y estructura estándar.",
   );
@@ -275,7 +277,25 @@ export function NotebookPane({
 
   return (
     <div className="grid gap-4 lg:grid-cols-2 max-w-6xl">
-      <div className="rounded-2xl border border-border/40 bg-background/40 p-4">
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!dragging) setDragging(true);
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragging(false);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          void handleFiles(e.dataTransfer.files);
+        }}
+        className={`relative rounded-2xl border p-4 transition ${
+          dragging
+            ? "border-primary border-dashed bg-primary/[0.06]"
+            : "border-border/40 bg-background/40"
+        }`}
+      >
         <div className="flex items-center gap-2 mb-2">
           <NotebookPen className="size-4 text-primary" />
           <span className="text-sm font-bold">Notebook IA · fuentes indexadas</span>
@@ -299,11 +319,23 @@ export function NotebookPane({
         <button
           onClick={() => inputRef.current?.click()}
           disabled={reading}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground disabled:opacity-50"
+          className="mt-3 w-full inline-flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/60 px-3 py-5 text-xs font-bold text-muted-foreground hover:text-foreground hover:border-primary/40 disabled:opacity-50"
         >
-          {reading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
-          {reading ? "Leyendo documentos…" : "Añadir PDF, Word, Excel o texto"}
+          {reading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+          {reading ? "Leyendo documentos…" : "Arrastra y suelta aquí tus archivos"}
+          <span className="font-medium text-[10px] text-muted-foreground/80">
+            o haz clic para elegir · PDF, Word, Excel o texto
+          </span>
         </button>
+
+        {dragging && (
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/80 backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-sm font-bold text-primary">
+              <Upload className="size-4" /> Suelta para indexar
+            </div>
+          </div>
+        )}
+
 
 
         <div className="mt-3 space-y-1.5">
