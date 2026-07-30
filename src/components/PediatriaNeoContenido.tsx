@@ -48,6 +48,15 @@ type BlockKey = BlueprintBlock["key"];
 const ROOT_SLUG = "biblioteca-pediatria-neo";
 const ROOT_TITLE = "Biblioteca · Pediatría & Neonatología";
 
+const OVERRIDES_SLUG = "pednn-blueprint-overrides";
+
+type BlueprintOverrides = {
+  added: Record<string, string[]>;
+  removed: Record<string, string[]>;
+};
+
+const EMPTY_OVERRIDES: BlueprintOverrides = { added: {}, removed: {} };
+
 function slugify(s: string) {
   return s
     .toLowerCase()
@@ -57,6 +66,79 @@ function slugify(s: string) {
     .replace(/(^-|-$)+/g, "")
     .slice(0, 60);
 }
+
+/** Overrides de temas (agregados/quitados por admin) guardados globalmente. */
+function useBlueprintOverrides() {
+  const qc = useQueryClient();
+  const user = useSupabaseUser();
+
+  const q = useQuery({
+    queryKey: ["pednn-blueprint-overrides"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_nodes")
+        .select("id, metadata")
+        .eq("slug", OVERRIDES_SLUG)
+        .limit(1);
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
+    },
+    staleTime: 30_000,
+  });
+
+  const overrides: BlueprintOverrides = useMemo(() => {
+    const raw = (q.data?.metadata as any)?.blueprint as Partial<BlueprintOverrides> | undefined;
+    return { added: raw?.added ?? {}, removed: raw?.removed ?? {} };
+  }, [q.data]);
+
+  const save = useMutation({
+    mutationFn: async (next: BlueprintOverrides) => {
+      const existing = q.data;
+      if (!existing) {
+        const { error } = await supabase.from("content_nodes").insert({
+          parent_id: null,
+          kind: "course",
+          title: "Overrides · Blueprint Pediatría & Neonatología",
+          slug: OVERRIDES_SLUG,
+          sort_order: 999,
+          created_by: user?.id ?? null,
+          metadata: { blueprint: next } as never,
+        });
+        if (error) throw error;
+        return;
+      }
+      const md = ((existing.metadata ?? {}) as Record<string, unknown>) || {};
+      const { error } = await supabase
+        .from("content_nodes")
+        .update({ metadata: { ...md, blueprint: next } as never })
+        .eq("id", existing.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pednn-blueprint-overrides"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar el cambio"),
+  });
+
+  return { overrides, save };
+}
+
+/** Aplica los overrides sobre un bloque del blueprint. */
+function applyOverrides(block: BlueprintBlock, ov: BlueprintOverrides): BlueprintBlock {
+  return {
+    ...block,
+    categories: block.categories.map((cat) => {
+      const key = `${block.key}::${cat.key}`;
+      const removed = new Set(ov.removed[key] ?? []);
+      const added = (ov.added[key] ?? []).map((title) => ({ title }) as BlueprintTopic);
+      return {
+        ...cat,
+        topics: [...cat.topics, ...added].filter((t) => !removed.has(t.title)),
+      };
+    }),
+  };
+}
+
 
 export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
   const [active, setActive] = useState<BlockKey>("neonatologia");
