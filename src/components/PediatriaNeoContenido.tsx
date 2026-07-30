@@ -39,7 +39,7 @@ import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
 import { TopicPresenter } from "@/components/topic/TopicPresenter";
 import { TopicEditor } from "@/components/topic/TopicEditor";
-import { PharmaWorkspace, type PharmaDrug } from "@/components/pharma/PharmaWorkspace";
+import { PharmaWorkspace } from "@/components/pharma/PharmaWorkspace";
 
 import type { Topic } from "@/lib/topic-schema";
 
@@ -171,6 +171,28 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground">{block.tagline}</p>
+
+      <button
+        onClick={() => setPharmaOpen(true)}
+        className="mt-4 w-full group flex items-center gap-3 rounded-2xl border border-border/60 bg-background/50 px-4 py-3 text-left backdrop-blur transition hover:border-primary/40 hover:bg-background/70"
+      >
+        <span
+          className="inline-flex size-9 items-center justify-center rounded-xl text-white shrink-0"
+          style={{ background: block.accent }}
+        >
+          <Calculator className="size-4.5" strokeWidth={2.4} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-bold tracking-tight">
+            Calculadora farmacológica pediátrica
+          </span>
+          <span className="block text-[11px] text-muted-foreground">
+            Acceso rápido desde el índice · dosis por peso, catálogo editable y cálculos clínicos
+          </span>
+        </span>
+        <ChevronRight className="size-4 text-muted-foreground transition group-hover:translate-x-0.5" />
+      </button>
+
 
       <div className="mt-6 space-y-3">
         {filtered.categories.map((cat) => {
@@ -320,12 +342,10 @@ function TopicDetail({
   accent: string;
   isAdmin: boolean;
 }) {
-  const isPharma =
-    category.key === "farmacologia" ||
-    /farmacolog|dosis|calculadora/i.test(topic.title);
-  const [tab, setTab] = useState<"plantilla" | "recursos" | "farmacologia">(
-    isPharma ? "farmacologia" : isAdmin ? "recursos" : "plantilla",
+  const [tab, setTab] = useState<"plantilla" | "recursos">(
+    isAdmin ? "recursos" : "plantilla",
   );
+
   const nodeQ = useTopicNode(block, category, topic, { create: isAdmin });
 
   const [editing, setEditing] = useState(false);
@@ -428,30 +448,8 @@ function TopicDetail({
             </button>
           </>
         )}
-        {isPharma && (
-          <button
-            onClick={() => setTab("farmacologia")}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-              tab === "farmacologia"
-                ? "bg-foreground text-background border-foreground"
-                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Calculadoras
-          </button>
-        )}
-        {isPharma && !isAdmin && (
-          <button
-            onClick={() => setTab("plantilla")}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-              tab === "plantilla"
-                ? "bg-foreground text-background border-foreground"
-                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Plantilla
-          </button>
-        )}
+
+
 
         <div className="flex-1" />
         {isAdmin && editing ? (
@@ -508,16 +506,8 @@ function TopicDetail({
         </div>
       )}
 
-      {tab === "farmacologia" && isPharma ? (
-        <PharmaWorkspace
-          nodeId={nodeQ.data?.id ?? null}
-          isAdmin={isAdmin}
-          accent={accent}
-          initialDrugs={
-            ((nodeQ.data?.metadata as any)?.pharma?.drugs as PharmaDrug[] | undefined) ?? null
-          }
-        />
-      ) : tab === "recursos" && isAdmin ? (
+      {tab === "recursos" && isAdmin ? (
+
 
         <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3">
           {nodeQ.isLoading || !nodeQ.data ? (
