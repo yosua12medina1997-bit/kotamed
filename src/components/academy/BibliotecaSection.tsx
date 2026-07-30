@@ -13,8 +13,6 @@ import {
   Download,
   Film,
   Library,
-  Pause,
-  Play,
   Plus,
   Search,
   Sparkles,
