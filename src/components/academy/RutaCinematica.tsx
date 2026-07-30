@@ -70,7 +70,13 @@ function useReveal<T extends HTMLElement>(onSeen?: () => void) {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
+    // Failsafe: si el observador no dispara (contenedores con transform/scroll),
+    // el contenido se muestra igualmente.
+    const fallback = window.setTimeout(() => setSeen(true), 900);
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -81,14 +87,18 @@ function useReveal<T extends HTMLElement>(onSeen?: () => void) {
           }
         }
       },
-      { rootMargin: "-12% 0px -12% 0px", threshold: 0.15 },
+      { rootMargin: "0px 0px -5% 0px", threshold: 0.01 },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      window.clearTimeout(fallback);
+      io.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return { ref, seen };
 }
+
 
 /* ---------- métricas ---------- */
 
@@ -384,7 +394,7 @@ function StageNode({
           background: locked ? "color-mix(in oklab, var(--muted) 70%, transparent)" : `${accent}1f`,
           boxShadow: locked ? "none" : `0 0 0 6px ${accent}12, 0 8px 28px ${accent}3d`,
           color: locked ? "var(--muted-foreground)" : accent,
-          opacity: locked ? 0.55 : 1,
+          opacity: locked ? 0.8 : 1,
         }}
       >
         {state === "done" ? (
@@ -403,9 +413,10 @@ function StageNode({
         }`}
         style={{
           boxShadow: locked ? "none" : `0 18px 50px -34px ${accent}`,
-          opacity: locked ? 0.62 : 1,
-          filter: locked ? "saturate(0.5)" : undefined,
+          opacity: locked ? 0.92 : 1,
+          filter: locked ? "saturate(0.75)" : undefined,
         }}
+
       >
         <div className="flex items-start gap-3">
           <span
@@ -481,11 +492,11 @@ function StageNode({
           </button>
           <button
             type="button"
-            disabled={locked}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-2 text-[11px] font-bold transition hover:border-primary/40 active:scale-[0.97] disabled:opacity-45"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-2 text-[11px] font-bold transition hover:border-primary/40 active:scale-[0.97]"
           >
             Explorar
           </button>
+
         </div>
       </article>
     </li>
