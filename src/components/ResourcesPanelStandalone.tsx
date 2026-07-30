@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSupabaseUser } from "@/lib/session";
@@ -17,6 +18,8 @@ import {
   Image as ImageIcon,
   Link2,
   Loader2,
+  Maximize2,
+  Minimize2,
   Paperclip,
   Pencil,
   Plus,
@@ -448,6 +451,8 @@ function ResourceRow({
   const [content, setContent] = useState(r.content ?? "");
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [inlineOpen, setInlineOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   async function getSigned() {
     if (!r.storage_path || signedUrl) return;
@@ -468,6 +473,16 @@ function ResourceRow({
     : null;
 
   const embedUrl = r.url ? (toYouTubeEmbed(r.url) ?? toVimeoEmbed(r.url)) : null;
+
+  /** Documento visualizable en ventana (PDF u otro archivo/enlace no multimedia). */
+  const docUrl =
+    r.kind === "file" || r.kind === "link" || r.kind === "text"
+      ? (signedUrl ?? (r.url && !embedUrl ? r.url : null))
+      : null;
+  const isPdf =
+    (r.mime_type ?? "").includes("pdf") ||
+    /\.pdf(\?|$)/i.test(r.storage_path ?? r.url ?? "");
+  const canExpand = !!docUrl || r.kind === "text";
 
   return (
     <li className="rounded-xl border border-border bg-background/60 p-3">
@@ -536,8 +551,41 @@ function ResourceRow({
               className="mt-2 max-w-xl w-full rounded-lg border border-border"
             />
           )}
+          {docUrl && (
+            <div className="mt-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setInlineOpen((v) => !v)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-background/60 px-2 py-1 text-[10px] font-bold text-muted-foreground hover:text-foreground"
+                >
+                  {inlineOpen ? <Minimize2 className="size-3" /> : <Eye className="size-3" />}
+                  {inlineOpen ? "Ocultar vista previa" : "Vista previa"}
+                </button>
+                <button
+                  onClick={() => setExpanded(true)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-primary/40 bg-primary/[0.06] px-2 py-1 text-[10px] font-bold text-primary hover:bg-primary/10"
+                >
+                  <Maximize2 className="size-3" /> Abrir en ventana grande
+                </button>
+              </div>
+              {inlineOpen && (
+                <div className="mt-2 h-[26rem] w-full overflow-hidden rounded-lg border border-border bg-background">
+                  <iframe src={docUrl} title={r.title} className="h-full w-full" />
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          {canExpand && (
+            <button
+              onClick={() => setExpanded(true)}
+              title="Ventana grande"
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
+            >
+              <Maximize2 className="size-3.5" />
+            </button>
+          )}
           <button
             onClick={() => onUpdate({ is_published: !r.is_published })}
             title={r.is_published ? "Ocultar" : "Publicar"}
@@ -590,8 +638,8 @@ function ResourceRow({
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={5}
-              className="bg-background border border-border rounded-lg px-2.5 py-2 text-xs outline-none focus:ring-2 focus:ring-ring font-mono"
+              rows={12}
+              className="bg-background border border-border rounded-lg px-2.5 py-2 text-xs outline-none focus:ring-2 focus:ring-ring font-mono min-h-56"
             />
           )}
           <div className="flex justify-end gap-2">
@@ -628,6 +676,85 @@ function ResourceRow({
             </button>
           </div>
         </div>
+      )}
+      {expanded && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[70] flex flex-col bg-background/95 backdrop-blur">
+          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+            <span className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <ResourceIcon kind={r.kind} className="size-3.5" />
+            </span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-extrabold outline-none hover:border-border focus:border-border focus:ring-2 focus:ring-ring"
+            />
+            {isPdf && <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-widest text-muted-foreground">PDF</span>}
+            {docUrl && (
+              <a
+                href={docUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-[11px] font-bold text-muted-foreground hover:text-foreground"
+              >
+                <ExternalLink className="size-3.5" /> Nueva pestaña
+              </a>
+            )}
+            <button
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await onUpdate({ title, url: url || null, content: content || null });
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              disabled={busy}
+              className="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+            >
+              {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+              Guardar
+            </button>
+            <button
+              onClick={() => setExpanded(false)}
+              className="p-1.5 rounded-lg text-muted-foreground hover:bg-foreground/[0.05]"
+              aria-label="Cerrar ventana"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <div className="grid min-h-0 flex-1 grid-rows-[1.4fr_1fr] lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:grid-rows-1">
+            <div className="min-h-0 border-b border-border lg:border-b-0 lg:border-r">
+              {docUrl ? (
+                <iframe src={docUrl} title={r.title} className="h-full w-full bg-background" />
+              ) : (
+                <div className="flex h-full items-center justify-center p-6 text-center text-xs text-muted-foreground">
+                  Este recurso no tiene archivo asociado. Usa el panel de la derecha para editar su
+                  contenido.
+                </div>
+              )}
+            </div>
+            <div className="flex min-h-0 flex-col gap-2 p-4">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {r.kind === "text" ? "Contenido" : "Notas y transcripción"}
+              </span>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Escribe aquí resúmenes, apuntes o el texto extraído del PDF…"
+                className="min-h-0 flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-xs leading-relaxed outline-none focus:ring-2 focus:ring-ring"
+              />
+              {(r.kind === "link" || r.kind === "video" || r.kind === "embed") && (
+                <input
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="URL"
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-xs font-mono outline-none focus:ring-2 focus:ring-ring"
+                />
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body,
       )}
     </li>
   );

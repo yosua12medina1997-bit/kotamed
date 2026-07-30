@@ -1,0 +1,1 @@
+DELETE FROM public.content_resources WHERE title = 'Prueba ventana PDF';
