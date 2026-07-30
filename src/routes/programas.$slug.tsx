@@ -61,9 +61,25 @@ import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 export const Route = createFileRoute("/programas/$slug")({
   loader: ({ params }): { program: Program } => {
     const program = getProgram(params.slug);
-    if (!program) throw notFound();
-    return { program };
+    if (program) return { program };
+    if (!/^[a-z0-9-]{2,60}$/.test(params.slug)) throw notFound();
+    // Programa creado desde el Editor de contenido: se hidrata desde la base de datos.
+    return {
+      program: {
+        id: params.slug as Program["id"],
+        slug: params.slug,
+        order: 99,
+        title: params.slug.replace(/-/g, " "),
+        subtitle: "Programa personalizado",
+        tagline: "Programa gestionado desde el editor de contenido.",
+        description: "",
+        audience: "Definido por el administrador",
+        areas: [],
+        accent: "indigo",
+      },
+    };
   },
+
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
