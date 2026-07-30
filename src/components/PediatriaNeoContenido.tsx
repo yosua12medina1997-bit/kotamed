@@ -232,7 +232,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
             <Stat label="Bloques" value="2" accent={meta.accent} />
             <Stat
               label="Categorías"
-              value={PEDIATRIA_NEONATOLOGIA_BLUEPRINT.reduce((a, b) => a + b.categories.length, 0)}
+              value={blocks.reduce((a, b) => a + b.categories.length, 0)}
               accent={meta.accent}
             />
             <Stat label="Temas" value={totalTopics} accent={meta.accent} />
@@ -249,7 +249,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {PEDIATRIA_NEONATOLOGIA_BLUEPRINT.map((b) => {
+        {blocks.map((b) => {
           const isActive = active === b.key;
           const Icon = b.key === "neonatologia" ? Baby : Stethoscope;
           return (
