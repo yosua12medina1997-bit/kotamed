@@ -71,6 +71,8 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
   const [genVideo, setGenVideo] = useState(false);
   const [genComic, setGenComic] = useState(false);
   const [openVideo, setOpenVideo] = useState<VideoRow | null>(null);
+  const [openComic, setOpenComic] = useState<VideoRow | null>(null);
+  const [editComic, setEditComic] = useState<VideoRow | null>(null);
 
   const items = useQuery({
     queryKey: ["academy-library", meta.slug],
@@ -96,6 +98,14 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
       if (error) throw error;
       return (data ?? []) as VideoRow[];
     },
+  });
+
+  const delVideo = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db.from("academy_video_scripts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["academy-videos", meta.slug] }),
   });
 
   const delItem = useMutation({
