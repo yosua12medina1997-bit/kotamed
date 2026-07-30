@@ -146,23 +146,62 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
   const [openCat, setOpenCat] = useState<string | null>(null);
   const [openTopic, setOpenTopic] = useState<string | null>(null);
   const [pharmaOpen, setPharmaOpen] = useState(false);
+  const [newTopic, setNewTopic] = useState<Record<string, string>>({});
 
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
+  const { overrides, save: saveOverrides } = useBlueprintOverrides();
 
-  const block = useMemo(
-    () => PEDIATRIA_NEONATOLOGIA_BLUEPRINT.find((b) => b.key === active)!,
-    [active],
+  const blocks = useMemo(
+    () => PEDIATRIA_NEONATOLOGIA_BLUEPRINT.map((b) => applyOverrides(b, overrides)),
+    [overrides],
   );
+  const block = useMemo(() => blocks.find((b) => b.key === active)!, [blocks, active]);
   const filtered = useMemo(() => filterBlock(block, query), [block, query]);
   const totalTopics = useMemo(
-    () =>
-      PEDIATRIA_NEONATOLOGIA_BLUEPRINT.reduce(
-        (acc, b) => acc + b.categories.reduce((a, c) => a + c.topics.length, 0),
-        0,
-      ),
-    [],
+    () => blocks.reduce((acc, b) => acc + b.categories.reduce((a, c) => a + c.topics.length, 0), 0),
+    [blocks],
   );
+
+  function addTopic(catKey: string, title: string) {
+    const key = `${block.key}::${catKey}`;
+    const clean = title.trim();
+    if (!clean) return;
+    const exists = block.categories
+      .find((c) => c.key === catKey)
+      ?.topics.some((t) => t.title.toLowerCase() === clean.toLowerCase());
+    if (exists) {
+      toast.error("Ese tema ya existe en la categoría");
+      return;
+    }
+    const removed = (overrides.removed[key] ?? []).filter((t) => t !== clean);
+    const added = [...(overrides.added[key] ?? [])];
+    if (!added.includes(clean)) added.push(clean);
+    saveOverrides.mutate(
+      {
+        added: { ...overrides.added, [key]: added },
+        removed: { ...overrides.removed, [key]: removed },
+      },
+      { onSuccess: () => toast.success(`Tema "${clean}" agregado`) },
+    );
+    setNewTopic((p) => ({ ...p, [catKey]: "" }));
+  }
+
+  function removeTopic(catKey: string, title: string) {
+    const key = `${block.key}::${catKey}`;
+    const added = (overrides.added[key] ?? []).filter((t) => t !== title);
+    const removed = [...(overrides.removed[key] ?? [])];
+    if (!removed.includes(title)) removed.push(title);
+    saveOverrides.mutate(
+      {
+        added: { ...overrides.added, [key]: added },
+        removed: { ...overrides.removed, [key]: removed },
+      },
+      { onSuccess: () => toast.success(`Tema "${title}" quitado`) },
+    );
+    setOpenTopic(null);
+  }
+
 
   return (
     <section className="glass rounded-3xl p-6 md:p-8 animate-slide-up">
