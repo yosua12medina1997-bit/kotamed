@@ -2,7 +2,7 @@
  * Editor de tema (solo admin). Se abre como drawer full-screen.
  * Estructura + editor por slide + acciones IA + importación desde texto.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -10,14 +10,17 @@ import {
   ArrowDown,
   ArrowUp,
   Copy,
+  FileDown,
   Loader2,
   Plus,
   Save,
   Sparkles,
   Trash2,
+  Upload,
   Wand2,
   X,
 } from "lucide-react";
+
 import type { Slide, SlideKind, Topic } from "@/lib/topic-schema";
 import {
   ALL_SLIDE_KINDS,
@@ -193,6 +196,14 @@ export function TopicEditor({
           />
         </div>
         <button
+          onClick={() => exportTopicPdf(topic)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3 py-2 text-xs font-bold hover:border-primary/40"
+          title="Exportar el tema a PDF"
+        >
+          <FileDown className="size-3.5" /> PDF
+        </button>
+        <button
+
           onClick={() => onSave(topic)}
           disabled={saving}
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-xs font-bold disabled:opacity-50"
@@ -647,17 +658,58 @@ function ImportPane({
   onImport: () => void;
   importing: boolean;
 }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [reading, setReading] = useState(false);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setReading(true);
+    try {
+      const { extractTextFromFiles } = await import("@/lib/file-text");
+      const extracted = (await extractTextFromFiles(Array.from(files))).trim();
+      if (!extracted) {
+        toast.error("No se pudo extraer texto de los archivos.");
+        return;
+      }
+      onChange((text ? text + "\n\n" : "") + extracted);
+      toast.success("Texto extraído de los archivos");
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo leer el archivo");
+    } finally {
+      setReading(false);
+    }
+  };
+
   return (
     <div className="max-w-3xl">
       <div className="rounded-2xl border border-border/40 bg-background/40 p-4">
         <div className="flex items-center gap-2 mb-2">
           <Wand2 className="size-4 text-primary" />
-          <span className="text-sm font-bold">Convertir texto en diapositivas</span>
+          <span className="text-sm font-bold">Convertir texto o archivos en diapositivas</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Pega apuntes, notas o borradores. La IA detectará tablas, comparaciones, algoritmos y
-          casos, y las convertirá en el formato del tema.
+          Sube <b>PDF</b>, Word, Excel/CSV o texto, o pega tus apuntes. La IA detectará tablas,
+          comparaciones, algoritmos y casos, y los convertirá en el formato del tema.
         </p>
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md,.json,.html,.htm,.xml,text/*"
+          className="hidden"
+          onChange={(e) => {
+            void handleFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={reading}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground disabled:opacity-50"
+        >
+          {reading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+          {reading ? "Extrayendo texto…" : "Subir PDF / Word / Excel"}
+        </button>
         <textarea
           value={text}
           onChange={(e) => onChange(e.target.value)}
@@ -665,6 +717,9 @@ function ImportPane({
           placeholder="Pega aquí tu borrador o apuntes…"
           className="mt-3 w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
         />
+        <div className="mt-1 text-[10px] text-muted-foreground">
+          {text.trim().length.toLocaleString()} caracteres
+        </div>
         <button
           onClick={onImport}
           disabled={importing || text.trim().length < 20}
@@ -680,4 +735,115 @@ function ImportPane({
       </div>
     </div>
   );
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Exportación a PDF (imprimir → guardar como PDF)                     */
+/* ------------------------------------------------------------------ */
+
+function esc(s: string) {
+  return String(s ?? "").replace(/[&<>]/g, (c) =>
+    c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;",
+  );
+}
+
+function slideHtml(s: Slide, i: number): string {
+  const parts: string[] = [];
+  parts.push(`<h2>${i + 1}. ${esc(s.title)}</h2>`);
+  parts.push(`<div class="kind">${esc(SLIDE_KIND_LABEL[s.kind] ?? s.kind)}</div>`);
+  if (s.body) parts.push(`<p>${esc(s.body).replace(/\n/g, "<br/>")}</p>`);
+  if (s.bullets?.length)
+    parts.push(`<ul>${s.bullets.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>`);
+  if (s.cards?.length)
+    parts.push(
+      `<div class="cards">${s.cards
+        .map((c) => `<div class="card"><b>${esc(c.title)}</b><div>${esc(c.body)}</div></div>`)
+        .join("")}</div>`,
+    );
+  if (s.table)
+    parts.push(
+      `<table><thead><tr>${s.table.headers
+        .map((h) => `<th>${esc(h)}</th>`)
+        .join("")}</tr></thead><tbody>${s.table.rows
+        .map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`)
+        .join("")}</tbody></table>`,
+    );
+  if (s.steps?.length)
+    parts.push(
+      `<ol>${s.steps
+        .map((st) => `<li><b>${esc(st.title)}</b>${st.body ? ` — ${esc(st.body)}` : ""}</li>`)
+        .join("")}</ol>`,
+    );
+  if (s.timeline?.length)
+    parts.push(
+      `<ul>${s.timeline
+        .map(
+          (t) =>
+            `<li><b>${esc(t.time)}</b> · ${esc(t.label)}${t.body ? ` — ${esc(t.body)}` : ""}</li>`,
+        )
+        .join("")}</ul>`,
+    );
+  if (s.flowchart)
+    parts.push(
+      `<ul class="flow">${s.flowchart.edges
+        .map((e) => {
+          const n = (id: string) =>
+            esc(s.flowchart!.nodes.find((x) => x.id === id)?.label ?? id);
+          return `<li>${n(e.from)} → ${e.label ? `<i>${esc(e.label)}</i> → ` : ""}${n(e.to)}</li>`;
+        })
+        .join("")}</ul>`,
+    );
+  if (s.clinicalCase) {
+    parts.push(`<p><b>Caso:</b> ${esc(s.clinicalCase.presentation)}</p>`);
+    parts.push(
+      `<ol>${s.clinicalCase.questions
+        .map((q) => `<li><b>${esc(q.q)}</b><br/>${esc(q.a)}</li>`)
+        .join("")}</ol>`,
+    );
+  }
+  if (s.references?.length)
+    parts.push(
+      `<ol class="refs">${s.references
+        .map((r) => `<li>${esc(r.label)}${r.source ? ` — ${esc(r.source)}` : ""}</li>`)
+        .join("")}</ol>`,
+    );
+  return `<section>${parts.join("")}</section>`;
+}
+
+export function exportTopicPdf(topic: Topic) {
+  const win = window.open("", "_blank", "width=900,height=1000");
+  if (!win) {
+    toast.error("Permite las ventanas emergentes para exportar el PDF.");
+    return;
+  }
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"/>
+<title>${esc(topic.title)}</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color:#111; font-size: 11.5pt; line-height:1.5; }
+  h1 { font-size: 22pt; margin:0 0 4px; letter-spacing:-.02em; }
+  .sub { color:#555; margin-bottom: 18px; }
+  section { page-break-inside: avoid; border-top:1px solid #e5e5e5; padding-top:10px; margin-top:14px; }
+  h2 { font-size: 13.5pt; margin:0 0 2px; }
+  .kind { font-size: 8pt; text-transform: uppercase; letter-spacing:.12em; color:#888; margin-bottom:6px; }
+  table { border-collapse: collapse; width:100%; margin:8px 0; font-size:10pt; }
+  th, td { border:1px solid #ddd; padding:5px 7px; text-align:left; vertical-align:top; }
+  th { background:#f5f5f5; }
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .card { border:1px solid #e5e5e5; border-radius:8px; padding:8px; font-size:10pt; }
+  ul, ol { margin:6px 0 6px 18px; padding:0; }
+  .refs { font-size:9.5pt; color:#333; }
+  footer { margin-top:22px; font-size:8.5pt; color:#999; }
+</style></head><body>
+<h1>${esc(topic.title)}</h1>
+${topic.subtitle ? `<div class="sub">${esc(topic.subtitle)}</div>` : ""}
+${topic.slides.map(slideHtml).join("")}
+<footer>Kotaro Academy · generado el ${new Date().toLocaleDateString("es-PE")}</footer>
+</body></html>`;
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 400);
 }

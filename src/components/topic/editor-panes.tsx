@@ -194,8 +194,6 @@ export function SlideCatalog({
 
 type SourceDoc = { id: string; name: string; text: string };
 
-const TEXT_EXT = /\.(txt|md|markdown|csv|json|rtf|html?|xml|srt|vtt)$/i;
-
 export function NotebookPane({
   topic,
   onTopic,
@@ -205,6 +203,7 @@ export function NotebookPane({
 }) {
   const [docs, setDocs] = useState<SourceDoc[]>([]);
   const [pasted, setPasted] = useState("");
+  const [reading, setReading] = useState(false);
   const [instruction, setInstruction] = useState(
     "Redacta el tema completo basándote únicamente en estas fuentes, con enfoque clínico y estructura estándar.",
   );
@@ -225,20 +224,32 @@ export function NotebookPane({
     docs.reduce((n, d) => n + d.text.length, 0) + pasted.trim().length;
 
   const handleFiles = async (files: FileList | null) => {
-    if (!files) return;
-    const next: SourceDoc[] = [];
-    for (const f of Array.from(files)) {
-      if (!TEXT_EXT.test(f.name) && !f.type.startsWith("text/")) {
-        toast.error(
-          `${f.name}: solo se indexan documentos de texto (txt, md, csv, json, html). Sube PDFs/videos en la pestaña Recursos.`,
-        );
-        continue;
+    if (!files || files.length === 0) return;
+    setReading(true);
+    try {
+      const { extractTextFromFile } = await import("@/lib/file-text");
+      const next: SourceDoc[] = [];
+      for (const f of Array.from(files)) {
+        try {
+          const text = (await extractTextFromFile(f)).trim();
+          if (!text) {
+            toast.error(`${f.name}: no se pudo extraer texto (¿PDF escaneado?).`);
+            continue;
+          }
+          next.push({ id: randomId(), name: f.name, text });
+        } catch (e: any) {
+          toast.error(`${f.name}: ${e?.message ?? "no legible"}`);
+        }
       }
-      const text = await f.text();
-      next.push({ id: randomId(), name: f.name, text });
+      if (next.length) {
+        setDocs((d) => [...d, ...next]);
+        toast.success(`${next.length} documento(s) indexado(s)`);
+      }
+    } finally {
+      setReading(false);
     }
-    if (next.length) setDocs((d) => [...d, ...next]);
   };
+
 
   const compose = () => {
     const sources = [
@@ -270,14 +281,15 @@ export function NotebookPane({
           <span className="text-sm font-bold">Notebook IA · fuentes indexadas</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          La IA responderá <b>solo</b> con el contenido de estas fuentes. Ideal para guías, normas
-          MINSA, apuntes o capítulos que ya tengas en texto.
+          La IA responderá <b>solo</b> con el contenido de estas fuentes. Admite <b>PDF</b>, Word
+          (.docx), Excel/CSV y texto plano: guías, normas MINSA, apuntes o capítulos.
         </p>
 
         <input
           ref={inputRef}
           type="file"
           multiple
+          accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md,.json,.html,.htm,.xml,.srt,.vtt,text/*"
           className="hidden"
           onChange={(e) => {
             void handleFiles(e.target.files);
@@ -286,10 +298,13 @@ export function NotebookPane({
         />
         <button
           onClick={() => inputRef.current?.click()}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground"
+          disabled={reading}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground disabled:opacity-50"
         >
-          <Upload className="size-3.5" /> Añadir documentos de texto
+          {reading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+          {reading ? "Leyendo documentos…" : "Añadir PDF, Word, Excel o texto"}
         </button>
+
 
         <div className="mt-3 space-y-1.5">
           {docs.map((d) => (
