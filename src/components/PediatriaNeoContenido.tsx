@@ -172,6 +172,28 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
 
       <p className="mt-3 text-xs text-muted-foreground">{block.tagline}</p>
 
+      <button
+        onClick={() => setPharmaOpen(true)}
+        className="mt-4 w-full group flex items-center gap-3 rounded-2xl border border-border/60 bg-background/50 px-4 py-3 text-left backdrop-blur transition hover:border-primary/40 hover:bg-background/70"
+      >
+        <span
+          className="inline-flex size-9 items-center justify-center rounded-xl text-white shrink-0"
+          style={{ background: block.accent }}
+        >
+          <Calculator className="size-4.5" strokeWidth={2.4} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-bold tracking-tight">
+            Calculadora farmacológica pediátrica
+          </span>
+          <span className="block text-[11px] text-muted-foreground">
+            Acceso rápido desde el índice · dosis por peso, catálogo editable y cálculos clínicos
+          </span>
+        </span>
+        <ChevronRight className="size-4 text-muted-foreground transition group-hover:translate-x-0.5" />
+      </button>
+
+
       <div className="mt-6 space-y-3">
         {filtered.categories.map((cat) => {
           const isOpen = openCat === cat.key || query.trim().length > 0;
