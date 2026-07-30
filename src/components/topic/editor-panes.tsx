@@ -194,8 +194,6 @@ export function SlideCatalog({
 
 type SourceDoc = { id: string; name: string; text: string };
 
-const TEXT_EXT = /\.(txt|md|markdown|csv|json|rtf|html?|xml|srt|vtt)$/i;
-
 export function NotebookPane({
   topic,
   onTopic,
@@ -205,6 +203,7 @@ export function NotebookPane({
 }) {
   const [docs, setDocs] = useState<SourceDoc[]>([]);
   const [pasted, setPasted] = useState("");
+  const [reading, setReading] = useState(false);
   const [instruction, setInstruction] = useState(
     "Redacta el tema completo basándote únicamente en estas fuentes, con enfoque clínico y estructura estándar.",
   );
@@ -225,20 +224,32 @@ export function NotebookPane({
     docs.reduce((n, d) => n + d.text.length, 0) + pasted.trim().length;
 
   const handleFiles = async (files: FileList | null) => {
-    if (!files) return;
-    const next: SourceDoc[] = [];
-    for (const f of Array.from(files)) {
-      if (!TEXT_EXT.test(f.name) && !f.type.startsWith("text/")) {
-        toast.error(
-          `${f.name}: solo se indexan documentos de texto (txt, md, csv, json, html). Sube PDFs/videos en la pestaña Recursos.`,
-        );
-        continue;
+    if (!files || files.length === 0) return;
+    setReading(true);
+    try {
+      const { extractTextFromFile } = await import("@/lib/file-text");
+      const next: SourceDoc[] = [];
+      for (const f of Array.from(files)) {
+        try {
+          const text = (await extractTextFromFile(f)).trim();
+          if (!text) {
+            toast.error(`${f.name}: no se pudo extraer texto (¿PDF escaneado?).`);
+            continue;
+          }
+          next.push({ id: randomId(), name: f.name, text });
+        } catch (e: any) {
+          toast.error(`${f.name}: ${e?.message ?? "no legible"}`);
+        }
       }
-      const text = await f.text();
-      next.push({ id: randomId(), name: f.name, text });
+      if (next.length) {
+        setDocs((d) => [...d, ...next]);
+        toast.success(`${next.length} documento(s) indexado(s)`);
+      }
+    } finally {
+      setReading(false);
     }
-    if (next.length) setDocs((d) => [...d, ...next]);
   };
+
 
   const compose = () => {
     const sources = [
