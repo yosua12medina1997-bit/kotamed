@@ -631,29 +631,315 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
+      membership_plans: {
         Row: {
+          color: string
           created_at: string
-          email: string
-          full_name: string | null
+          created_by: string | null
+          currency: string
+          description: string | null
+          features: Json
           id: string
+          is_active: boolean
+          modules: Json
+          name: string
+          period: string
+          price_amount: number
+          slug: string
+          sort_order: number
           updated_at: string
         }
         Insert: {
+          color?: string
           created_at?: string
-          email: string
-          full_name?: string | null
-          id: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          modules?: Json
+          name: string
+          period?: string
+          price_amount?: number
+          slug: string
+          sort_order?: number
           updated_at?: string
         }
         Update: {
+          color?: string
           created_at?: string
-          email?: string
-          full_name?: string | null
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          features?: Json
           id?: string
+          is_active?: boolean
+          modules?: Json
+          name?: string
+          period?: string
+          price_amount?: number
+          slug?: string
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []
+      }
+      plan_content_access: {
+        Row: {
+          created_at: string
+          id: string
+          node_id: string
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          node_id: string
+          plan_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          node_id?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_content_access_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "content_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_content_access_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          academic_level: string | null
+          avatar_url: string | null
+          city: string | null
+          cmp: string | null
+          country: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          hospital: string | null
+          id: string
+          language: string
+          last_seen_at: string | null
+          notes: string | null
+          phone: string | null
+          rne: string | null
+          specialty: string | null
+          timezone: string
+          university: string | null
+          updated_at: string
+        }
+        Insert: {
+          academic_level?: string | null
+          avatar_url?: string | null
+          city?: string | null
+          cmp?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          hospital?: string | null
+          id: string
+          language?: string
+          last_seen_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          rne?: string | null
+          specialty?: string | null
+          timezone?: string
+          university?: string | null
+          updated_at?: string
+        }
+        Update: {
+          academic_level?: string | null
+          avatar_url?: string | null
+          city?: string | null
+          cmp?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          hospital?: string | null
+          id?: string
+          language?: string
+          last_seen_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          rne?: string | null
+          specialty?: string | null
+          timezone?: string
+          university?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      teachers: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          created_by: string | null
+          cv_url: string | null
+          email: string | null
+          full_name: string
+          hospital: string | null
+          id: string
+          is_active: boolean
+          rating: number
+          sort_order: number
+          specialty: string | null
+          university: string | null
+          updated_at: string
+          user_id: string | null
+          years_teaching: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          created_by?: string | null
+          cv_url?: string | null
+          email?: string | null
+          full_name: string
+          hospital?: string | null
+          id?: string
+          is_active?: boolean
+          rating?: number
+          sort_order?: number
+          specialty?: string | null
+          university?: string | null
+          updated_at?: string
+          user_id?: string | null
+          years_teaching?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          created_by?: string | null
+          cv_url?: string | null
+          email?: string | null
+          full_name?: string
+          hospital?: string | null
+          id?: string
+          is_active?: boolean
+          rating?: number
+          sort_order?: number
+          specialty?: string | null
+          university?: string | null
+          updated_at?: string
+          user_id?: string | null
+          years_teaching?: number
+        }
+        Relationships: []
+      }
+      user_content_access: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          granted: boolean
+          id: string
+          node_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          granted?: boolean
+          id?: string
+          node_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          granted?: boolean
+          id?: string
+          node_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_content_access_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "content_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_memberships: {
+        Row: {
+          amount_paid: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          plan_id: string
+          renews_at: string | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          plan_id: string
+          renews_at?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          plan_id?: string
+          renews_at?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_memberships_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
