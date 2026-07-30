@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, GraduationCap, Stethoscope } from "lucide-react";
-import { PROGRAMS, ACCENT_CLASSES } from "@/lib/pediatria-programs";
+import { ACCENT_CLASSES } from "@/lib/pediatria-programs";
+import { useProgramCatalog } from "@/lib/content-catalog";
+
 
 export const Route = createFileRoute("/programas/")({
   head: () => ({
