@@ -296,6 +296,113 @@ material descargable sugerido y referencias.`,
   });
 
 /* ------------------------------------------------------------------ */
+/*  CÓMIC INTERACTIVO (ramificado)                                     */
+/* ------------------------------------------------------------------ */
+
+const comicSchema = z.object({
+  title: z.string(),
+  logline: z.string(),
+  style: z.string(),
+  characters: z.array(z.object({ name: z.string(), role: z.string(), look: z.string() })),
+  startId: z.string(),
+  nodes: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      situation: z.string(),
+      panels: z.array(
+        z.object({
+          caption: z.string(),
+          dialogue: z.string(),
+          imagePrompt: z.string(),
+        }),
+      ),
+      question: z.string(),
+      choices: z.array(
+        z.object({
+          text: z.string(),
+          next: z.string(),
+          correct: z.boolean(),
+          feedback: z.string(),
+        }),
+      ),
+      ending: z.string().nullable(),
+    }),
+  ),
+  references: z.array(z.string()),
+});
+
+export type AcademyComic = z.infer<typeof comicSchema>;
+
+export const generateComic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        prompt: z.string().min(3),
+        level: z.string().default("residentado"),
+        nodes: z.number().default(7),
+        style: z.string().default("cómic americano moderno, tinta gruesa, colores planos saturados"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    return structured(
+      comicSchema,
+      `Construye un CÓMIC MÉDICO INTERACTIVO ramificado (estilo "elige tu propia aventura" clínica) sobre: "${data.prompt}".
+Nivel: ${data.level}. Estilo gráfico: ${data.style}.
+Genera aproximadamente ${data.nodes} nodos conectados. Reglas estrictas:
+- Cada nodo tiene id corto en kebab-case (ej. "triaje", "via-aerea"), 1-3 viñetas (panels).
+- Cada viñeta: caption (narrador), dialogue (personaje: texto, o cadena vacía) e imagePrompt MUY detallado en inglés
+  describiendo la escena en estilo ${data.style} (composición, personajes, entorno hospitalario, iluminación), sin texto dentro de la imagen.
+- Cada nodo de decisión tiene question y 2-4 choices; cada choice indica next (id de otro nodo existente), correct (true/false) y feedback clínico razonado.
+- Los nodos finales tienen ending (desenlace + aprendizaje) y choices vacío.
+- startId debe ser el id del primer nodo. Todos los "next" deben apuntar a ids que existan en nodes.
+- Contenido clínicamente correcto según AAP/OMS/MINSA/Nelson, con referencias reales.`,
+    );
+  });
+
+/** Genera la imagen de una viñeta y devuelve un data URL PNG. */
+export const generatePanelImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        prompt: z.string().min(3),
+        style: z.string().default("modern American comic book art, bold ink lines, flat saturated colors, halftone shading"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("Falta LOVABLE_API_KEY.");
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-image",
+        modalities: ["image", "text"],
+        messages: [
+          {
+            role: "user",
+            content: `${data.style}. Single comic panel, no speech bubbles, no lettering, no watermark. Scene: ${data.prompt}`,
+          },
+        ],
+      }),
+    });
+    if (res.status === 429) throw new Error("Límite de solicitudes alcanzado. Intenta en unos minutos.");
+    if (res.status === 402) throw new Error("Créditos de IA agotados.");
+    if (!res.ok) throw new Error(`Error de imagen (${res.status}): ${(await res.text()).slice(0, 200)}`);
+    const json: any = await res.json();
+    const url = json?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!url) throw new Error("La IA no devolvió imagen.");
+    return { dataUrl: url as string };
+  });
+
+
+/* ------------------------------------------------------------------ */
 /*  FLASHCARDS                                                         */
 /* ------------------------------------------------------------------ */
 
