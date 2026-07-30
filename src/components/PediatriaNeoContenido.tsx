@@ -364,26 +364,43 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
                     const topicOpen = openTopic === topicKey;
                     return (
                       <li key={topicKey} className="bg-background/20">
-                        <button
-                          onClick={() =>
-                            setOpenTopic((prev) => (prev === topicKey ? null : topicKey))
-                          }
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-background/40 transition"
-                        >
-                          <span
-                            className="size-1.5 rounded-full shrink-0"
-                            style={{ background: block.accent }}
-                          />
-                          <span className="flex-1 text-sm font-semibold">{topic.title}</span>
-                          {topic.items && (
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                              {topic.items.length} subtemas
-                            </span>
+                        <div className="flex items-center">
+                          <button
+                            onClick={() =>
+                              setOpenTopic((prev) => (prev === topicKey ? null : topicKey))
+                            }
+                            className="flex-1 min-w-0 flex items-center gap-3 px-4 py-2.5 text-left hover:bg-background/40 transition"
+                          >
+                            <span
+                              className="size-1.5 rounded-full shrink-0"
+                              style={{ background: block.accent }}
+                            />
+                            <span className="flex-1 text-sm font-semibold">{topic.title}</span>
+                            {topic.items && (
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                {topic.items.length} subtemas
+                              </span>
+                            )}
+                            <ChevronRight
+                              className={`size-3.5 text-muted-foreground transition ${topicOpen ? "rotate-90" : ""}`}
+                            />
+                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`¿Quitar el tema "${topic.title}"?`)) {
+                                  removeTopic(cat.key, topic.title);
+                                }
+                              }}
+                              disabled={saveOverrides.isPending}
+                              className="mr-3 shrink-0 rounded-lg p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                              aria-label={`Quitar ${topic.title}`}
+                              title="Quitar tema"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
                           )}
-                          <ChevronRight
-                            className={`size-3.5 text-muted-foreground transition ${topicOpen ? "rotate-90" : ""}`}
-                          />
-                        </button>
+                        </div>
                         {topicOpen && (
                           <TopicDetail
                             block={block}
@@ -396,8 +413,42 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
                       </li>
                     );
                   })}
+                  {isAdmin && (
+                    <li className="bg-background/30 px-4 py-2.5">
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          addTopic(cat.key, newTopic[cat.key] ?? "");
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          value={newTopic[cat.key] ?? ""}
+                          onChange={(e) =>
+                            setNewTopic((p) => ({ ...p, [cat.key]: e.target.value }))
+                          }
+                          placeholder="Nuevo tema en esta categoría…"
+                          className="flex-1 rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                        <button
+                          type="submit"
+                          disabled={saveOverrides.isPending}
+                          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+                          style={{ background: block.accent }}
+                        >
+                          {saveOverrides.isPending ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Plus className="size-3.5" />
+                          )}
+                          Agregar
+                        </button>
+                      </form>
+                    </li>
+                  )}
                 </ul>
               )}
+
             </div>
           );
         })}
