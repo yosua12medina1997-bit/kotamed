@@ -491,11 +491,11 @@ function StageNode({
           </button>
           <button
             type="button"
-            disabled={locked}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-2 text-[11px] font-bold transition hover:border-primary/40 active:scale-[0.97] disabled:opacity-45"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-2 text-[11px] font-bold transition hover:border-primary/40 active:scale-[0.97]"
           >
             Explorar
           </button>
+
         </div>
       </article>
     </li>
