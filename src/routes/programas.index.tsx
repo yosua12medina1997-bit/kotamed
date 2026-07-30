@@ -28,7 +28,9 @@ export const Route = createFileRoute("/programas/")({
 });
 
 function ProgramsIndex() {
+  const { programs } = useProgramCatalog();
   return (
+
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       <div
         aria-hidden
