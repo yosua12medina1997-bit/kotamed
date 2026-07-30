@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, GraduationCap, Stethoscope } from "lucide-react";
-import { PROGRAMS, ACCENT_CLASSES } from "@/lib/pediatria-programs";
+import { ACCENT_CLASSES } from "@/lib/pediatria-programs";
+import { useProgramCatalog } from "@/lib/content-catalog";
+
 
 export const Route = createFileRoute("/programas/")({
   head: () => ({
@@ -26,7 +28,9 @@ export const Route = createFileRoute("/programas/")({
 });
 
 function ProgramsIndex() {
+  const { programs } = useProgramCatalog();
   return (
+
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       <div
         aria-hidden
@@ -68,7 +72,7 @@ function ProgramsIndex() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {PROGRAMS.map((p, i) => {
+          {programs.map((p, i) => {
             const accent = ACCENT_CLASSES[p.accent];
             return (
               <Link

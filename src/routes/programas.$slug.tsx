@@ -61,9 +61,25 @@ import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 export const Route = createFileRoute("/programas/$slug")({
   loader: ({ params }): { program: Program } => {
     const program = getProgram(params.slug);
-    if (!program) throw notFound();
-    return { program };
+    if (program) return { program };
+    if (!/^[a-z0-9-]{2,60}$/.test(params.slug)) throw notFound();
+    // Programa creado desde el Editor de contenido: se hidrata desde la base de datos.
+    return {
+      program: {
+        id: params.slug as Program["id"],
+        slug: params.slug,
+        order: 99,
+        title: params.slug.replace(/-/g, " "),
+        subtitle: "Programa personalizado",
+        tagline: "Programa gestionado desde el editor de contenido.",
+        description: "",
+        audience: "Definido por el administrador",
+        areas: [],
+        accent: "indigo",
+      },
+    };
   },
+
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
@@ -156,8 +172,11 @@ function ProgramDetail() {
   const areas: string[] = dbAreas && dbAreas.length > 0
     ? dbAreas.map((a) => a.title)
     : program.areas;
+  const liveTitle = programNode?.title || program.title;
+  const liveDescription = programNode?.description || program.description;
   const chapterFeatures = meta.chapterFeatures ?? program.chapterFeatures;
   const chapterTemplate = meta.chapterTemplate ?? CHAPTER_TEMPLATE.map((c) => c.title);
+
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -203,14 +222,15 @@ function ProgramDetail() {
               Programa académico
             </span>
             <h1 className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight text-balance leading-[1.05]">
-              {program.title}
+              {liveTitle}
             </h1>
             <p className="mt-4 text-lg text-foreground/85 font-medium text-pretty">
               {program.tagline}
             </p>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed text-pretty">
-              {program.description}
+              {liveDescription}
             </p>
+
             <div className="mt-6 inline-flex items-center gap-2 text-xs text-muted-foreground">
               <Target className="size-3.5" />
               <span className="font-semibold">Dirigido a:</span>

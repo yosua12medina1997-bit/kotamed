@@ -142,7 +142,12 @@ function ContenidoPage() {
       });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["content-nodes"] });
+      qc.invalidateQueries({ queryKey: ["content-catalog-nodes"] });
+      qc.invalidateQueries({ queryKey: ["program-node"] });
+      qc.invalidateQueries({ queryKey: ["program-areas"] });
+    },
     onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo crear el contenido."),
   });
 
@@ -160,7 +165,12 @@ function ContenidoPage() {
       const { error } = await supabase.from("content_nodes").update(rest).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["content-nodes"] });
+      qc.invalidateQueries({ queryKey: ["content-catalog-nodes"] });
+      qc.invalidateQueries({ queryKey: ["program-node"] });
+      qc.invalidateQueries({ queryKey: ["program-areas"] });
+    },
     onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo guardar el cambio."),
   });
 
@@ -170,7 +180,12 @@ function ContenidoPage() {
       const { error } = await supabase.from("content_nodes").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["content-nodes"] });
+      qc.invalidateQueries({ queryKey: ["content-catalog-nodes"] });
+      qc.invalidateQueries({ queryKey: ["program-node"] });
+      qc.invalidateQueries({ queryKey: ["program-areas"] });
+    },
     onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo eliminar el contenido."),
   });
 
@@ -287,6 +302,7 @@ function TreeItem({
   const [description, setDescription] = useState(node.description ?? "");
   const [busy, setBusy] = useState(false);
   const allowed = CHILD_KINDS[node.kind];
+  const expandable = children.length > 0 || allowed.length > 0;
 
   return (
     <li>
@@ -296,15 +312,17 @@ function TreeItem({
       >
         <button
           onClick={() => setOpen((v) => !v)}
-          className="p-1 text-muted-foreground shrink-0"
+          className="p-1 text-muted-foreground shrink-0 disabled:opacity-30"
           aria-label={open ? "Contraer" : "Expandir"}
+          disabled={!expandable}
         >
-          {children.length > 0 ? (
+          {expandable ? (
             open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />
           ) : (
             <span className="inline-block w-4" />
           )}
         </button>
+
 
         <span
           className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md border shrink-0 ${
@@ -329,6 +347,16 @@ function TreeItem({
         </div>
 
         <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+          {allowed.length > 0 && (
+            <button
+              onClick={() => setOpen(true)}
+              title={`Añadir ${allowed.map((k) => KIND_LABEL[k]).join(" / ").toLowerCase()}`}
+              className="p-1.5 rounded-lg text-primary hover:bg-primary/10"
+            >
+              <Plus className="size-3.5" strokeWidth={2.5} />
+            </button>
+          )}
+
           <button
             onClick={() => setResourcesOpen((v) => !v)}
             title="Recursos (archivos, videos, enlaces)"

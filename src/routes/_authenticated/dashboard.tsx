@@ -24,6 +24,8 @@ import {
   type Enrollment,
 } from "@/lib/session";
 import { useQueryClient } from "@tanstack/react-query";
+import { useProgramCatalog } from "@/lib/content-catalog";
+
 import doctorAvatar from "@/assets/doctor-avatar.jpg";
 import { useEffect } from "react";
 
@@ -188,7 +190,10 @@ function EnrolledView({
   displayName: string;
   isAdmin: boolean;
 }) {
+  const { programs } = useProgramCatalog();
   return (
+
+
     <div className="space-y-8 animate-slide-up">
       <section className="glass rounded-3xl p-8">
         <span className="text-primary font-bold text-xs uppercase tracking-widest">
@@ -210,33 +215,53 @@ function EnrolledView({
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(isAdmin
-            ? (Object.keys(PROGRAM_LABELS) as (keyof typeof PROGRAM_LABELS)[]).map((p) => ({
-                program: p,
-                expires_at: null as string | null,
-              }))
-            : active.map((e) => ({ program: e.program, expires_at: e.expires_at }))
-          ).map(({ program, expires_at }) => (
-            <Link
-              key={program}
-              to="/programas/$slug"
-              params={{ slug: program }}
-              className="glass rounded-2xl p-6 hover:-translate-y-1 hover:shadow-xl transition-all group"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                  <BookOpen className="size-5" strokeWidth={2.25} />
+            ? programs.map((p) => ({ slug: p.slug, expires_at: null as string | null }))
+            : active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at }))
+          ).map(({ slug, expires_at }) => {
+            const cat = programs.find((p) => p.slug === slug);
+            const label =
+              cat?.title ?? PROGRAM_LABELS[slug as keyof typeof PROGRAM_LABELS] ?? slug;
+            return (
+              <Link
+                key={slug}
+                to="/programas/$slug"
+                params={{ slug }}
+                className="glass rounded-2xl p-6 hover:-translate-y-1 hover:shadow-xl transition-all group"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <BookOpen className="size-5" strokeWidth={2.25} />
+                  </div>
+                  <CheckCircle2 className="size-4 text-emerald-500 ml-auto" strokeWidth={2.5} />
                 </div>
-                <CheckCircle2 className="size-4 text-emerald-500 ml-auto" strokeWidth={2.5} />
-              </div>
-              <h3 className="font-bold text-base tracking-tight">{PROGRAM_LABELS[program]}</h3>
-              <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
-                <span>{expires_at ? `Vence ${new Date(expires_at).toLocaleDateString()}` : "Acceso admin"}</span>
-                <span className="text-primary group-hover:underline">Abrir →</span>
-              </div>
-            </Link>
-          ))}
+                <h3 className="font-bold text-base tracking-tight">{label}</h3>
+                {cat && cat.areas.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {cat.areas.slice(0, 3).map((a) => (
+                      <span
+                        key={a}
+                        className="px-2 py-0.5 rounded border border-border text-[10px] font-semibold text-muted-foreground"
+                      >
+                        {a}
+                      </span>
+                    ))}
+                    {cat.areas.length > 3 && (
+                      <span className="text-[10px] font-semibold text-muted-foreground">
+                        +{cat.areas.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
+                  <span>{expires_at ? `Vence ${new Date(expires_at).toLocaleDateString()}` : "Acceso admin"}</span>
+                  <span className="text-primary group-hover:underline">Abrir →</span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
+
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MiniCard icon={<Home className="size-4" />} label="Continuar" value="Ictericia" />
@@ -268,6 +293,8 @@ function LockedView({
   email?: string;
 }) {
   const expired = enrollments.filter((e) => !isActive(e));
+  const { programs } = useProgramCatalog();
+
   return (
     <div className="animate-slide-up">
       <section className="glass rounded-3xl p-10 relative overflow-hidden text-center">
@@ -303,9 +330,9 @@ function LockedView({
           Vista previa · Programas disponibles
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(Object.keys(PROGRAM_LABELS) as (keyof typeof PROGRAM_LABELS)[]).map((p) => (
+          {programs.map((p) => (
             <div
-              key={p}
+              key={p.slug}
               className="glass rounded-2xl p-6 relative overflow-hidden opacity-90"
             >
               <div className="absolute top-3 right-3 size-7 rounded-lg bg-black/[0.04] flex items-center justify-center">
@@ -314,12 +341,13 @@ function LockedView({
               <div className="size-10 rounded-xl bg-black/[0.04] text-muted-foreground flex items-center justify-center mb-3">
                 <BookOpen className="size-5" strokeWidth={2} />
               </div>
-              <h3 className="font-bold text-sm tracking-tight">{PROGRAM_LABELS[p]}</h3>
+              <h3 className="font-bold text-sm tracking-tight">{p.title}</h3>
               <p className="text-[11px] text-muted-foreground mt-1">
                 Bloqueado hasta que el administrador te matricule.
               </p>
             </div>
           ))}
+
         </div>
       </section>
     </div>
