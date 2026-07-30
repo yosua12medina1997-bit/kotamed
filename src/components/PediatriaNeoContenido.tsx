@@ -17,6 +17,9 @@ import {
   Loader2,
   Pencil,
   Play,
+  Plus,
+  Trash2,
+
   Save,
   Search,
   Shield,
