@@ -196,6 +196,14 @@ export function TopicEditor({
           />
         </div>
         <button
+          onClick={() => exportTopicPdf(topic)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-3 py-2 text-xs font-bold hover:border-primary/40"
+          title="Exportar el tema a PDF"
+        >
+          <FileDown className="size-3.5" /> PDF
+        </button>
+        <button
+
           onClick={() => onSave(topic)}
           disabled={saving}
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-xs font-bold disabled:opacity-50"
