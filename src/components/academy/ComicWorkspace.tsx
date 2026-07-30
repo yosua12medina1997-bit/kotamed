@@ -258,7 +258,8 @@ export function ComicReader({ doc, accent }: { doc: ComicDoc; accent: string }) 
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mx-auto w-full max-w-6xl">
+
       <div className="flex flex-wrap items-center gap-2">
         <Chip accent={accent}>
           <BookOpen className="size-3" /> Nodo {path.length + 1}
