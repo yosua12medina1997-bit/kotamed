@@ -413,9 +413,10 @@ function StageNode({
         }`}
         style={{
           boxShadow: locked ? "none" : `0 18px 50px -34px ${accent}`,
-          opacity: locked ? 0.62 : 1,
-          filter: locked ? "saturate(0.5)" : undefined,
+          opacity: locked ? 0.92 : 1,
+          filter: locked ? "saturate(0.75)" : undefined,
         }}
+
       >
         <div className="flex items-start gap-3">
           <span
