@@ -17,6 +17,7 @@ import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminContenidoRouteImport } from './routes/_authenticated/admin.contenido'
+import { Route as AuthenticatedAdminCommandRouteImport } from './routes/_authenticated/admin.command'
 import { Route as ProgramasResidentadoAreasIndexRouteImport } from './routes/programas.residentado.areas.index'
 import { Route as ProgramasResidentadoAreasAreaRouteImport } from './routes/programas.residentado.areas.$area'
 
@@ -60,6 +61,12 @@ const AuthenticatedAdminContenidoRoute =
     path: '/contenido',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCommandRoute =
+  AuthenticatedAdminCommandRouteImport.update({
+    id: '/command',
+    path: '/command',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ProgramasResidentadoAreasIndexRoute =
   ProgramasResidentadoAreasIndexRouteImport.update({
     id: '/programas/residentado/areas/',
@@ -80,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
+  '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
   '/programas/residentado/areas/': typeof ProgramasResidentadoAreasIndexRoute
@@ -91,6 +99,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas': typeof ProgramasIndexRoute
+  '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
   '/programas/residentado/areas': typeof ProgramasResidentadoAreasIndexRoute
@@ -104,6 +113,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
+  '/_authenticated/admin/command': typeof AuthenticatedAdminCommandRoute
   '/_authenticated/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
   '/programas/residentado/areas/': typeof ProgramasResidentadoAreasIndexRoute
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/programas/$slug'
     | '/programas/'
+    | '/admin/command'
     | '/admin/contenido'
     | '/programas/residentado/areas/$area'
     | '/programas/residentado/areas/'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/programas/$slug'
     | '/programas'
+    | '/admin/command'
     | '/admin/contenido'
     | '/programas/residentado/areas/$area'
     | '/programas/residentado/areas'
@@ -140,6 +152,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/programas/$slug'
     | '/programas/'
+    | '/_authenticated/admin/command'
     | '/_authenticated/admin/contenido'
     | '/programas/residentado/areas/$area'
     | '/programas/residentado/areas/'
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminContenidoRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/command': {
+      id: '/_authenticated/admin/command'
+      path: '/command'
+      fullPath: '/admin/command'
+      preLoaderRoute: typeof AuthenticatedAdminCommandRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/programas/residentado/areas/': {
       id: '/programas/residentado/areas/'
       path: '/programas/residentado/areas'
@@ -231,10 +251,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminCommandRoute: typeof AuthenticatedAdminCommandRoute
   AuthenticatedAdminContenidoRoute: typeof AuthenticatedAdminContenidoRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminCommandRoute: AuthenticatedAdminCommandRoute,
   AuthenticatedAdminContenidoRoute: AuthenticatedAdminContenidoRoute,
 }
 
