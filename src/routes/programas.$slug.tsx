@@ -563,7 +563,7 @@ function AreasSection({
             Cada área es un ecosistema independiente con ruta académica, contenido, casos, banco, flashcards, simuladores, biblioteca y tutor IA.
           </p>
           <Link
-            to="/programas/residentado/areas/"
+            to="/programas/residentado/areas"
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold bg-primary text-primary-foreground hover:opacity-90 transition"
           >
             Ver módulos ENAM <Sparkles className="size-3.5" />
