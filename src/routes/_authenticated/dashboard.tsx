@@ -188,7 +188,8 @@ function EnrolledView({
   displayName: string;
   isAdmin: boolean;
 }) {
-  return (
+  const { programs } = useProgramCatalog();
+
     <div className="space-y-8 animate-slide-up">
       <section className="glass rounded-3xl p-8">
         <span className="text-primary font-bold text-xs uppercase tracking-widest">
