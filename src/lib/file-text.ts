@@ -12,7 +12,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
   }
 
   if (name.endsWith(".docx") || type.includes("wordprocessingml")) {
-    const mammoth: any = await import(/* @vite-ignore */ "mammoth/mammoth.browser" as string);
+    const mammoth: any = await import("mammoth/mammoth.browser");
     const buf = await file.arrayBuffer();
     const res = await (mammoth as any).extractRawText({ arrayBuffer: buf });
     return res.value as string;
