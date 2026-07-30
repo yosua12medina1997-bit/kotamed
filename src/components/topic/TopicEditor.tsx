@@ -647,17 +647,58 @@ function ImportPane({
   onImport: () => void;
   importing: boolean;
 }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [reading, setReading] = useState(false);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setReading(true);
+    try {
+      const { extractTextFromFiles } = await import("@/lib/file-text");
+      const extracted = (await extractTextFromFiles(Array.from(files))).trim();
+      if (!extracted) {
+        toast.error("No se pudo extraer texto de los archivos.");
+        return;
+      }
+      onChange((text ? text + "\n\n" : "") + extracted);
+      toast.success("Texto extraído de los archivos");
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo leer el archivo");
+    } finally {
+      setReading(false);
+    }
+  };
+
   return (
     <div className="max-w-3xl">
       <div className="rounded-2xl border border-border/40 bg-background/40 p-4">
         <div className="flex items-center gap-2 mb-2">
           <Wand2 className="size-4 text-primary" />
-          <span className="text-sm font-bold">Convertir texto en diapositivas</span>
+          <span className="text-sm font-bold">Convertir texto o archivos en diapositivas</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Pega apuntes, notas o borradores. La IA detectará tablas, comparaciones, algoritmos y
-          casos, y las convertirá en el formato del tema.
+          Sube <b>PDF</b>, Word, Excel/CSV o texto, o pega tus apuntes. La IA detectará tablas,
+          comparaciones, algoritmos y casos, y los convertirá en el formato del tema.
         </p>
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md,.json,.html,.htm,.xml,text/*"
+          className="hidden"
+          onChange={(e) => {
+            void handleFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={reading}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground disabled:opacity-50"
+        >
+          {reading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+          {reading ? "Extrayendo texto…" : "Subir PDF / Word / Excel"}
+        </button>
         <textarea
           value={text}
           onChange={(e) => onChange(e.target.value)}
@@ -665,6 +706,9 @@ function ImportPane({
           placeholder="Pega aquí tu borrador o apuntes…"
           className="mt-3 w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
         />
+        <div className="mt-1 text-[10px] text-muted-foreground">
+          {text.trim().length.toLocaleString()} caracteres
+        </div>
         <button
           onClick={onImport}
           disabled={importing || text.trim().length < 20}
@@ -681,3 +725,4 @@ function ImportPane({
     </div>
   );
 }
+
