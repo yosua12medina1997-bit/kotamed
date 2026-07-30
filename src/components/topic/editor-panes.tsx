@@ -16,6 +16,7 @@ import {
   LayoutTemplate,
   Loader2,
   NotebookPen,
+  Pencil,
   RotateCcw,
   Trash2,
   Upload,
@@ -192,7 +193,7 @@ export function SlideCatalog({
 /* Notebook IA                                                         */
 /* ------------------------------------------------------------------ */
 
-type SourceDoc = { id: string; name: string; text: string };
+type SourceDoc = { id: string; name: string; text: string; warning?: string };
 
 export function NotebookPane({
   topic,
@@ -202,6 +203,7 @@ export function NotebookPane({
   onTopic: (t: Topic) => void;
 }) {
   const [docs, setDocs] = useState<SourceDoc[]>([]);
+  const [activeDocId, setActiveDocId] = useState<string | null>(null);
   const [pasted, setPasted] = useState("");
   const [reading, setReading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -235,21 +237,59 @@ export function NotebookPane({
         try {
           const text = (await extractTextFromFile(f)).trim();
           if (!text) {
-            toast.error(`${f.name}: no se pudo extraer texto (¿PDF escaneado?).`);
+            next.push({
+              id: randomId(),
+              name: f.name,
+              text: "",
+              warning: "No se detectó texto editable. Si es un PDF escaneado, pega aquí la transcripción o conviértelo con OCR.",
+            });
+            toast.warning(`${f.name}: sin texto detectable; se creó una fuente editable.`);
             continue;
           }
           next.push({ id: randomId(), name: f.name, text });
         } catch (e: any) {
-          toast.error(`${f.name}: ${e?.message ?? "no legible"}`);
+          next.push({
+            id: randomId(),
+            name: f.name,
+            text: "",
+            warning: e?.message ?? "No se pudo leer automáticamente. Pega o escribe el contenido aquí.",
+          });
+          toast.warning(`${f.name}: se creó una fuente editable para completar manualmente.`);
         }
       }
       if (next.length) {
         setDocs((d) => [...d, ...next]);
-        toast.success(`${next.length} documento(s) indexado(s)`);
+        setActiveDocId((current) => current ?? next[0]?.id ?? null);
+        const ready = next.filter((doc) => doc.text.trim()).length;
+        toast.success(
+          ready === next.length
+            ? `${next.length} documento(s) indexado(s)`
+            : `${next.length} fuente(s) añadida(s); revisa las que requieren texto manual`,
+        );
       }
     } finally {
       setReading(false);
     }
+  };
+
+  const activeDoc = docs.find((doc) => doc.id === activeDocId) ?? null;
+
+  const updateDocText = (id: string, text: string) => {
+    setDocs((current) =>
+      current.map((doc) =>
+        doc.id === id
+          ? { ...doc, text, warning: text.trim() ? undefined : doc.warning }
+          : doc,
+      ),
+    );
+  };
+
+  const removeDoc = (id: string) => {
+    setDocs((current) => {
+      const next = current.filter((doc) => doc.id !== id);
+      if (activeDocId === id) setActiveDocId(next[0]?.id ?? null);
+      return next;
+    });
   };
 
 
@@ -317,6 +357,7 @@ export function NotebookPane({
           }}
         />
         <button
+          type="button"
           onClick={() => inputRef.current?.click()}
           disabled={reading}
           className="mt-3 w-full inline-flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/60 px-3 py-5 text-xs font-bold text-muted-foreground hover:text-foreground hover:border-primary/40 disabled:opacity-50"
@@ -342,15 +383,38 @@ export function NotebookPane({
           {docs.map((d) => (
             <div
               key={d.id}
-              className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/60 px-2 py-1.5"
+              className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 transition ${
+                activeDocId === d.id
+                  ? "border-primary/40 bg-primary/[0.04]"
+                  : "border-border/40 bg-background/60"
+              }`}
             >
               <FileText className="size-3.5 text-muted-foreground" />
-              <span className="text-xs font-semibold truncate flex-1">{d.name}</span>
-              <span className="text-[10px] text-muted-foreground">
-                {(d.text.length / 1000).toFixed(1)}k
-              </span>
               <button
-                onClick={() => setDocs((x) => x.filter((y) => y.id !== d.id))}
+                type="button"
+                onClick={() => setActiveDocId(d.id)}
+                className="min-w-0 flex-1 text-left"
+                title="Editar texto extraído"
+              >
+                <span className="block truncate text-xs font-semibold">{d.name}</span>
+                {d.warning && (
+                  <span className="block truncate text-[10px] text-amber-600 dark:text-amber-400">
+                    Requiere revisión manual
+                  </span>
+                )}
+              </button>
+              <span className="text-[10px] text-muted-foreground">{(d.text.length / 1000).toFixed(1)}k</span>
+              <button
+                type="button"
+                onClick={() => setActiveDocId(d.id)}
+                className="p-1 text-muted-foreground hover:text-foreground"
+                title="Editar fuente"
+              >
+                <Pencil className="size-3" />
+              </button>
+              <button
+                type="button"
+                onClick={() => removeDoc(d.id)}
                 className="p-1 text-destructive/70 hover:text-destructive"
               >
                 <Trash2 className="size-3" />
@@ -358,6 +422,62 @@ export function NotebookPane({
             </div>
           ))}
         </div>
+
+        {activeDoc && (
+          <div className="mt-3 rounded-xl border border-border/40 bg-background/60 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="truncate text-xs font-bold">{activeDoc.name}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  Texto extraído editable · {(activeDoc.text.length / 1000).toFixed(1)}k caracteres
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const id = randomId();
+                  setDocs((current) => [
+                    ...current,
+                    { id, name: "Fuente manual", text: "", warning: "Completa esta fuente manualmente." },
+                  ]);
+                  setActiveDocId(id);
+                }}
+                className="shrink-0 rounded-lg border border-border/60 px-2 py-1 text-[10px] font-bold hover:border-primary/40"
+              >
+                Nueva fuente
+              </button>
+            </div>
+            {activeDoc.warning && (
+              <div className="mt-2 rounded-lg border border-amber-500/25 bg-amber-500/[0.08] px-2 py-1.5 text-[11px] text-amber-700 dark:text-amber-300">
+                {activeDoc.warning}
+              </div>
+            )}
+            <textarea
+              value={activeDoc.text}
+              onChange={(e) => updateDocText(activeDoc.id, e.target.value)}
+              rows={10}
+              placeholder="El texto extraído del documento aparecerá aquí. Puedes corregirlo, ampliarlo o pegar contenido manualmente antes de componer el tema."
+              className="mt-2 w-full rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-xs leading-relaxed outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </div>
+        )}
+
+        {!activeDoc && (
+          <button
+            type="button"
+            onClick={() => {
+              const id = randomId();
+              setDocs((current) => [
+                ...current,
+                { id, name: "Fuente manual", text: "", warning: "Completa esta fuente manualmente." },
+              ]);
+              setActiveDocId(id);
+            }}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
+          >
+            <Pencil className="size-3" /> Crear fuente editable manual
+          </button>
+        )}
 
         <label className="mt-4 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Pegar texto adicional
@@ -397,6 +517,7 @@ export function NotebookPane({
           className="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
         />
         <button
+          type="button"
           onClick={compose}
           disabled={mut.isPending}
           className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-2 text-xs font-bold disabled:opacity-50"
