@@ -21,6 +21,7 @@ import {
   Library,
   LineChart,
   Settings,
+  Crown,
   Presentation,
 } from "lucide-react";
 
@@ -135,7 +136,7 @@ export const MODULE_SECTIONS: ModuleSection[] = [
   { id: "biblioteca", label: "Biblioteca", icon: Library, hint: "Guías, libros y artículos" },
   { id: "tutor-ia", label: "Tutor IA", icon: BrainCircuit, hint: "Asistente citando evidencia" },
   { id: "progreso", label: "Mi Progreso", icon: LineChart, hint: "Métricas de aprendizaje" },
-  { id: "configuracion", label: "Configuración", icon: Settings, hint: "Preferencias del módulo" },
+  { id: "configuracion", label: "👑 Command Center™", icon: Crown, hint: "Centro de operaciones profesional" },
 ];
 
 /** Default learning path stages (roadmap). Persisted per-area in metadata. */

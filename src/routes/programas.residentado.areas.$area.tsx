@@ -38,6 +38,7 @@ import { BibliotecaSection } from "@/components/academy/BibliotecaSection";
 import { TutorSection } from "@/components/academy/TutorSection";
 import { ProgresoSection } from "@/components/academy/ProgresoSection";
 import { RutaCinematica } from "@/components/academy/RutaCinematica";
+import { CommandCenter } from "@/components/academy/CommandCenter";
 
 
 export const Route = createFileRoute("/programas/residentado/areas/$area")({
@@ -257,7 +258,7 @@ function AreaModule() {
           {section === "biblioteca" && <BibliotecaSection meta={meta} isAdmin={!!isAdmin} />}
           {section === "tutor-ia" && <TutorSection meta={meta} />}
           {section === "progreso" && <ProgresoSection meta={meta} />}
-          {section === "configuracion" && <PlaceholderSection sectionId={section} meta={meta} />}
+          {section === "configuracion" && <CommandCenter meta={meta} isAdmin={!!isAdmin} />}
         </main>
       </div>
     </div>
