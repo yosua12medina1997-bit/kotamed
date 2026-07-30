@@ -142,7 +142,12 @@ function ContenidoPage() {
       });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["content-nodes"] });
+      qc.invalidateQueries({ queryKey: ["content-catalog-nodes"] });
+      qc.invalidateQueries({ queryKey: ["program-node"] });
+      qc.invalidateQueries({ queryKey: ["program-areas"] });
+    },
     onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo crear el contenido."),
   });
 
@@ -160,7 +165,12 @@ function ContenidoPage() {
       const { error } = await supabase.from("content_nodes").update(rest).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["content-nodes"] });
+      qc.invalidateQueries({ queryKey: ["content-catalog-nodes"] });
+      qc.invalidateQueries({ queryKey: ["program-node"] });
+      qc.invalidateQueries({ queryKey: ["program-areas"] });
+    },
     onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo guardar el cambio."),
   });
 
@@ -170,7 +180,12 @@ function ContenidoPage() {
       const { error } = await supabase.from("content_nodes").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["content-nodes"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["content-nodes"] });
+      qc.invalidateQueries({ queryKey: ["content-catalog-nodes"] });
+      qc.invalidateQueries({ queryKey: ["program-node"] });
+      qc.invalidateQueries({ queryKey: ["program-areas"] });
+    },
     onError: (error) => setMutationError(error instanceof Error ? error.message : "No se pudo eliminar el contenido."),
   });
 
