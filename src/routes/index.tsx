@@ -11,6 +11,8 @@ import {
   Stethoscope,
   Trophy,
 } from "lucide-react";
+import { useProgramCatalog } from "@/lib/content-catalog";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -194,30 +196,14 @@ function TrustBar() {
 }
 
 function Programs() {
-  const items = [
-    {
-      title: "Preparación Residentado",
-      sub: "ENAM · ESSALUD",
-      desc: "Simulacros adaptativos y bancos de preguntas de alta frecuencia.",
-      accent: "teal",
-    },
-    {
-      title: "Internado Médico",
-      sub: "Rotación Pediatría",
-      desc: "Casos clínicos, checklists y algoritmos para la rotación.",
-      accent: "indigo",
-    },
-    {
-      title: "Residencia R1 · R2 · R3",
-      sub: "Formación completa",
-      desc: "Currículum longitudinal con perlas, guardias y liderazgo clínico.",
-      accent: "violet",
-    },
-  ];
+  const { programs } = useProgramCatalog();
+  const items = programs.filter((p) => p.isPublished);
   const tint: Record<string, string> = {
     teal: "from-teal-400/20 to-teal-600/5 text-teal-700",
     indigo: "from-indigo-400/20 to-indigo-600/5 text-indigo-700",
     violet: "from-violet-400/20 to-violet-600/5 text-violet-700",
+    rose: "from-rose-400/20 to-rose-600/5 text-rose-700",
+    amber: "from-amber-400/20 to-amber-600/5 text-amber-700",
   };
   return (
     <section className="max-w-7xl mx-auto px-6 lg:px-10 py-20 lg:py-28">
@@ -234,36 +220,43 @@ function Programs() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {items.map((p) => (
-          <div
-            key={p.title}
+          <Link
+            key={p.slug}
+            to="/programas/$slug"
+            params={{ slug: p.slug }}
             className="glass rounded-3xl p-7 hover:-translate-y-1 hover:shadow-xl transition-all group"
           >
             <div
-              className={`size-11 rounded-xl bg-gradient-to-br ${tint[p.accent]} flex items-center justify-center mb-6`}
+              className={`size-11 rounded-xl bg-gradient-to-br ${tint[p.accent] ?? tint.teal} flex items-center justify-center mb-6`}
             >
               <GraduationCap className="size-5" strokeWidth={2.25} />
             </div>
             <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-              {p.sub}
+              {p.subtitle}
             </div>
             <h3 className="mt-1 text-xl font-extrabold tracking-tight">{p.title}</h3>
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
-          </div>
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed line-clamp-3">
+              {p.tagline || p.description}
+            </p>
+          </Link>
         ))}
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <Link
-          to="/programas"
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline"
-        >
-          Ver los 5 programas de Pediatría
-          <ArrowRight className="size-4" strokeWidth={2.5} />
-        </Link>
-      </div>
+      {items.length > 0 && (
+        <div className="mt-8 flex justify-center">
+          <Link
+            to="/programas"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline"
+          >
+            {`Ver los ${items.length} programas`}
+            <ArrowRight className="size-4" strokeWidth={2.5} />
+          </Link>
+        </div>
+      )}
     </section>
   );
 }
+
 
 function Pillars() {
   const pillars = [

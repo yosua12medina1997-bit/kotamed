@@ -86,6 +86,12 @@ export function buildProgramCatalog(nodes: CatalogNode[] | undefined): CatalogPr
       isPublished: n.is_published,
     }));
 
+  // Si el administrador ya definió programas en el editor, esos mandan:
+  // los estáticos sin nodo equivalente dejan de mostrarse.
+  if (programNodes.length > 0) {
+    return [...merged.filter((p) => p.nodeId), ...extras];
+  }
+
   return [...merged, ...extras];
 }
 
