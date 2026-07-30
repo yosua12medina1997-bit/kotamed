@@ -103,6 +103,45 @@
   }
 }
 
+@keyframes kotaro-spark {
+  0% {
+    top: -4%;
+    height: 10px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    top: 102%;
+    height: 26px;
+    opacity: 0;
+  }
+}
+
+@keyframes kotaro-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.07);
+    filter: brightness(1.15);
+  }
+}
+
+@utility kotaro-spark {
+  animation: kotaro-spark 7s linear infinite;
+}
+
+@utility kotaro-breathe {
+  animation: kotaro-breathe 3.2s ease-in-out infinite;
+}
+
 @utility animate-aurora {
   animation: aurora 20s ease-in-out infinite;
 }
@@ -110,6 +149,17 @@
 @utility animate-slide-up {
   animation: slide-up 0.8s var(--ease-out-expo) both;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 
 @utility glass {
   background: var(--surface);
