@@ -17,6 +17,9 @@ import {
   Loader2,
   Pencil,
   Play,
+  Plus,
+  Trash2,
+
   Save,
   Search,
   Shield,
@@ -48,6 +51,15 @@ type BlockKey = BlueprintBlock["key"];
 const ROOT_SLUG = "biblioteca-pediatria-neo";
 const ROOT_TITLE = "Biblioteca · Pediatría & Neonatología";
 
+const OVERRIDES_SLUG = "pednn-blueprint-overrides";
+
+type BlueprintOverrides = {
+  added: Record<string, string[]>;
+  removed: Record<string, string[]>;
+};
+
+const EMPTY_OVERRIDES: BlueprintOverrides = { added: {}, removed: {} };
+
 function slugify(s: string) {
   return s
     .toLowerCase()
@@ -58,29 +70,141 @@ function slugify(s: string) {
     .slice(0, 60);
 }
 
+/** Overrides de temas (agregados/quitados por admin) guardados globalmente. */
+function useBlueprintOverrides() {
+  const qc = useQueryClient();
+  const user = useSupabaseUser();
+
+  const q = useQuery({
+    queryKey: ["pednn-blueprint-overrides"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_nodes")
+        .select("id, metadata")
+        .eq("slug", OVERRIDES_SLUG)
+        .limit(1);
+      if (error) throw error;
+      return data && data.length > 0 ? data[0] : null;
+    },
+    staleTime: 30_000,
+  });
+
+  const overrides: BlueprintOverrides = useMemo(() => {
+    const raw = (q.data?.metadata as any)?.blueprint as Partial<BlueprintOverrides> | undefined;
+    return { added: raw?.added ?? {}, removed: raw?.removed ?? {} };
+  }, [q.data]);
+
+  const save = useMutation({
+    mutationFn: async (next: BlueprintOverrides) => {
+      const existing = q.data;
+      if (!existing) {
+        const { error } = await supabase.from("content_nodes").insert({
+          parent_id: null,
+          kind: "course",
+          title: "Overrides · Blueprint Pediatría & Neonatología",
+          slug: OVERRIDES_SLUG,
+          sort_order: 999,
+          created_by: user?.id ?? null,
+          metadata: { blueprint: next } as never,
+        });
+        if (error) throw error;
+        return;
+      }
+      const md = ((existing.metadata ?? {}) as Record<string, unknown>) || {};
+      const { error } = await supabase
+        .from("content_nodes")
+        .update({ metadata: { ...md, blueprint: next } as never })
+        .eq("id", existing.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pednn-blueprint-overrides"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar el cambio"),
+  });
+
+  return { overrides, save };
+}
+
+/** Aplica los overrides sobre un bloque del blueprint. */
+function applyOverrides(block: BlueprintBlock, ov: BlueprintOverrides): BlueprintBlock {
+  return {
+    ...block,
+    categories: block.categories.map((cat) => {
+      const key = `${block.key}::${cat.key}`;
+      const removed = new Set(ov.removed[key] ?? []);
+      const added = (ov.added[key] ?? []).map((title) => ({ title }) as BlueprintTopic);
+      return {
+        ...cat,
+        topics: [...cat.topics, ...added].filter((t) => !removed.has(t.title)),
+      };
+    }),
+  };
+}
+
+
 export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
   const [active, setActive] = useState<BlockKey>("neonatologia");
   const [query, setQuery] = useState("");
   const [openCat, setOpenCat] = useState<string | null>(null);
   const [openTopic, setOpenTopic] = useState<string | null>(null);
   const [pharmaOpen, setPharmaOpen] = useState(false);
+  const [newTopic, setNewTopic] = useState<Record<string, string>>({});
 
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
+  const { overrides, save: saveOverrides } = useBlueprintOverrides();
 
-  const block = useMemo(
-    () => PEDIATRIA_NEONATOLOGIA_BLUEPRINT.find((b) => b.key === active)!,
-    [active],
+  const blocks = useMemo(
+    () => PEDIATRIA_NEONATOLOGIA_BLUEPRINT.map((b) => applyOverrides(b, overrides)),
+    [overrides],
   );
+  const block = useMemo(() => blocks.find((b) => b.key === active)!, [blocks, active]);
   const filtered = useMemo(() => filterBlock(block, query), [block, query]);
   const totalTopics = useMemo(
-    () =>
-      PEDIATRIA_NEONATOLOGIA_BLUEPRINT.reduce(
-        (acc, b) => acc + b.categories.reduce((a, c) => a + c.topics.length, 0),
-        0,
-      ),
-    [],
+    () => blocks.reduce((acc, b) => acc + b.categories.reduce((a, c) => a + c.topics.length, 0), 0),
+    [blocks],
   );
+
+  function addTopic(catKey: string, title: string) {
+    const key = `${block.key}::${catKey}`;
+    const clean = title.trim();
+    if (!clean) return;
+    const exists = block.categories
+      .find((c) => c.key === catKey)
+      ?.topics.some((t) => t.title.toLowerCase() === clean.toLowerCase());
+    if (exists) {
+      toast.error("Ese tema ya existe en la categoría");
+      return;
+    }
+    const removed = (overrides.removed[key] ?? []).filter((t) => t !== clean);
+    const added = [...(overrides.added[key] ?? [])];
+    if (!added.includes(clean)) added.push(clean);
+    saveOverrides.mutate(
+      {
+        added: { ...overrides.added, [key]: added },
+        removed: { ...overrides.removed, [key]: removed },
+      },
+      { onSuccess: () => toast.success(`Tema "${clean}" agregado`) },
+    );
+    setNewTopic((p) => ({ ...p, [catKey]: "" }));
+  }
+
+  function removeTopic(catKey: string, title: string) {
+    const key = `${block.key}::${catKey}`;
+    const added = (overrides.added[key] ?? []).filter((t) => t !== title);
+    const removed = [...(overrides.removed[key] ?? [])];
+    if (!removed.includes(title)) removed.push(title);
+    saveOverrides.mutate(
+      {
+        added: { ...overrides.added, [key]: added },
+        removed: { ...overrides.removed, [key]: removed },
+      },
+      { onSuccess: () => toast.success(`Tema "${title}" quitado`) },
+    );
+    setOpenTopic(null);
+  }
+
 
   return (
     <section className="glass rounded-3xl p-6 md:p-8 animate-slide-up">
@@ -111,7 +235,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
             <Stat label="Bloques" value="2" accent={meta.accent} />
             <Stat
               label="Categorías"
-              value={PEDIATRIA_NEONATOLOGIA_BLUEPRINT.reduce((a, b) => a + b.categories.length, 0)}
+              value={blocks.reduce((a, b) => a + b.categories.length, 0)}
               accent={meta.accent}
             />
             <Stat label="Temas" value={totalTopics} accent={meta.accent} />
@@ -128,7 +252,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {PEDIATRIA_NEONATOLOGIA_BLUEPRINT.map((b) => {
+        {blocks.map((b) => {
           const isActive = active === b.key;
           const Icon = b.key === "neonatologia" ? Baby : Stethoscope;
           return (
@@ -243,26 +367,43 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
                     const topicOpen = openTopic === topicKey;
                     return (
                       <li key={topicKey} className="bg-background/20">
-                        <button
-                          onClick={() =>
-                            setOpenTopic((prev) => (prev === topicKey ? null : topicKey))
-                          }
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-background/40 transition"
-                        >
-                          <span
-                            className="size-1.5 rounded-full shrink-0"
-                            style={{ background: block.accent }}
-                          />
-                          <span className="flex-1 text-sm font-semibold">{topic.title}</span>
-                          {topic.items && (
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                              {topic.items.length} subtemas
-                            </span>
+                        <div className="flex items-center">
+                          <button
+                            onClick={() =>
+                              setOpenTopic((prev) => (prev === topicKey ? null : topicKey))
+                            }
+                            className="flex-1 min-w-0 flex items-center gap-3 px-4 py-2.5 text-left hover:bg-background/40 transition"
+                          >
+                            <span
+                              className="size-1.5 rounded-full shrink-0"
+                              style={{ background: block.accent }}
+                            />
+                            <span className="flex-1 text-sm font-semibold">{topic.title}</span>
+                            {topic.items && (
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                                {topic.items.length} subtemas
+                              </span>
+                            )}
+                            <ChevronRight
+                              className={`size-3.5 text-muted-foreground transition ${topicOpen ? "rotate-90" : ""}`}
+                            />
+                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`¿Quitar el tema "${topic.title}"?`)) {
+                                  removeTopic(cat.key, topic.title);
+                                }
+                              }}
+                              disabled={saveOverrides.isPending}
+                              className="mr-3 shrink-0 rounded-lg p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                              aria-label={`Quitar ${topic.title}`}
+                              title="Quitar tema"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
                           )}
-                          <ChevronRight
-                            className={`size-3.5 text-muted-foreground transition ${topicOpen ? "rotate-90" : ""}`}
-                          />
-                        </button>
+                        </div>
                         {topicOpen && (
                           <TopicDetail
                             block={block}
@@ -275,8 +416,42 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
                       </li>
                     );
                   })}
+                  {isAdmin && (
+                    <li className="bg-background/30 px-4 py-2.5">
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          addTopic(cat.key, newTopic[cat.key] ?? "");
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          value={newTopic[cat.key] ?? ""}
+                          onChange={(e) =>
+                            setNewTopic((p) => ({ ...p, [cat.key]: e.target.value }))
+                          }
+                          placeholder="Nuevo tema en esta categoría…"
+                          className="flex-1 rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                        <button
+                          type="submit"
+                          disabled={saveOverrides.isPending}
+                          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+                          style={{ background: block.accent }}
+                        >
+                          {saveOverrides.isPending ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Plus className="size-3.5" />
+                          )}
+                          Agregar
+                        </button>
+                      </form>
+                    </li>
+                  )}
                 </ul>
               )}
+
             </div>
           );
         })}

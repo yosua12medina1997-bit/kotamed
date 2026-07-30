@@ -193,7 +193,7 @@ export const PEDIATRIA: BlueprintBlock = {
   categories: [
     {
       key: "crecimiento",
-      title: "2. Crecimiento y desarrollo",
+      title: "1. Crecimiento y desarrollo",
       topics: [
         { title: "Antropometría" },
         { title: "OMS" },
@@ -215,7 +215,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "nutricion-ped",
-      title: "3. Nutrición pediátrica",
+      title: "2. Nutrición pediátrica",
       topics: [
         { title: "Lactancia materna" },
         { title: "Alimentación complementaria" },
@@ -232,7 +232,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "vacunas",
-      title: "4. Vacunas",
+      title: "3. Vacunas",
       topics: [
         { title: "Calendario Perú" },
         { title: "Calendario CDC" },
@@ -250,7 +250,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "infectologia",
-      title: "5. Infectología",
+      title: "4. Infectología",
       topics: [
         { title: "Fiebre" },
         { title: "Sepsis" },
@@ -277,7 +277,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "neumo",
-      title: "6. Neumología",
+      title: "5. Neumología",
       topics: [
         { title: "Asma" },
         { title: "Bronquiolitis" },
@@ -293,7 +293,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "cardio",
-      title: "7. Cardiología",
+      title: "6. Cardiología",
       topics: [
         { title: "Cardiopatías congénitas" },
         { title: "Soplos" },
@@ -308,7 +308,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "gastro-ped",
-      title: "8. Gastroenterología",
+      title: "7. Gastroenterología",
       topics: [
         { title: "RGE" },
         { title: "Diarrea" },
@@ -324,7 +324,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "nefro",
-      title: "9. Nefrología",
+      title: "8. Nefrología",
       topics: [
         { title: "ITU" },
         { title: "Síndrome nefrótico" },
@@ -340,7 +340,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "endo-ped",
-      title: "10. Endocrinología",
+      title: "9. Endocrinología",
       topics: [
         { title: "Diabetes" },
         { title: "Hipotiroidismo" },
@@ -354,7 +354,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "hemato",
-      title: "11. Hematología",
+      title: "10. Hematología",
       topics: [
         { title: "Anemias" },
         { title: "Ferropenia" },
@@ -370,7 +370,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "onco",
-      title: "12. Oncología",
+      title: "11. Oncología",
       topics: [
         { title: "LLA" },
         { title: "LMA" },
@@ -384,7 +384,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "neuro-ped",
-      title: "13. Neurología",
+      title: "12. Neurología",
       topics: [
         { title: "Convulsiones" },
         { title: "Epilepsia" },
@@ -399,7 +399,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "cx",
-      title: "14. Cirugía pediátrica",
+      title: "13. Cirugía pediátrica",
       topics: [
         { title: "Abdomen agudo" },
         { title: "Apendicitis" },
@@ -414,7 +414,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "urgencias",
-      title: "15. Urgencias pediátricas",
+      title: "14. Urgencias pediátricas",
       topics: [
         { title: "ABCDE" },
         { title: "Shock" },
@@ -430,7 +430,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "uci",
-      title: "16. Cuidados intensivos pediátricos",
+      title: "15. Cuidados intensivos pediátricos",
       topics: [
         { title: "Ventilación" },
         { title: "Shock séptico" },
@@ -446,7 +446,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "adolescencia",
-      title: "17. Adolescencia",
+      title: "16. Adolescencia",
       topics: [
         { title: "Pubertad" },
         { title: "Salud mental" },
@@ -458,7 +458,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "derma",
-      title: "18. Dermatología",
+      title: "17. Dermatología",
       topics: [
         { title: "Exantemas" },
         { title: "Hemangiomas" },
@@ -471,7 +471,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "reuma",
-      title: "19. Reumatología",
+      title: "18. Reumatología",
       topics: [
         { title: "AIJ" },
         { title: "LES" },
@@ -482,7 +482,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "genetica",
-      title: "20. Genética",
+      title: "19. Genética",
       topics: [
         { title: "Síndrome de Down" },
         { title: "Turner" },
@@ -496,7 +496,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "metabolismo",
-      title: "21. Metabolismo",
+      title: "20. Metabolismo",
       topics: [
         { title: "Errores innatos" },
         { title: "Acidosis" },
@@ -508,7 +508,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "toxicologia",
-      title: "22. Toxicología",
+      title: "21. Toxicología",
       topics: [
         { title: "Intoxicaciones" },
         { title: "Mordeduras" },
@@ -519,7 +519,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "ambulatoria",
-      title: "23. Pediatría ambulatoria",
+      title: "22. Pediatría ambulatoria",
       topics: [
         { title: "Control del niño sano" },
         { title: "CRED" },
@@ -530,7 +530,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "mbe",
-      title: "24. Pediatría basada en la evidencia",
+      title: "23. Pediatría basada en la evidencia",
       topics: [
         { title: "Guías AAP" },
         { title: "NICE" },
@@ -544,7 +544,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "examen-fisico",
-      title: "25. Examen físico pediátrico",
+      title: "24. Examen físico pediátrico",
       topics: [
         { title: "Por sistemas" },
         { title: "Hallazgos normales" },
@@ -555,7 +555,7 @@ export const PEDIATRIA: BlueprintBlock = {
     },
     {
       key: "farmacologia",
-      title: "26. Farmacología pediátrica",
+      title: "25. Farmacología pediátrica",
       topics: [
         { title: "Calculadora de dosis por peso y superficie corporal" },
         { title: "Diluciones" },
