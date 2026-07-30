@@ -293,6 +293,8 @@ function LockedView({
   email?: string;
 }) {
   const expired = enrollments.filter((e) => !isActive(e));
+  const { programs } = useProgramCatalog();
+
   return (
     <div className="animate-slide-up">
       <section className="glass rounded-3xl p-10 relative overflow-hidden text-center">
