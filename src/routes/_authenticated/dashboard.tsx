@@ -189,6 +189,8 @@ function EnrolledView({
   isAdmin: boolean;
 }) {
   const { programs } = useProgramCatalog();
+  return (
+
 
     <div className="space-y-8 animate-slide-up">
       <section className="glass rounded-3xl p-8">
