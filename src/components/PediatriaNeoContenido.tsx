@@ -39,7 +39,7 @@ import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
 import { TopicPresenter } from "@/components/topic/TopicPresenter";
 import { TopicEditor } from "@/components/topic/TopicEditor";
-import { PharmaWorkspace, type PharmaDrug } from "@/components/pharma/PharmaWorkspace";
+import { PharmaWorkspace } from "@/components/pharma/PharmaWorkspace";
 
 import type { Topic } from "@/lib/topic-schema";
 
