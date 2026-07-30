@@ -70,7 +70,13 @@ function useReveal<T extends HTMLElement>(onSeen?: () => void) {
   const [seen, setSeen] = useState(false);
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
+    // Failsafe: si el observador no dispara (contenedores con transform/scroll),
+    // el contenido se muestra igualmente.
+    const fallback = window.setTimeout(() => setSeen(true), 900);
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -81,14 +87,18 @@ function useReveal<T extends HTMLElement>(onSeen?: () => void) {
           }
         }
       },
-      { rootMargin: "-12% 0px -12% 0px", threshold: 0.15 },
+      { rootMargin: "0px 0px -5% 0px", threshold: 0.01 },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      window.clearTimeout(fallback);
+      io.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return { ref, seen };
 }
+
 
 /* ---------- métricas ---------- */
 
