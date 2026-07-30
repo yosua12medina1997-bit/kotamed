@@ -514,3 +514,100 @@ DATOS:
 ${data.stats}`,
     ),
   );
+
+/* ------------------------------------------------------------------ */
+/*  COMMAND CENTER: AI COACH + MISIONES                                */
+/* ------------------------------------------------------------------ */
+
+const coachSchema = z.object({
+  greeting: z.string(),
+  masteryScore: z.number(),
+  level: z.string(),
+  focusToday: z.string(),
+  habits: z.string(),
+  consistency: z.string(),
+  retention: z.string(),
+  fatigueRisk: z.string(),
+  burnoutRisk: z.string(),
+  strengths: z.array(z.string()),
+  weaknesses: z.array(z.string()),
+  improvedCompetency: z.string(),
+  attentionCompetency: z.string(),
+  recommendedCase: z.string(),
+  recommendedPaper: z.string(),
+  adjustments: z.array(z.string()),
+  plan: z.array(z.object({ block: z.string(), minutes: z.number(), why: z.string() })),
+});
+
+export type CommandCoachReport = z.infer<typeof coachSchema>;
+
+/** Mentor de élite: analiza hábitos, riesgo de burnout y ajusta el entrenamiento. */
+export const coachAnalyze = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        stats: z.string().min(2),
+        identity: z.string().default(""),
+        area: z.string().default("Pediatría & Neonatología"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) =>
+    structured(
+      coachSchema,
+      `Actúa como mentor médico de élite (no como chatbot) para un profesional del área ${data.area}.
+Analiza hábitos, productividad, consistencia, retención, errores, fortalezas, debilidades, fatiga, sobrecarga y riesgo de burnout.
+Devuelve un Mastery Score de 0 a 100 coherente con los datos, un nivel profesional descriptivo (ej. "Residente en consolidación"),
+el foco prioritario de hoy, un caso clínico recomendado, un paper/guía recomendada (título real y año),
+ajustes automáticos al entrenamiento y un plan de bloques (Deep Work, repaso espaciado, práctica de preguntas) con minutos y justificación.
+Tono ejecutivo, español, sin emojis.
+
+PERFIL:
+${data.identity || "Sin perfil declarado."}
+
+DATOS DE DESEMPEÑO:
+${data.stats}`,
+    ),
+  );
+
+const missionsSchema = z.object({
+  missions: z.array(
+    z.object({
+      horizon: z.string(),
+      title: z.string(),
+      detail: z.string(),
+      metric: z.string(),
+      priority: z.number(),
+    }),
+  ),
+});
+
+/** Genera objetivos diarios/semanales/mensuales/anuales, de residencia e investigación. */
+export const generateMissions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        stats: z.string().default(""),
+        identity: z.string().default(""),
+        area: z.string().default("Pediatría & Neonatología"),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const out = await structured(
+      missionsSchema,
+      `Diseña el sistema de misiones profesionales del área ${data.area}.
+horizon debe ser uno de: "diario", "semanal", "mensual", "anual", "residencia", "investigación", "publicaciones", "clínico".
+Genera entre 10 y 16 misiones repartidas entre esos horizontes, cada una con métrica verificable y priority 1 (máxima) a 5,
+reajustadas según el desempeño real del usuario.
+
+PERFIL:
+${data.identity || "Sin perfil declarado."}
+
+DESEMPEÑO:
+${data.stats || "Sin datos aún: propone misiones de arranque."}`,
+    );
+    return out.missions;
+  });
