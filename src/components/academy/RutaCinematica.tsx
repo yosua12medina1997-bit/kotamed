@@ -394,7 +394,7 @@ function StageNode({
           background: locked ? "color-mix(in oklab, var(--muted) 70%, transparent)" : `${accent}1f`,
           boxShadow: locked ? "none" : `0 0 0 6px ${accent}12, 0 8px 28px ${accent}3d`,
           color: locked ? "var(--muted-foreground)" : accent,
-          opacity: locked ? 0.55 : 1,
+          opacity: locked ? 0.8 : 1,
         }}
       >
         {state === "done" ? (
