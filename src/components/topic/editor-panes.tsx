@@ -281,14 +281,15 @@ export function NotebookPane({
           <span className="text-sm font-bold">Notebook IA · fuentes indexadas</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          La IA responderá <b>solo</b> con el contenido de estas fuentes. Ideal para guías, normas
-          MINSA, apuntes o capítulos que ya tengas en texto.
+          La IA responderá <b>solo</b> con el contenido de estas fuentes. Admite <b>PDF</b>, Word
+          (.docx), Excel/CSV y texto plano: guías, normas MINSA, apuntes o capítulos.
         </p>
 
         <input
           ref={inputRef}
           type="file"
           multiple
+          accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md,.json,.html,.htm,.xml,.srt,.vtt,text/*"
           className="hidden"
           onChange={(e) => {
             void handleFiles(e.target.files);
@@ -297,10 +298,13 @@ export function NotebookPane({
         />
         <button
           onClick={() => inputRef.current?.click()}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground"
+          disabled={reading}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-3 py-2 text-xs font-bold text-muted-foreground hover:text-foreground disabled:opacity-50"
         >
-          <Upload className="size-3.5" /> Añadir documentos de texto
+          {reading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}
+          {reading ? "Leyendo documentos…" : "Añadir PDF, Word, Excel o texto"}
         </button>
+
 
         <div className="mt-3 space-y-1.5">
           {docs.map((d) => (
