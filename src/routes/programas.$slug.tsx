@@ -29,6 +29,32 @@ import {
   type Program,
 } from "@/lib/pediatria-programs";
 import { ENAM_AREAS, type EnamAreaSlug } from "@/lib/enam-modules";
+import { INTERNADO_AREAS } from "@/lib/internado-modules";
+
+function normalize(s: string) {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/** Match a free-text area title to an Internado rotation slug. */
+function matchInternadoSlug(title: string): string | null {
+  const norm = normalize(title);
+  for (const a of INTERNADO_AREAS) {
+    const t = normalize(a.title.replace(/^Rotaci[oó]n de /i, ""));
+    if (norm === t || norm.includes(t) || t.includes(norm)) return a.slug;
+  }
+  if (/\bmedicina\s+interna\b|\bsala\b/.test(norm)) return "medicina-interna";
+  if (/\b(cirug|quirurg)/.test(norm)) return "cirugia-general";
+  if (/\b(gineco|obstetr|parto)/.test(norm)) return "ginecologia-obstetricia";
+  if (/\b(pediatr|neonat)/.test(norm)) return "pediatria-neonatologia";
+  if (/\b(urgenc|emergenc|guardia|trauma)/.test(norm)) return "emergencias";
+  if (/\b(salud\s+publica|comunitar|primer\s+nivel|epidemiolog)/.test(norm)) return "salud-comunitaria";
+  return null;
+}
 
 /** Match a free-text area title to an ENAM module slug (residentado only). */
 function matchEnamSlug(title: string): EnamAreaSlug | null {
@@ -504,13 +530,14 @@ function AreasSection({
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {areas.map((area, i) => {
             const enamSlug = program.id === "residentado" ? matchEnamSlug(area) : null;
+            const internadoSlug = program.id === "internado" ? matchInternadoSlug(area) : null;
             const inner = (
               <>
                 <span className={`size-7 rounded-lg flex items-center justify-center text-[10px] font-bold tabular-nums ${accent.chip} border`}>
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="text-xs font-semibold text-foreground/85 leading-tight flex-1">{area}</span>
-                {enamSlug && (
+                {(enamSlug || internadoSlug) && (
                   <span className="text-[10px] font-bold uppercase tracking-wider text-primary opacity-0 group-hover:opacity-100 transition">
                     Abrir →
                   </span>
@@ -524,6 +551,15 @@ function AreasSection({
                 key={`${area}-${i}`}
                 to="/programas/residentado/areas/$area"
                 params={{ area: enamSlug }}
+                className={cls + " hover:border-primary/40 hover:-translate-y-0.5"}
+              >
+                {inner}
+              </Link>
+            ) : internadoSlug ? (
+              <Link
+                key={`${area}-${i}`}
+                to="/programas/internado/areas/$area"
+                params={{ area: internadoSlug }}
                 className={cls + " hover:border-primary/40 hover:-translate-y-0.5"}
               >
                 {inner}
@@ -585,6 +621,21 @@ function AreasSection({
               </button>
             </form>
           )}
+        </div>
+      )}
+
+      {program.id === "internado" && !editing && (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <p className="text-[11px] text-foreground/80 leading-relaxed max-w-xl">
+            Cada rotación del internado es un módulo independiente con ruta académica, contenido
+            editable, casos, banco de preguntas, flashcards, simuladores, biblioteca y tutor IA.
+          </p>
+          <Link
+            to="/programas/internado/areas"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold bg-primary text-primary-foreground hover:opacity-90 transition"
+          >
+            Ver rotaciones <Sparkles className="size-3.5" />
+          </Link>
         </div>
       )}
 
