@@ -11,7 +11,7 @@ import { ModuleGate } from "@/components/access/ModuleGate";
 import { buildModuleMeta, defaultProgramModules } from "@/lib/program-modules";
 import { getProgram } from "@/lib/pediatria-programs";
 
-export const Route = createFileRoute("/programas_/$slug/areas/")({
+export const Route = createFileRoute("/programas/$slug_/areas/")({
   loader: ({ params }) => ({ slug: params.slug }),
   head: ({ loaderData }) => {
     const slug = loaderData?.slug ?? "";
@@ -135,7 +135,7 @@ function ProgramModulesHub() {
             return (
               <Link
                 key={a.slug}
-                to="/programas_/$slug/areas/$area"
+                to="/programas/$slug_/areas/$area"
                 params={{ slug, area: a.slug }}
                 className="group glass rounded-3xl p-6 relative overflow-hidden animate-slide-up hover:-translate-y-0.5 transition"
                 style={{ animationDelay: `${i * 60}ms` }}

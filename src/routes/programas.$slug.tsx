@@ -592,7 +592,7 @@ function AreasSection({
             ) : genericSlug ? (
               <Link
                 key={`${area}-${i}`}
-                to="/programas_/$slug/areas/$area"
+                to="/programas/$slug_/areas/$area"
                 params={{ slug: program.slug, area: genericSlug }}
                 className={cls + " hover:border-primary/40 hover:-translate-y-0.5"}
               >
@@ -695,7 +695,7 @@ function AreasSection({
             biblioteca y tutor IA.
           </p>
           <Link
-            to="/programas_/$slug/areas"
+            to="/programas/$slug_/areas"
             params={{ slug: program.slug }}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold bg-primary text-primary-foreground hover:opacity-90 transition"
           >

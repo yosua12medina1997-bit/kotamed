@@ -20,7 +20,7 @@ function titleFromSlug(slug: string) {
     .join(" ");
 }
 
-export const Route = createFileRoute("/programas_/$slug/areas/$area")({
+export const Route = createFileRoute("/programas/$slug_/areas/$area")({
   loader: ({ params }) => ({ slug: params.slug, area: params.area }),
   head: ({ loaderData }) => {
     const slug = loaderData?.slug ?? "";
@@ -95,7 +95,7 @@ function GenericAreaModule() {
       <AreaModuleShell
         meta={meta}
         programSlug={slug}
-        areasPath="/programas_/$slug/areas"
+        areasPath="/programas/$slug_/areas"
         areasParams={{ slug }}
         areasLabel="Módulos"
         renderContenido={() => (
