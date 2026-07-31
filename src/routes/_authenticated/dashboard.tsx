@@ -12,6 +12,7 @@ import {
   Loader2,
   CheckCircle2,
 } from "lucide-react";
+import kotaroLogo from "@/assets/kotaro-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import {
   isActive,
