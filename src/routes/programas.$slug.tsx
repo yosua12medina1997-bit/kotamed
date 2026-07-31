@@ -160,6 +160,16 @@ function useAreas(programNodeId: string | undefined) {
 
 function ProgramDetail() {
   const { program } = Route.useLoaderData() as { program: Program };
+  return (
+    <ModuleGate programSlug={program.slug} moduleName={program.title}>
+      <ProgramDetailInner />
+    </ModuleGate>
+  );
+}
+
+function ProgramDetailInner() {
+  const { program } = Route.useLoaderData() as { program: Program };
+
   const accent = ACCENT_CLASSES[program.accent];
   const others = PROGRAMS.filter((p) => p.id !== program.id);
 
