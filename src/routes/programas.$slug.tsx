@@ -57,6 +57,7 @@ function matchEnamSlug(title: string): EnamAreaSlug | null {
 }
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { ModuleGate } from "@/components/access/ModuleGate";
 
 export const Route = createFileRoute("/programas/$slug")({
   loader: ({ params }): { program: Program } => {
