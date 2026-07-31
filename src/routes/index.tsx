@@ -493,25 +493,30 @@ const STATS = [
 const AUDIENCE = [
   {
     icon: GraduationCap,
+    image: audEstudiantes,
     title: "Estudiantes de Medicina",
     desc: "Aprende desde donde estés y a tu ritmo.",
   },
   {
     icon: Stethoscope,
+    image: audInternos,
     title: "Internos",
     desc: "Potencia tu desempeño en el hospital.",
   },
   {
     icon: Brain,
+    image: audResidentes,
     title: "Residentes",
     desc: "Domina tu especialidad con casos reales.",
   },
   {
     icon: ShieldCheck,
+    image: audMedicos,
     title: "Médicos",
     desc: "Educación continua de alto nivel.",
   },
 ];
+
 
 function ImpactAndAudience() {
   return (
