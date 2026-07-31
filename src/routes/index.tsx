@@ -249,7 +249,7 @@ function Hero() {
         {/* Right — Core emblem + floating dashboard */}
         <div className="relative">
           <CoreEmblem />
-          <div className="relative mt-8 space-y-3 lg:mt-0 lg:absolute lg:inset-y-0 lg:right-0 lg:flex lg:w-[19rem] lg:flex-col lg:justify-center lg:space-y-3.5">
+          <div className="relative mt-8 space-y-3 lg:mt-0 lg:absolute lg:inset-y-0 lg:-right-4 lg:flex lg:w-[17.5rem] lg:flex-col lg:justify-center lg:space-y-3.5">
             <ProgressCard />
             <LiveClassCard />
             <SimulationCard />
@@ -262,7 +262,7 @@ function Hero() {
 
 function CoreEmblem() {
   return (
-    <div className="relative mx-auto grid aspect-square w-full max-w-[26rem] place-items-center lg:max-w-none">
+    <div className="relative mx-auto grid aspect-square w-full max-w-[26rem] place-items-center lg:max-w-[22rem] lg:-translate-x-10">
       <div
         aria-hidden
         className="absolute inset-[8%] rounded-full blur-3xl animate-halo"
@@ -313,7 +313,7 @@ function CoreEmblem() {
 
 function ProgressCard() {
   return (
-    <div className="glass rounded-2xl bg-primary/95 p-4 text-primary-foreground shadow-[0_20px_50px_-28px_oklch(0.24_0.04_258_/_0.5)] transition-transform hover:-translate-y-0.5">
+    <div className="rounded-2xl border border-primary/40 bg-primary p-4 text-primary-foreground shadow-[0_20px_50px_-28px_oklch(0.24_0.04_258_/_0.5)] transition-transform hover:-translate-y-0.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-80">
@@ -335,7 +335,7 @@ function ProgressCard() {
 
 function LiveClassCard() {
   return (
-    <div className="glass rounded-2xl bg-white/80 p-4 shadow-[0_20px_50px_-30px_oklch(0.24_0.04_258_/_0.4)] transition-transform hover:-translate-y-0.5">
+    <div className="rounded-2xl border border-border bg-white/85 p-4 backdrop-blur-md shadow-[0_20px_50px_-30px_oklch(0.24_0.04_258_/_0.4)] transition-transform hover:-translate-y-0.5">
       <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
         Próxima clase en vivo
       </div>
@@ -367,7 +367,7 @@ function LiveClassCard() {
 
 function SimulationCard() {
   return (
-    <div className="glass rounded-2xl bg-white/80 p-4 shadow-[0_20px_50px_-30px_oklch(0.24_0.04_258_/_0.4)] transition-transform hover:-translate-y-0.5">
+    <div className="rounded-2xl border border-border bg-white/85 p-4 backdrop-blur-md shadow-[0_20px_50px_-30px_oklch(0.24_0.04_258_/_0.4)] transition-transform hover:-translate-y-0.5">
       <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
         Simulación recomendada
       </div>
@@ -435,7 +435,7 @@ function FeatureRail() {
   return (
     <section id="recursos" className="mx-auto max-w-7xl px-6 lg:px-10 pb-16 lg:pb-24">
       <div className="glass rounded-3xl bg-white/70 p-2 shadow-[0_30px_70px_-45px_oklch(0.24_0.04_258_/_0.45)]">
-        <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-6 lg:divide-x">
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {RAIL.map(({ icon: Icon, title, desc, to }) => (
             <Link
               key={title}
@@ -446,8 +446,8 @@ function FeatureRail() {
                 <Icon className="size-4.5" strokeWidth={2} />
               </span>
               <span className="min-w-0">
-                <span className="block truncate text-[12.5px] font-bold">{title}</span>
-                <span className="block truncate text-[11px] text-muted-foreground">{desc}</span>
+                <span className="block text-[12.5px] font-bold leading-snug">{title}</span>
+                <span className="block text-[11px] leading-snug text-muted-foreground">{desc}</span>
               </span>
               <ArrowRight
                 className="ml-auto size-3.5 shrink-0 text-muted-foreground/50 transition-all group-hover:translate-x-0.5 group-hover:text-primary"
@@ -539,7 +539,7 @@ function ImpactAndAudience() {
               <Link
                 key={title}
                 to="/programas"
-                className="group glass flex flex-col rounded-3xl bg-white/75 p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
+                className="group glass flex h-full flex-col rounded-3xl bg-white/75 p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
               >
                 <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
                   <Icon className="size-5" strokeWidth={2} />
@@ -548,7 +548,7 @@ function ImpactAndAudience() {
                   {title}
                 </h3>
                 <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">{desc}</p>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-[11.5px] font-bold text-primary">
+                <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[11.5px] font-bold text-primary">
                   Explorar ruta
                   <ArrowRight
                     className="size-3.5 transition-transform group-hover:translate-x-1"
