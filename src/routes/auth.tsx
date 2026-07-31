@@ -5,6 +5,9 @@ import { lovable } from "@/integrations/lovable/index";
 import { Stethoscope, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Ingresar · Kotaro Academy" },
@@ -15,8 +18,26 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+/** Solo se aceptan destinos internos (mismo origen). */
+function safeRedirect(raw: string | undefined): string | null {
+  if (!raw) return null;
+  try {
+    const url = new URL(raw, "http://local");
+    const path = `${url.pathname}${url.search}${url.hash}`;
+    return path.startsWith("/") && !path.startsWith("//") ? path : null;
+  } catch {
+    return null;
+  }
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const { redirect: rawRedirect } = Route.useSearch();
+  const target = safeRedirect(rawRedirect);
+  const goNext = () => {
+    if (target) navigate({ href: target, replace: true });
+    else navigate({ to: "/dashboard", replace: true });
+  };
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,9 +47,10 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) goNext();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +71,7 @@ function AuthPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/dashboard", replace: true });
+        goNext();
       }
     } catch (err) {
       setMsg({ kind: "err", text: err instanceof Error ? err.message : "Error inesperado" });
@@ -70,7 +92,7 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/dashboard", replace: true });
+    goNext();
   };
 
   return (
@@ -104,6 +126,18 @@ function AuthPage() {
           <h1 className="text-2xl font-extrabold tracking-tight text-center">
             {mode === "signin" ? "Bienvenido de nuevo" : "Crea tu cuenta"}
           </h1>
+          {target && (
+            <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-left">
+              <p className="text-xs font-bold text-primary uppercase tracking-widest">
+                Acceso requerido
+              </p>
+              <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+                Para ingresar a este contenido debes iniciar sesión con tu cuenta. Una vez
+                autenticado verificaremos automáticamente tu matrícula y los cursos incluidos en tu
+                membresía.
+              </p>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground text-center mt-2">
             {mode === "signin"
               ? "Ingresa a tu panel académico"
