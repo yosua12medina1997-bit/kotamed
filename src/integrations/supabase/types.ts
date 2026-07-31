@@ -1117,7 +1117,7 @@ export type Database = {
     }
     Functions: {
       approve_admission: {
-        Args: { _application_id: string; _months?: number }
+        Args: { _actor_id: string; _application_id: string; _months?: number }
         Returns: {
           admin_notes: string | null
           amount: number
