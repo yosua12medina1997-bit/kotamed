@@ -179,3 +179,28 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* ---- Landing (Home) premium motion utilities ---- */
+@keyframes kotaro-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes kotaro-halo {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+}
+@keyframes kotaro-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes kotaro-ecg {
+  0% { stroke-dashoffset: 400; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@utility animate-float-slow { animation: kotaro-float 7s ease-in-out infinite; }
+@utility animate-halo { animation: kotaro-halo 5s ease-in-out infinite; }
+@utility animate-orbit { animation: kotaro-orbit 38s linear infinite; }
+@utility animate-orbit-reverse { animation: kotaro-orbit 52s linear infinite reverse; }
+@utility animate-ecg { stroke-dasharray: 400; animation: kotaro-ecg 4.5s ease-in-out infinite; }
