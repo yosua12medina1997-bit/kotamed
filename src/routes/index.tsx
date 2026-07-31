@@ -262,7 +262,7 @@ function Hero() {
 
 function CoreEmblem() {
   return (
-    <div className="relative mx-auto grid aspect-square w-full max-w-[26rem] place-items-center lg:max-w-[22rem] lg:-translate-x-10">
+    <div className="relative mx-auto grid aspect-square w-full max-w-[26rem] place-items-center lg:max-w-[20rem] lg:-translate-x-24">
       <div
         aria-hidden
         className="absolute inset-[8%] rounded-full blur-3xl animate-halo"
