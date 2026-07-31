@@ -84,11 +84,9 @@ export default function AdminAdmissions() {
 
   const approve = useMutation({
     mutationFn: async (row: AdmissionApplication) => {
-      const { error } = await db.rpc("approve_admission", {
-        _application_id: row.id,
-        _months: row.duration_months ?? 12,
+      await approveAdmission({
+        data: { applicationId: row.id, months: row.duration_months ?? 12 },
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Matrícula aprobada: acceso premium activado");
