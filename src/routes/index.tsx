@@ -81,9 +81,13 @@ function Nav() {
     <header className="sticky top-0 z-40 glass border-b border-border/60">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
-          <span className="size-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-            <Stethoscope className="size-5 text-primary-foreground" strokeWidth={2.25} />
-          </span>
+          <img
+            src={kotaroLogo}
+            alt="Kotaro Academy"
+            className="size-9 object-contain"
+            width={36}
+            height={36}
+          />
           <span className="font-extrabold tracking-tighter text-lg">KOTARO</span>
           <span className="hidden sm:inline text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">
             Academy
