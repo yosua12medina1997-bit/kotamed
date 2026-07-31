@@ -246,10 +246,24 @@ function Hero() {
           </div>
         </div>
 
-        {/* Right — Core emblem + floating dashboard */}
-        <div className="relative">
-          <CoreEmblem />
-          <div className="relative mt-8 space-y-3 lg:mt-0 lg:absolute lg:inset-y-0 lg:-right-4 lg:flex lg:w-[17.5rem] lg:flex-col lg:justify-center lg:space-y-3.5">
+        {/* Right — Core emblem + doctors + dashboard cards */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:gap-5">
+          <div className="flex flex-col gap-6">
+            <CoreEmblem />
+            <figure className="relative overflow-hidden rounded-3xl border border-border/70 bg-white/60 shadow-[0_25px_60px_-35px_oklch(0.24_0.04_258_/_0.45)]">
+              <img
+                src={doctorsImg}
+                alt="Equipo de médicos de Kotaro Academy"
+                width={1024}
+                height={1280}
+                className="h-48 w-full object-cover object-top sm:h-56"
+              />
+              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white">
+                Docentes clínicos activos
+              </figcaption>
+            </figure>
+          </div>
+          <div className="flex flex-col justify-center gap-3.5">
             <ProgressCard />
             <LiveClassCard />
             <SimulationCard />
@@ -262,8 +276,9 @@ function Hero() {
 
 function CoreEmblem() {
   return (
-    <div className="relative mx-auto grid aspect-square w-full max-w-[26rem] place-items-center lg:max-w-[20rem] lg:-translate-x-24">
+    <div className="relative mx-auto grid aspect-square w-full max-w-[20rem] place-items-center">
       <div
+
         aria-hidden
         className="absolute inset-[8%] rounded-full blur-3xl animate-halo"
         style={{ background: "color-mix(in oklab, var(--primary) 22%, transparent)" }}
