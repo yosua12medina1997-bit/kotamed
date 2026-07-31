@@ -281,6 +281,35 @@ function PaymentSettingsPanel() {
   const settingsQ = usePaymentSettings();
   const qc = useQueryClient();
   const [draft, setDraft] = useState<Record<string, any>>({});
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const uploadQr = async (file: File, rowId: string): Promise<string | null> => {
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("La imagen supera 8 MB");
+      return null;
+    }
+    setUploadingId(rowId);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `${rowId}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("payment-qr")
+        .upload(path, file, { upsert: true, contentType: file.type || undefined });
+      if (error) throw error;
+      const { data, error: sErr } = await supabase.storage
+        .from("payment-qr")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (sErr) throw sErr;
+      toast.success("QR subido. Guarda para publicarlo.");
+      return data?.signedUrl ?? null;
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo subir el QR");
+      return null;
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
 
   const upsert = useMutation({
     mutationFn: async (row: any) => {
