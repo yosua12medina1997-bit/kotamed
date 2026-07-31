@@ -352,15 +352,52 @@ function PaymentSettingsPanel() {
                       }
                     />
                   </Field>
-                  <Field label="URL de la imagen del QR">
-                    <input
-                      className={inputCls}
-                      value={d.qr_url ?? ""}
-                      onChange={(e) =>
-                        setDraft({ ...draft, [r.id]: { ...d, qr_url: e.target.value } })
-                      }
-                    />
+                  <Field label="Imagen del código QR">
+                    <div className="space-y-2">
+                      <input
+                        className={inputCls}
+                        placeholder="Pega una URL o sube una foto"
+                        value={d.qr_url ?? ""}
+                        onChange={(e) =>
+                          setDraft({ ...draft, [r.id]: { ...d, qr_url: e.target.value } })
+                        }
+                      />
+                      <div className="flex items-center gap-2">
+                        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-[11px] font-bold cursor-pointer hover:bg-black/[0.04] transition-colors">
+                          {uploadingId === r.id ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Upload className="size-3.5" />
+                          )}
+                          Subir foto del QR
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              e.target.value = "";
+                              if (!f) return;
+                              const url = await uploadQr(f, r.id);
+                              if (url) setDraft((prev) => ({ ...prev, [r.id]: { ...d, qr_url: url } }));
+                            }}
+                          />
+                        </label>
+                        {d.qr_url && (
+                          <button
+                            onClick={() => setDraft((prev) => ({ ...prev, [r.id]: { ...d, qr_url: "" } }))}
+                            className="text-[11px] font-bold text-muted-foreground hover:text-foreground"
+                          >
+                            Quitar
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Recuerda pulsar “Guardar” para publicar el QR en el paso de pago.
+                      </p>
+                    </div>
                   </Field>
+
                   <div className="sm:col-span-2">
                     <Field label="Instrucciones">
                       <textarea
