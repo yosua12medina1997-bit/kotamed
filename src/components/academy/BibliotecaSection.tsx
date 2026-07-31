@@ -131,7 +131,7 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
     <Panel
       accent={accent}
       icon={<Library className="size-4" strokeWidth={2.25} />}
-      title="Biblioteca"
+      title="KotaMed Library"
       subtitle="Todo el material indexado por especialidad, tema, autor, año y palabras clave."
       actions={
         isAdmin && (

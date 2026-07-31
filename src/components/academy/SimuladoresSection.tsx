@@ -58,7 +58,7 @@ export function SimuladoresSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAd
     <Panel
       accent={accent}
       icon={<Activity className="size-4" strokeWidth={2.25} />}
-      title="Simuladores clínicos"
+      title="KotaMed Labs"
       subtitle="Escenarios dinámicos con monitores, laboratorio, imágenes y eventos en tiempo real."
       actions={
         isAdmin && (

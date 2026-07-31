@@ -148,7 +148,7 @@ Temas recientes: ${(events.data ?? [])
     <Panel
       accent={accent}
       icon={<LineChart className="size-4" strokeWidth={2.25} />}
-      title="Mi progreso"
+      title="KotaMed Progress"
       subtitle="Horas, rachas, dominio, curva de aprendizaje y recomendaciones inteligentes."
       actions={
         <Btn variant="solid" accent={accent} loading={busy} onClick={askPlan}>

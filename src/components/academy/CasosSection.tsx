@@ -104,7 +104,7 @@ export function CasosSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdmin: b
     <Panel
       accent={accent}
       icon={<Stethoscope className="size-4" strokeWidth={2.25} />}
-      title="Casos clínicos"
+      title="KotaMed Clinical · Casos"
       subtitle="Casos interactivos con preguntas, retroalimentación, discusión, diferencial, tratamiento, complicaciones, perlas y errores frecuentes."
       actions={
         isAdmin && (

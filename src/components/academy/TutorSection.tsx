@@ -54,7 +54,7 @@ export function TutorSection({ meta }: { meta: EnamAreaMeta; isAdmin?: boolean }
     <Panel
       accent={accent}
       icon={<BrainCircuit className="size-4" strokeWidth={2.25} />}
-      title="Tutor IA"
+      title="KotaMed AI"
       subtitle="Responde con fuentes oficiales (AAP, WHO, MINSA, Nelson) y se adapta a tu nivel."
       actions={
         <Select value={level} onChange={(e) => setLevel(e.target.value)} className="max-w-40">

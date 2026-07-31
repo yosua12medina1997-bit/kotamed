@@ -71,7 +71,7 @@ function CommandCenterPage() {
             <Sparkles className="size-5" strokeWidth={2.25} />
           </span>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-extrabold tracking-tight">👑 Command Center</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight">⚙️ KotaMed Command Center</h1>
             <p className="text-sm text-muted-foreground">
               Control total de academia, usuarios, membresías, permisos y analítica.
             </p>

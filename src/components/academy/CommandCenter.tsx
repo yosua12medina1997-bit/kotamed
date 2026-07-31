@@ -315,7 +315,7 @@ export function CommandCenter({ meta }: { meta: EnamAreaMeta; isAdmin?: boolean 
 
   return (
     <Panel
-      title="👑 Command Center™"
+      title="⚙️ KotaMed Command Center"
       subtitle={`Puente de mando de ${meta.title}. Aquí no configuras una aplicación: diseñas la mejor versión de ti como especialista.`}
       icon={<Crown className="size-4" />}
       accent={accent}
