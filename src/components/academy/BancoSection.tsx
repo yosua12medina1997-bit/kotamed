@@ -92,7 +92,7 @@ export function BancoSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdmin: b
     <Panel
       accent={accent}
       icon={<Database className="size-4" strokeWidth={2.25} />}
-      title="Banco de preguntas"
+      title="KotaMed Exams"
       subtitle="Banco personal e IA con explicación, bibliografía, nivel, tema, etiquetas, dificultad y tiempo."
       actions={
         <>
