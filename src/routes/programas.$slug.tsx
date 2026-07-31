@@ -83,6 +83,12 @@ function matchEnamSlug(title: string): EnamAreaSlug | null {
 }
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import {
+  academicPathIndex,
+  academicPathLabel,
+  sortByAcademicPath,
+  useProgramCatalog,
+} from "@/lib/content-catalog";
 import { ModuleGate } from "@/components/access/ModuleGate";
 
 export const Route = createFileRoute("/programas/$slug")({
@@ -198,7 +204,12 @@ function ProgramDetailInner() {
   const { program } = Route.useLoaderData() as { program: Program };
 
   const accent = ACCENT_CLASSES[program.accent];
-  const others = PROGRAMS.filter((p) => p.id !== program.id);
+  const { programs: catalogPrograms } = useProgramCatalog();
+  const path = useMemo(
+    () => sortByAcademicPath(catalogPrograms.filter((p) => p.isPublished || true)),
+    [catalogPrograms],
+  );
+  const others = path.filter((p) => p.slug !== program.slug);
 
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
@@ -340,7 +351,7 @@ function ProgramDetailInner() {
                   const a = ACCENT_CLASSES[p.accent];
                   return (
                     <Link
-                      key={p.id}
+                      key={p.slug}
                       to="/programas/$slug"
                       params={{ slug: p.slug }}
                       className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/70 transition"
@@ -348,10 +359,12 @@ function ProgramDetailInner() {
                       <span className={`size-2 mt-1.5 rounded-full shrink-0 ${a.dot}`} />
                       <div className="min-w-0">
                         <span className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          {p.subtitle}
+                          {academicPathIndex(p.slug) < 900
+                            ? `Etapa ${String(academicPathIndex(p.slug) + 1).padStart(2, "0")}`
+                            : p.subtitle}
                         </span>
                         <span className="block text-xs font-bold leading-tight truncate">
-                          {p.title}
+                          {academicPathLabel(p.slug, p.title)}
                         </span>
                       </div>
                     </Link>
@@ -366,11 +379,11 @@ function ProgramDetailInner() {
               </span>
               <ol className="mt-4 space-y-3 relative">
                 <div className="absolute left-[11px] top-1 bottom-1 w-px bg-black/[0.06]" />
-                {PROGRAMS.map((p) => {
-                  const active = p.id === program.id;
+                {path.map((p, i) => {
+                  const active = p.slug === program.slug;
                   const a = ACCENT_CLASSES[p.accent];
                   return (
-                    <li key={p.id} className="relative pl-8">
+                    <li key={p.slug} className="relative pl-8">
                       {active ? (
                         <div className={`absolute left-0 top-0.5 size-6 rounded-full ${a.dot} flex items-center justify-center ring-4 ring-background shadow-lg`}>
                           <span className="size-2 rounded-full bg-white" />
@@ -378,12 +391,20 @@ function ProgramDetailInner() {
                       ) : (
                         <div className="absolute left-[5px] top-1.5 size-3 rounded-full bg-background border-2 border-black/10" />
                       )}
-                      <span className={`block text-xs font-bold leading-tight ${active ? "text-foreground" : "text-muted-foreground"}`}>
-                        {p.title.replace("Residencia de Pediatría — ", "")}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground/70 uppercase tracking-tight">
-                        {p.subtitle}
-                      </span>
+                      <Link
+                        to="/programas/$slug"
+                        params={{ slug: p.slug }}
+                        className="block group"
+                      >
+                        <span className={`block text-xs font-bold leading-tight transition ${active ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>
+                          {academicPathLabel(p.slug, p.title)}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/70 uppercase tracking-tight">
+                          {academicPathIndex(p.slug) < 900
+                            ? `Etapa ${String(i + 1).padStart(2, "0")}`
+                            : p.subtitle}
+                        </span>
+                      </Link>
                     </li>
                   );
                 })}
