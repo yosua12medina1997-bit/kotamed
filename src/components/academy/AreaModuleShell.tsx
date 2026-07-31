@@ -111,7 +111,10 @@ function slugify(s: string) {
 }
 
 
-export type AreasPath = "/programas/residentado/areas" | "/programas/internado/areas";
+export type AreasPath =
+  | "/programas/residentado/areas"
+  | "/programas/internado/areas"
+  | "/programas_/$slug/areas";
 
 export interface AreaModuleShellProps {
   /** Metadatos del módulo/área. */
@@ -120,6 +123,8 @@ export interface AreaModuleShellProps {
   programSlug: string;
   /** Ruta del hub de áreas del programa. */
   areasPath: AreasPath;
+  /** Params del hub cuando la ruta es dinámica (`/programas/$slug/areas`). */
+  areasParams?: { slug: string };
   /** Etiqueta del breadcrumb hacia el hub. */
   areasLabel?: string;
   /** Vista personalizada para la sección "Contenido". */
@@ -130,6 +135,7 @@ export function AreaModuleShell({
   meta,
   programSlug,
   areasPath,
+  areasParams,
   areasLabel = "Áreas",
   renderContenido,
 }: AreaModuleShellProps) {
@@ -161,12 +167,22 @@ export function AreaModuleShell({
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-border/40 bg-background/70 backdrop-blur-xl">
         <div className="max-w-[1400px] mx-auto px-4 md:px-8 h-14 flex items-center gap-3">
-          <Link
-            to={areasPath}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition"
-          >
-            <ArrowLeft className="size-3.5" /> {areasLabel}
-          </Link>
+          {areasParams ? (
+            <Link
+              to="/programas_/$slug/areas"
+              params={areasParams}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition"
+            >
+              <ArrowLeft className="size-3.5" /> {areasLabel}
+            </Link>
+          ) : (
+            <Link
+              to={areasPath as "/programas/residentado/areas" | "/programas/internado/areas"}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition"
+            >
+              <ArrowLeft className="size-3.5" /> {areasLabel}
+            </Link>
+          )}
           <span className="text-muted-foreground/40">/</span>
           <div className="flex items-center gap-2 text-xs">
             <span

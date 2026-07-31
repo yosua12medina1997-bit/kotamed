@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { moduleRowsForProgram } from "@/lib/program-modules";
 import {
   ArrowLeft,
   ChevronDown,
@@ -131,16 +132,32 @@ function ContenidoPage() {
       setMutationError(null);
       const siblings = tree.get(input.parent_id) ?? [];
       const sort_order = siblings.length;
-      const { error } = await supabase.from("content_nodes").insert({
-        parent_id: input.parent_id,
-        kind: input.kind,
-        title: input.title,
-        slug: input.slug || slugify(input.title),
-        description: input.description || null,
-        sort_order,
-        created_by: user.id,
-      });
+      const slug = input.slug || slugify(input.title);
+      const { data: created, error } = await supabase
+        .from("content_nodes")
+        .insert({
+          parent_id: input.parent_id,
+          kind: input.kind,
+          title: input.title,
+          slug,
+          description: input.description || null,
+          sort_order,
+          created_by: user.id,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      // Al crear un PROGRAMA se generan automáticamente sus módulos base,
+      // de modo que el programa nace con su ecosistema académico completo.
+      if (input.kind === "program" && created?.id) {
+        const rows = moduleRowsForProgram(slug, created.id).map((r) => ({
+          ...r,
+          created_by: user.id,
+        }));
+        const { error: modErr } = await supabase.from("content_nodes").insert(rows);
+        if (modErr) throw modErr;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["content-nodes"] });
