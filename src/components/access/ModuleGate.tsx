@@ -36,7 +36,12 @@ export function ModuleGate({
   useEffect(() => {
     if (user === null && !sentToLogin.current) {
       sentToLogin.current = true;
-      navigate({ to: "/auth", search: { redirect: initialHref.current }, replace: true });
+      const dest = initialHref.current;
+      navigate({
+        to: "/auth",
+        search: dest.startsWith("/auth") ? {} : { redirect: dest },
+        replace: true,
+      });
     }
   }, [user, navigate]);
 
