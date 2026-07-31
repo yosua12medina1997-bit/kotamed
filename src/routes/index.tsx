@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { useProgramCatalog } from "@/lib/content-catalog";
 import kotaroLogo from "@/assets/kotaro-logo.png";
+import audEstudiantes from "@/assets/aud-estudiantes.jpg";
+import audInternos from "@/assets/aud-internos.jpg";
 import audResidentes from "@/assets/aud-residentes.jpg";
 import audMedicos from "@/assets/aud-medicos.jpg";
 
@@ -248,22 +250,10 @@ function Hero() {
           </div>
         </div>
 
-        {/* Right — Core emblem + doctors + dashboard cards */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:gap-5">
-          <div className="flex flex-col gap-6">
+        {/* Right — centered Core emblem with floating dashboard cards */}
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto] items-center">
+          <div className="flex justify-center lg:justify-center">
             <CoreEmblem />
-            <figure className="relative overflow-hidden rounded-3xl border border-border/70 bg-white/60 shadow-[0_25px_60px_-35px_oklch(0.24_0.04_258_/_0.45)]">
-              <img
-                src={doctorsImg}
-                alt="Equipo de médicos de Kotaro Academy"
-                width={1024}
-                height={1280}
-                className="h-48 w-full object-cover object-top sm:h-56"
-              />
-              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white">
-                Docentes clínicos activos
-              </figcaption>
-            </figure>
           </div>
           <div className="flex flex-col justify-center gap-3.5">
             <ProgressCard />
