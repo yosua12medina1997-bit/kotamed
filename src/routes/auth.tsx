@@ -84,7 +84,9 @@ function AuthPage() {
     setLoading(true);
     setMsg(null);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: target
+        ? `${window.location.origin}/auth?redirect=${encodeURIComponent(target)}`
+        : window.location.origin,
     });
     if (result.error) {
       setMsg({ kind: "err", text: result.error.message ?? "No se pudo iniciar sesión con Google" });
