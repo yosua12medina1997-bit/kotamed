@@ -8,10 +8,10 @@ import {
   Layers,
   ShieldCheck,
   Sparkles,
-  Stethoscope,
   Trophy,
 } from "lucide-react";
 import { useProgramCatalog } from "@/lib/content-catalog";
+import kotaroLogo from "@/assets/kotaro-logo.png";
 
 
 export const Route = createFileRoute("/")({
@@ -372,9 +372,7 @@ function Footer() {
     <footer className="border-t border-border/60 mt-8">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 py-10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
-          <span className="size-6 bg-primary rounded-md flex items-center justify-center">
-            <Stethoscope className="size-3 text-primary-foreground" strokeWidth={2.5} />
-          </span>
+          <img src={kotaroLogo} alt="Kotaro Academy" className="size-6 object-contain" />
           <span className="font-extrabold tracking-tighter text-foreground">KOTARO</span>
           <span className="font-mono">· Academy</span>
         </div>
