@@ -44,6 +44,7 @@ const FREE_ITEMS = [
   { label: "Videos demo", hint: "Clases de bienvenida", icon: PlayCircle, to: "/programas" },
   { label: "Casos demo", hint: "5–10 casos clínicos", icon: Stethoscope, to: "/programas" },
   { label: "Flashcards muestra", hint: "Repaso guiado", icon: Layers, to: "/programas" },
+  { label: "Anatomy Lab", hint: "Simulador 3D", icon: Layers, to: "/anatomy-lab" },
   { label: "Calculadoras", hint: "Herramientas médicas", icon: Calculator, to: "/programas" },
   { label: "KotaMed AI demo", hint: "Tutor inteligente", icon: Sparkles, to: "/programas" },
   { label: "Comunidad", hint: "Foro académico", icon: Users, to: "/programas" },
