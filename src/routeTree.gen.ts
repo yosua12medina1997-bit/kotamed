@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProgramasIndexRouteImport } from './routes/programas.index'
 import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
 import { Route as AuthenticatedAdmisionRouteImport } from './routes/_authenticated/admision'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminContenidoRouteImport } from './routes/_authenticated/admin.contenido'
@@ -49,6 +50,11 @@ const ProgramasSlugRoute = ProgramasSlugRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAnatomyLabRoute = AuthenticatedAnatomyLabRouteImport.update({
+  id: '/anatomy-lab',
+  path: '/anatomy-lab',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdmisionRoute = AuthenticatedAdmisionRouteImport.update({
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admision': typeof AuthenticatedAdmisionRoute
+  '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admision': typeof AuthenticatedAdmisionRoute
+  '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas': typeof ProgramasIndexRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/admision': typeof AuthenticatedAdmisionRoute
+  '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/admision'
+    | '/anatomy-lab'
     | '/dashboard'
     | '/programas/$slug'
     | '/programas/'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/admision'
+    | '/anatomy-lab'
     | '/dashboard'
     | '/programas/$slug'
     | '/programas'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/admision'
+    | '/_authenticated/anatomy-lab'
     | '/_authenticated/dashboard'
     | '/programas/$slug'
     | '/programas/'
@@ -224,6 +236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/anatomy-lab': {
+      id: '/_authenticated/anatomy-lab'
+      path: '/anatomy-lab'
+      fullPath: '/anatomy-lab'
+      preLoaderRoute: typeof AuthenticatedAnatomyLabRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admision': {
       id: '/_authenticated/admision'
       path: '/admision'
@@ -285,12 +304,14 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAdmisionRoute: typeof AuthenticatedAdmisionRoute
+  AuthenticatedAnatomyLabRoute: typeof AuthenticatedAnatomyLabRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAdmisionRoute: AuthenticatedAdmisionRoute,
+  AuthenticatedAnatomyLabRoute: AuthenticatedAnatomyLabRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
 }
 
