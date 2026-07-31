@@ -560,28 +560,41 @@ function ImpactAndAudience() {
             ¿Para quién es Kotaro Academy?
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {AUDIENCE.map(({ icon: Icon, title, desc }) => (
+            {AUDIENCE.map(({ icon: Icon, title, desc, image }) => (
               <Link
                 key={title}
                 to="/programas"
-                className="group glass flex h-full flex-col rounded-3xl bg-white/75 p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
+                className="group glass flex h-full flex-col overflow-hidden rounded-3xl bg-white/75 transition-all hover:-translate-y-1 hover:shadow-xl"
               >
-                <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="size-5" strokeWidth={2} />
-                </span>
-                <h3 className="mt-5 text-[13.5px] font-extrabold leading-snug tracking-tight">
-                  {title}
-                </h3>
-                <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">{desc}</p>
-                <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[11.5px] font-bold text-primary">
-                  Explorar ruta
-                  <ArrowRight
-                    className="size-3.5 transition-transform group-hover:translate-x-1"
-                    strokeWidth={2.5}
+                <div className="relative h-32 w-full overflow-hidden">
+                  <img
+                    src={image}
+                    alt={title}
+                    loading="lazy"
+                    width={800}
+                    height={600}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                </span>
+                  <span className="absolute bottom-2 left-2 grid size-9 place-items-center rounded-xl bg-white/85 text-primary backdrop-blur-sm">
+                    <Icon className="size-4.5" strokeWidth={2} />
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-5">
+                  <h3 className="text-[13.5px] font-extrabold leading-snug tracking-tight">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">{desc}</p>
+                  <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[11.5px] font-bold text-primary">
+                    Explorar ruta
+                    <ArrowRight
+                      className="size-3.5 transition-transform group-hover:translate-x-1"
+                      strokeWidth={2.5}
+                    />
+                  </span>
+                </div>
               </Link>
             ))}
+
           </div>
         </div>
       </div>
