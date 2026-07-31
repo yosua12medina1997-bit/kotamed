@@ -24,6 +24,7 @@ import {
   type AdmissionApplication,
   type AdmissionStatus,
 } from "@/lib/admission";
+import { approveAdmission } from "@/lib/admission.functions";
 
 const db = supabase as any;
 
