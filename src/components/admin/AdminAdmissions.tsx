@@ -12,6 +12,8 @@ import {
   RefreshCcw,
   Save,
   Search,
+  Upload,
+
   X,
 } from "lucide-react";
 import { Badge, Btn, Card, Field, SectionTitle, inputCls } from "./ui";
@@ -281,6 +283,35 @@ function PaymentSettingsPanel() {
   const settingsQ = usePaymentSettings();
   const qc = useQueryClient();
   const [draft, setDraft] = useState<Record<string, any>>({});
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const uploadQr = async (file: File, rowId: string): Promise<string | null> => {
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("La imagen supera 8 MB");
+      return null;
+    }
+    setUploadingId(rowId);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `${rowId}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("payment-qr")
+        .upload(path, file, { upsert: true, contentType: file.type || undefined });
+      if (error) throw error;
+      const { data, error: sErr } = await supabase.storage
+        .from("payment-qr")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (sErr) throw sErr;
+      toast.success("QR subido. Guarda para publicarlo.");
+      return data?.signedUrl ?? null;
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo subir el QR");
+      return null;
+    } finally {
+      setUploadingId(null);
+    }
+  };
+
 
   const upsert = useMutation({
     mutationFn: async (row: any) => {
@@ -352,15 +383,52 @@ function PaymentSettingsPanel() {
                       }
                     />
                   </Field>
-                  <Field label="URL de la imagen del QR">
-                    <input
-                      className={inputCls}
-                      value={d.qr_url ?? ""}
-                      onChange={(e) =>
-                        setDraft({ ...draft, [r.id]: { ...d, qr_url: e.target.value } })
-                      }
-                    />
+                  <Field label="Imagen del código QR">
+                    <div className="space-y-2">
+                      <input
+                        className={inputCls}
+                        placeholder="Pega una URL o sube una foto"
+                        value={d.qr_url ?? ""}
+                        onChange={(e) =>
+                          setDraft({ ...draft, [r.id]: { ...d, qr_url: e.target.value } })
+                        }
+                      />
+                      <div className="flex items-center gap-2">
+                        <label className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-[11px] font-bold cursor-pointer hover:bg-black/[0.04] transition-colors">
+                          {uploadingId === r.id ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Upload className="size-3.5" />
+                          )}
+                          Subir foto del QR
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const f = e.target.files?.[0];
+                              e.target.value = "";
+                              if (!f) return;
+                              const url = await uploadQr(f, r.id);
+                              if (url) setDraft((prev) => ({ ...prev, [r.id]: { ...d, qr_url: url } }));
+                            }}
+                          />
+                        </label>
+                        {d.qr_url && (
+                          <button
+                            onClick={() => setDraft((prev) => ({ ...prev, [r.id]: { ...d, qr_url: "" } }))}
+                            className="text-[11px] font-bold text-muted-foreground hover:text-foreground"
+                          >
+                            Quitar
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Recuerda pulsar “Guardar” para publicar el QR en el paso de pago.
+                      </p>
+                    </div>
                   </Field>
+
                   <div className="sm:col-span-2">
                     <Field label="Instrucciones">
                       <textarea
