@@ -11,6 +11,17 @@ import {
   Trophy,
   Loader2,
   CheckCircle2,
+  ArrowRight,
+  Clock,
+  Users,
+  Newspaper,
+  CalendarDays,
+  Calculator,
+  Layers,
+  Stethoscope,
+  PlayCircle,
+  Library,
+  UserRound,
 } from "lucide-react";
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +36,21 @@ import {
 } from "@/lib/session";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProgramCatalog } from "@/lib/content-catalog";
+import { useMyAdmission } from "@/lib/admission";
+
+/** Accesos incluidos en la experiencia Free (sin matrícula). */
+const FREE_ITEMS = [
+  { label: "Biblioteca gratuita", hint: "Selección abierta", icon: Library, to: "/programas" },
+  { label: "Videos demo", hint: "Clases de bienvenida", icon: PlayCircle, to: "/programas" },
+  { label: "Casos demo", hint: "5–10 casos clínicos", icon: Stethoscope, to: "/programas" },
+  { label: "Flashcards muestra", hint: "Repaso guiado", icon: Layers, to: "/programas" },
+  { label: "Calculadoras", hint: "Herramientas médicas", icon: Calculator, to: "/programas" },
+  { label: "KotaMed AI demo", hint: "Tutor inteligente", icon: Sparkles, to: "/programas" },
+  { label: "Comunidad", hint: "Foro académico", icon: Users, to: "/programas" },
+  { label: "Noticias", hint: "Actualizaciones", icon: Newspaper, to: "/" },
+  { label: "Calendario", hint: "Eventos abiertos", icon: CalendarDays, to: "/" },
+  { label: "Mi perfil", hint: "Datos y cuenta", icon: UserRound, to: "/admision" },
+] as const;
 
 import doctorAvatar from "@/assets/doctor-avatar.jpg";
 import { useEffect } from "react";
@@ -102,7 +128,7 @@ function DashboardPage() {
           {hasAccess ? (
             <EnrolledView active={active} displayName={displayName} isAdmin={!!isAdmin} />
           ) : (
-            <LockedView enrollments={enrollments} email={profile?.email} />
+            <LockedView enrollments={enrollments} email={profile?.email} userId={user.id} />
           )}
         </div>
       </main>
@@ -286,46 +312,143 @@ function MiniCard({ icon, label, value }: { icon: React.ReactNode; label: string
 function LockedView({
   enrollments,
   email,
+  userId,
 }: {
   enrollments: Enrollment[];
   email?: string;
+  userId?: string;
 }) {
   const expired = enrollments.filter((e) => !isActive(e));
   const { programs } = useProgramCatalog();
+  const admissionQ = useMyAdmission(userId);
+  const admission = admissionQ.data ?? null;
+  const pending =
+    admission && (admission.status === "pending" || admission.status === "reviewing");
+  const rejected =
+    admission && (admission.status === "rejected" || admission.status === "refunded");
 
   return (
-    <div className="animate-slide-up">
-      <section className="glass rounded-3xl p-10 relative overflow-hidden text-center">
-        <div className="mx-auto size-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-5">
-          <Lock className="size-6" strokeWidth={2.25} />
+    <div className="animate-slide-up space-y-8">
+      {/* Bienvenida FREE */}
+      <section className="glass rounded-3xl p-8 sm:p-10">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-extrabold uppercase tracking-widest">
+            <Sparkles className="size-3" /> Miembro Free
+          </span>
+          {pending && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-extrabold uppercase tracking-widest">
+              <Clock className="size-3" /> Matrícula pendiente
+            </span>
+          )}
+          {rejected && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 text-[10px] font-extrabold uppercase tracking-widest">
+              Matrícula por regularizar
+            </span>
+          )}
         </div>
-        <span className="text-primary font-bold text-xs uppercase tracking-widest">
-          Acceso pendiente
-        </span>
-        <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight">
-          Tu cuenta aún no está matriculada
+        <h1 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight">
+          Bienvenido a KotaMed
         </h1>
-        <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-pretty">
-          El acceso al contenido académico se activa cuando el administrador de KotaMed
-          matricula tu cuenta en uno o más programas.
+        <p className="mt-3 text-muted-foreground max-w-xl text-pretty">
+          {pending
+            ? "Tu matrícula está siendo revisada por el equipo de KotaMed. Tiempo estimado: 1–24 horas. Mientras tanto, explora todo el contenido gratuito."
+            : "Ya formas parte del ecosistema KotaMed. Explora el contenido gratuito y completa tu matrícula cuando quieras para desbloquear el acceso premium."}
           {expired.length > 0 && " Tienes matrículas anteriores vencidas."}
         </p>
-        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href={`mailto:yosua12medina1997@gmail.com?subject=Solicitud%20de%20matr%C3%ADcula%20KotaMed&body=Hola%2C%20soy%20${encodeURIComponent(email ?? "")}%20y%20solicito%20matr%C3%ADcula.`}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 transition-all"
-          >
-            <Mail className="size-4" strokeWidth={2.5} /> Contactar al administrador
-          </a>
-          <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-border text-xs font-semibold text-muted-foreground">
-            Cuenta: {email}
+        <div className="mt-5 text-[11px] font-semibold text-muted-foreground">
+          Cuenta: {email}
+        </div>
+      </section>
+
+      {/* Card grande: completar matrícula */}
+      <section className="glass rounded-3xl p-8 sm:p-10 relative overflow-hidden border-l-4 border-primary">
+        <div className="flex flex-col lg:flex-row items-start gap-8">
+          <div className="flex-1">
+            <span className="text-primary font-bold text-xs uppercase tracking-widest">
+              Centro de Admisión
+            </span>
+            <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
+              {pending ? "Tu matrícula está en revisión" : "Completa tu matrícula"}
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground max-w-lg">
+              Obtén acceso a Internado, Residentado, cursos, biblioteca premium y simulaciones
+              con KotaMed AI.
+            </p>
+            <ul className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                "Internado Médico",
+                "Residentado (ENAM · ESSALUD)",
+                "Cursos y diplomados",
+                "Biblioteca premium",
+                "Simulaciones con IA",
+                "Certificados",
+              ].map((t) => (
+                <li key={t} className="flex items-center gap-2 text-xs font-semibold">
+                  <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                  {t}
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/admision"
+              className="mt-7 inline-flex items-center gap-2 px-6 py-3.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 transition-all"
+            >
+              {pending ? "Ver estado de mi matrícula" : "Matricularme"}
+              <ArrowRight className="size-4" strokeWidth={2.5} />
+            </Link>
+          </div>
+          <div className="w-full lg:w-64 rounded-2xl border border-border p-5 bg-background/40">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Tu progreso de admisión
+            </div>
+            <ol className="mt-4 space-y-3">
+              {[
+                { label: "Cuenta creada", done: true },
+                { label: "Miembro Free", done: true },
+                { label: "Solicitud enviada", done: !!admission?.submitted_at },
+                { label: "Validación del equipo", done: false },
+                { label: "Alumno activo", done: false },
+              ].map((s) => (
+                <li key={s.label} className="flex items-center gap-2 text-xs font-semibold">
+                  {s.done ? (
+                    <CheckCircle2 className="size-4 text-emerald-500" strokeWidth={2.5} />
+                  ) : (
+                    <span className="size-4 rounded-full border-2 border-border" />
+                  )}
+                  <span className={s.done ? "" : "text-muted-foreground"}>{s.label}</span>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
       </section>
 
-      <section className="mt-8">
+      {/* Contenido gratuito */}
+      <section>
         <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
-          Vista previa · Programas disponibles
+          Contenido gratuito · disponible ahora
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {FREE_ITEMS.map((item) => (
+            <Link
+              key={item.label}
+              to={item.to}
+              className="glass rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all"
+            >
+              <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+                <item.icon className="size-4" strokeWidth={2.25} />
+              </div>
+              <div className="font-bold text-xs tracking-tight">{item.label}</div>
+              <div className="text-[10px] text-muted-foreground mt-1">{item.hint}</div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Programas premium (bloqueados) */}
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
+          Programas premium · se desbloquean al aprobarse tu matrícula
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {programs.map((p) => (
@@ -341,11 +464,10 @@ function LockedView({
               </div>
               <h3 className="font-bold text-sm tracking-tight">{p.title}</h3>
               <p className="text-[11px] text-muted-foreground mt-1">
-                Bloqueado hasta que el administrador te matricule.
+                Incluido en los planes Premium, Pro y Elite.
               </p>
             </div>
           ))}
-
         </div>
       </section>
     </div>

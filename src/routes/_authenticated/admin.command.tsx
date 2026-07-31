@@ -4,6 +4,7 @@ import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import {
   ArrowLeft,
   BarChart3,
+  ClipboardCheck,
   BookOpen,
   Crown,
   GraduationCap,
@@ -15,6 +16,7 @@ import AdminUsers from "@/components/admin/AdminUsers";
 import AdminPlans from "@/components/admin/AdminPlans";
 import AdminTeachers from "@/components/admin/AdminTeachers";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import AdminAdmissions from "@/components/admin/AdminAdmissions";
 
 export const Route = createFileRoute("/_authenticated/admin/command")({
   head: () => ({
@@ -28,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/admin/command")({
 
 const SECTIONS = [
   { key: "analitica", label: "Analítica", icon: BarChart3 },
+  { key: "matriculas", label: "Matrículas", icon: ClipboardCheck },
   { key: "usuarios", label: "Usuarios", icon: Users },
   { key: "membresias", label: "Membresías y permisos", icon: Crown },
   { key: "docentes", label: "Docentes", icon: GraduationCap },
@@ -101,6 +104,7 @@ function CommandCenterPage() {
         </div>
 
         {section === "analitica" && <AdminAnalytics />}
+        {section === "matriculas" && <AdminAdmissions />}
         {section === "usuarios" && <AdminUsers />}
         {section === "membresias" && <AdminPlans />}
         {section === "docentes" && <AdminTeachers />}

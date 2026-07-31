@@ -447,6 +447,113 @@ export type Database = {
         }
         Relationships: []
       }
+      admission_applications: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          approved_expires_at: string | null
+          created_at: string
+          currency: string
+          document_id: string | null
+          duration_months: number
+          email: string | null
+          full_name: string | null
+          hospital: string | null
+          id: string
+          payment_method: string | null
+          phone: string | null
+          plan_id: string | null
+          plan_name: string | null
+          plan_slug: string | null
+          program_slug: string | null
+          program_title: string | null
+          receipt_path: string | null
+          receipt_uploaded_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          specialty: string | null
+          status: string
+          step: number
+          study_year: string | null
+          submitted_at: string | null
+          university: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount?: number
+          approved_expires_at?: string | null
+          created_at?: string
+          currency?: string
+          document_id?: string | null
+          duration_months?: number
+          email?: string | null
+          full_name?: string | null
+          hospital?: string | null
+          id?: string
+          payment_method?: string | null
+          phone?: string | null
+          plan_id?: string | null
+          plan_name?: string | null
+          plan_slug?: string | null
+          program_slug?: string | null
+          program_title?: string | null
+          receipt_path?: string | null
+          receipt_uploaded_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialty?: string | null
+          status?: string
+          step?: number
+          study_year?: string | null
+          submitted_at?: string | null
+          university?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          approved_expires_at?: string | null
+          created_at?: string
+          currency?: string
+          document_id?: string | null
+          duration_months?: number
+          email?: string | null
+          full_name?: string | null
+          hospital?: string | null
+          id?: string
+          payment_method?: string | null
+          phone?: string | null
+          plan_id?: string | null
+          plan_name?: string | null
+          plan_slug?: string | null
+          program_slug?: string | null
+          program_title?: string | null
+          receipt_path?: string | null
+          receipt_uploaded_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          specialty?: string | null
+          status?: string
+          step?: number
+          study_year?: string | null
+          submitted_at?: string | null
+          university?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admission_applications_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       command_center: {
         Row: {
           area_slug: string
@@ -680,6 +787,48 @@ export type Database = {
           period?: string
           price_amount?: number
           slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_settings: {
+        Row: {
+          created_at: string
+          holder_name: string
+          id: string
+          instructions: string | null
+          is_active: boolean
+          method: string
+          phone_number: string
+          qr_storage_path: string | null
+          qr_url: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          holder_name?: string
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          method?: string
+          phone_number?: string
+          qr_storage_path?: string | null
+          qr_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          holder_name?: string
+          id?: string
+          instructions?: string | null
+          is_active?: boolean
+          method?: string
+          phone_number?: string
+          qr_storage_path?: string | null
+          qr_url?: string | null
           sort_order?: number
           updated_at?: string
         }
@@ -967,6 +1116,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_admission: {
+        Args: { _application_id: string; _months?: number }
+        Returns: {
+          admin_notes: string | null
+          amount: number
+          approved_expires_at: string | null
+          created_at: string
+          currency: string
+          document_id: string | null
+          duration_months: number
+          email: string | null
+          full_name: string | null
+          hospital: string | null
+          id: string
+          payment_method: string | null
+          phone: string | null
+          plan_id: string | null
+          plan_name: string | null
+          plan_slug: string | null
+          program_slug: string | null
+          program_title: string | null
+          receipt_path: string | null
+          receipt_uploaded_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          specialty: string | null
+          status: string
+          step: number
+          study_year: string | null
+          submitted_at: string | null
+          university: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "admission_applications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
