@@ -5,7 +5,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Loader2, Lock, ShieldCheck, LifeBuoy, LayoutDashboard, Sparkles } from "lucide-react";
 import { useSupabaseUser } from "@/lib/session";
 import { checkProgramAccess } from "@/lib/access.functions";
@@ -31,11 +31,14 @@ export function ModuleGate({
     queryFn: () => check({ data: { slug: programSlug } }),
   });
 
+  const initialHref = useRef(href);
+  const sentToLogin = useRef(false);
   useEffect(() => {
-    if (user === null) {
-      navigate({ to: "/auth", search: { redirect: href }, replace: true });
+    if (user === null && !sentToLogin.current) {
+      sentToLogin.current = true;
+      navigate({ to: "/auth", search: { redirect: initialHref.current }, replace: true });
     }
-  }, [user, href, navigate]);
+  }, [user, navigate]);
 
   if (user === undefined || (user && access.isPending)) return <GateShell spinner />;
   if (user === null) return <GateShell spinner />;
