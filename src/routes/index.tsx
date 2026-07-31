@@ -25,6 +25,11 @@ import {
 } from "lucide-react";
 import { useProgramCatalog } from "@/lib/content-catalog";
 import kotaroLogo from "@/assets/kotaro-logo.png";
+import doctorsImg from "@/assets/home-doctors.jpg";
+import audEstudiantes from "@/assets/aud-estudiantes.jpg";
+import audInternos from "@/assets/aud-internos.jpg";
+import audResidentes from "@/assets/aud-residentes.jpg";
+import audMedicos from "@/assets/aud-medicos.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
