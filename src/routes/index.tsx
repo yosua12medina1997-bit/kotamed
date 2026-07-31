@@ -268,9 +268,8 @@ function Hero() {
 
 function CoreEmblem() {
   return (
-    <div className="relative mx-auto grid aspect-square w-full max-w-[20rem] place-items-center">
+    <div className="relative mx-auto grid aspect-square w-full max-w-[26rem] place-items-center">
       <div
-
         aria-hidden
         className="absolute inset-[8%] rounded-full blur-3xl animate-halo"
         style={{ background: "color-mix(in oklab, var(--primary) 22%, transparent)" }}
