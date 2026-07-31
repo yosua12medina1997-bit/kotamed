@@ -11,8 +11,8 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Ingresar · Kotaro Academy" },
-      { name: "description", content: "Inicia sesión o crea tu cuenta en Kotaro Academy." },
+      { title: "Ingresar · KotaMed" },
+      { name: "description", content: "Inicia sesión o crea tu cuenta en KotaMed." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -116,8 +116,8 @@ function AuthPage() {
 
       <div className="relative w-full max-w-md">
         <Link to="/" className="flex items-center gap-2.5 justify-center mb-8">
-          <img src={kotaroLogo} alt="Kotaro Academy" className="size-10 object-contain" />
-          <span className="font-extrabold tracking-tighter text-xl">KOTARO</span>
+          <img src={kotaroLogo} alt="KotaMed" className="size-10 object-contain" />
+          <span className="font-extrabold tracking-tighter text-xl">KOTAMED</span>
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
             Academy
           </span>

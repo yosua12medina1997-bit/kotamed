@@ -41,13 +41,13 @@ const ICON_RULES: { re: RegExp; icon: LucideIcon; rank: string }[] = [
   { re: /(evidenc|banco|pregunt|investig)/i, icon: BookOpenCheck, rank: "Investigador Clínico" },
   { re: /(caso)/i, icon: Activity, rank: "Clínico Avanzado" },
   { re: /(simulad)/i, icon: Target, rank: "Estratega Clínico" },
-  { re: /(dominio|expert|maestr)/i, icon: Crown, rank: "Kotaro Expert" },
+  { re: /(dominio|expert|maestr)/i, icon: Crown, rank: "KotaMed Expert" },
 ];
 
 function identity(stage: string, idx: number, total: number) {
   const hit = ICON_RULES.find((r) => r.re.test(stage));
   if (hit) return hit;
-  if (idx === total - 1) return { icon: Crown, rank: "Kotaro Expert" };
+  if (idx === total - 1) return { icon: Crown, rank: "KotaMed Expert" };
   return { icon: Sparkles, rank: "Nivel Profesional" };
 }
 

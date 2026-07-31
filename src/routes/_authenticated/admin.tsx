@@ -8,7 +8,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Loader2, Shield, Sparkles, Trash2, Use
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Panel de administración · Kotaro Academy" },
+      { title: "Panel de administración · KotaMed" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -132,7 +132,7 @@ function AdminPage() {
               <Sparkles className="size-5" strokeWidth={2.25} />
             </span>
             <div className="flex-1">
-              <div className="font-bold text-sm">👑 Command Center</div>
+              <div className="font-bold text-sm">⚙️ KotaMed Command Center</div>
               <div className="text-xs text-muted-foreground">
                 Analítica, usuarios, membresías, permisos por curso y docentes
               </div>

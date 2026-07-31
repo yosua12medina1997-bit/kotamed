@@ -77,13 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Kotaro Academy · Preparación médica premium con IA" },
+      { title: "KotaMed · Preparación médica premium con IA" },
       {
         name: "description",
         content:
           "Plataforma premium de educación médica: ENAM, ESSALUD, internado y residencia de Pediatría. Tutor IA con evidencia AAP, Nelson y UpToDate.",
       },
-      { property: "og:title", content: "Kotaro Academy · Preparación médica premium con IA" },
+      { property: "og:title", content: "KotaMed · Preparación médica premium con IA" },
       {
         property: "og:description",
         content:
@@ -91,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Kotaro Academy · Preparación médica premium con IA" },
+      { name: "twitter:title", content: "KotaMed · Preparación médica premium con IA" },
       { name: "twitter:description", content: "Plataforma premium de educación médica: ENAM, ESSALUD, internado y residencia de Pediatría. Tutor IA con evidencia AAP, Nelson y UpToDate." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a1be3ce1-5da8-4246-bcfc-ecda1c69e0e8/id-preview-695f8755--fcf55468-a334-4887-8bb2-d47fe5e25cc5.lovable.app-1785125113126.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a1be3ce1-5da8-4246-bcfc-ecda1c69e0e8/id-preview-695f8755--fcf55468-a334-4887-8bb2-d47fe5e25cc5.lovable.app-1785125113126.png" },

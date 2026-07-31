@@ -72,7 +72,7 @@ export function FlashcardsSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
     <Panel
       accent={accent}
       icon={<Layers3 className="size-4" strokeWidth={2.25} />}
-      title="Flashcards"
+      title="KotaMed Campus · Flashcards"
       subtitle="Active recall con repetición espaciada, organizadas por tema, módulo y bloque."
       actions={
         <>

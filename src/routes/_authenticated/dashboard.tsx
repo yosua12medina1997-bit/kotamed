@@ -32,8 +32,8 @@ import { useEffect } from "react";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Mi panel · Kotaro Academy" },
-      { name: "description", content: "Panel académico personal en Kotaro Academy." },
+      { title: "Mi panel · KotaMed" },
+      { name: "description", content: "Panel académico personal en KotaMed." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -124,8 +124,8 @@ function TopNav({
   return (
     <header className="fixed top-0 inset-x-0 h-16 glass z-40 px-6 lg:px-10 flex items-center justify-between border-b border-border/60">
       <Link to="/" className="flex items-center gap-2.5">
-        <img src={kotaroLogo} alt="Kotaro Academy" className="size-9 object-contain" />
-        <span className="font-extrabold tracking-tighter text-lg">KOTARO</span>
+        <img src={kotaroLogo} alt="KotaMed" className="size-9 object-contain" />
+        <span className="font-extrabold tracking-tighter text-lg">KOTAMED</span>
       </Link>
 
       <div className="flex items-center gap-3">
@@ -306,13 +306,13 @@ function LockedView({
           Tu cuenta aún no está matriculada
         </h1>
         <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-pretty">
-          El acceso al contenido académico se activa cuando el administrador de Kotaro Academy
+          El acceso al contenido académico se activa cuando el administrador de KotaMed
           matricula tu cuenta en uno o más programas.
           {expired.length > 0 && " Tienes matrículas anteriores vencidas."}
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <a
-            href={`mailto:yosua12medina1997@gmail.com?subject=Solicitud%20de%20matr%C3%ADcula%20Kotaro%20Academy&body=Hola%2C%20soy%20${encodeURIComponent(email ?? "")}%20y%20solicito%20matr%C3%ADcula.`}
+            href={`mailto:yosua12medina1997@gmail.com?subject=Solicitud%20de%20matr%C3%ADcula%20KotaMed&body=Hola%2C%20soy%20${encodeURIComponent(email ?? "")}%20y%20solicito%20matr%C3%ADcula.`}
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 transition-all"
           >
             <Mail className="size-4" strokeWidth={2.5} /> Contactar al administrador

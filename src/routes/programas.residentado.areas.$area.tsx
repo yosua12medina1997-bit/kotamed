@@ -53,16 +53,16 @@ export const Route = createFileRoute("/programas/residentado/areas/$area")({
     if (!meta) {
       return {
         meta: [
-          { title: "Módulo no encontrado · Kotaro Academy" },
+          { title: "Módulo no encontrado · KotaMed" },
           { name: "robots", content: "noindex" },
         ],
       };
     }
     return {
       meta: [
-        { title: `${meta.title} · Residentado · Kotaro Academy` },
+        { title: `${meta.title} · Residentado · KotaMed` },
         { name: "description", content: meta.description },
-        { property: "og:title", content: `${meta.title} · Kotaro Academy` },
+        { property: "og:title", content: `${meta.title} · KotaMed` },
         { property: "og:description", content: meta.tagline },
       ],
     };

@@ -7,7 +7,7 @@ import { useProgramCatalog } from "@/lib/content-catalog";
 export const Route = createFileRoute("/programas/")({
   head: () => ({
     meta: [
-      { title: "Programas académicos · Pediatría · Kotaro Academy" },
+      { title: "Programas académicos · Pediatría · KotaMed" },
       {
         name: "description",
         content:
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/programas/")({
       },
       {
         property: "og:title",
-        content: "Programas de Pediatría · Kotaro Academy",
+        content: "Programas de Pediatría · KotaMed",
       },
       {
         property: "og:description",
@@ -66,7 +66,7 @@ function ProgramsIndex() {
           </h1>
           <p className="mt-5 text-muted-foreground text-pretty leading-relaxed">
             Cinco programas independientes con dashboard, progreso, módulos, casos y evaluaciones
-            propios. Todos comparten el mismo Design System y experiencia premium de Kotaro
+            propios. Todos comparten el mismo Design System y experiencia premium de KotaMed
             Academy.
           </p>
         </header>

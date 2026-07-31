@@ -870,7 +870,7 @@ export function exportTopicPdf(topic: Topic) {
 <h1>${esc(topic.title)}</h1>
 ${topic.subtitle ? `<div class="sub">${esc(topic.subtitle)}</div>` : ""}
 ${topic.slides.map(slideHtml).join("")}
-<footer>Kotaro Academy · generado el ${new Date().toLocaleDateString("es-PE")}</footer>
+<footer>KotaMed · generado el ${new Date().toLocaleDateString("es-PE")}</footer>
 </body></html>`;
   win.document.open();
   win.document.write(html);

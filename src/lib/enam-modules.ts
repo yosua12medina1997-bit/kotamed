@@ -126,17 +126,17 @@ export interface ModuleSection {
 }
 
 export const MODULE_SECTIONS: ModuleSection[] = [
-  { id: "presentacion", label: "Presentación", icon: Presentation, hint: "Landing del módulo" },
+  { id: "presentacion", label: "KotaMed Campus", icon: Presentation, hint: "Portal del módulo" },
   { id: "ruta", label: "Ruta Académica", icon: RouteIcon, hint: "Roadmap por niveles" },
-  { id: "contenido", label: "Contenido", icon: Layers, hint: "Temas y clases" },
+  { id: "contenido", label: "KotaMed Clinical", icon: Layers, hint: "Temas y clases por especialidad" },
   { id: "casos", label: "Casos Clínicos", icon: Stethoscope, hint: "Casos interactivos" },
-  { id: "banco", label: "Banco de Preguntas", icon: ListChecks, hint: "Q-Bank con explicación" },
+  { id: "banco", label: "KotaMed Exams", icon: ListChecks, hint: "Q-Bank con explicación" },
   { id: "flashcards", label: "Flashcards", icon: Sparkles, hint: "Repetición espaciada" },
-  { id: "simuladores", label: "Simuladores", icon: Activity, hint: "Simulacros cronometrados" },
-  { id: "biblioteca", label: "Biblioteca", icon: Library, hint: "Guías, libros y artículos" },
-  { id: "tutor-ia", label: "Tutor IA", icon: BrainCircuit, hint: "Asistente citando evidencia" },
-  { id: "progreso", label: "Mi Progreso", icon: LineChart, hint: "Métricas de aprendizaje" },
-  { id: "configuracion", label: "👑 Command Center™", icon: Crown, hint: "Centro de operaciones profesional" },
+  { id: "simuladores", label: "KotaMed Labs", icon: Activity, hint: "Simulacros y algoritmos" },
+  { id: "biblioteca", label: "KotaMed Library", icon: Library, hint: "Guías, libros y artículos" },
+  { id: "tutor-ia", label: "KotaMed AI", icon: BrainCircuit, hint: "Asistente citando evidencia" },
+  { id: "progreso", label: "KotaMed Progress", icon: LineChart, hint: "Métricas de aprendizaje" },
+  { id: "configuracion", label: "⚙️ KotaMed Command Center", icon: Crown, hint: "Administración total de la plataforma" },
 ];
 
 /** Default learning path stages (roadmap). Persisted per-area in metadata. */
