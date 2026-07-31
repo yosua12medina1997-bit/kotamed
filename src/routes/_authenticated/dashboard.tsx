@@ -8,7 +8,6 @@ import {
   Mail,
   Shield,
   Sparkles,
-  Stethoscope,
   Trophy,
   Loader2,
   CheckCircle2,
