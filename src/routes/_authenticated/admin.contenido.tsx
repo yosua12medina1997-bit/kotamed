@@ -29,7 +29,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/contenido")({
   head: () => ({
     meta: [
-      { title: "Editor de contenido · Kotaro Academy" },
+      { title: "Editor de contenido · KotaMed" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -85,7 +85,7 @@ export const Route = createFileRoute("/programas/$slug")({
     if (!loaderData) {
       return {
         meta: [
-          { title: "Programa no encontrado · Kotaro Academy" },
+          { title: "Programa no encontrado · KotaMed" },
           { name: "robots", content: "noindex" },
         ],
       };
@@ -93,9 +93,9 @@ export const Route = createFileRoute("/programas/$slug")({
     const { program } = loaderData;
     return {
       meta: [
-        { title: `${program.title} · Kotaro Academy` },
+        { title: `${program.title} · KotaMed` },
         { name: "description", content: program.tagline },
-        { property: "og:title", content: `${program.title} · Kotaro Academy` },
+        { property: "og:title", content: `${program.title} · KotaMed` },
         { property: "og:description", content: program.description },
       ],
     };

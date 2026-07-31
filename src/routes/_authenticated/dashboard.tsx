@@ -32,8 +32,8 @@ import { useEffect } from "react";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Mi panel · Kotaro Academy" },
-      { name: "description", content: "Panel académico personal en Kotaro Academy." },
+      { title: "Mi panel · KotaMed" },
+      { name: "description", content: "Panel académico personal en KotaMed." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -124,8 +124,8 @@ function TopNav({
   return (
     <header className="fixed top-0 inset-x-0 h-16 glass z-40 px-6 lg:px-10 flex items-center justify-between border-b border-border/60">
       <Link to="/" className="flex items-center gap-2.5">
-        <img src={kotaroLogo} alt="Kotaro Academy" className="size-9 object-contain" />
-        <span className="font-extrabold tracking-tighter text-lg">KOTARO</span>
+        <img src={kotaroLogo} alt="KotaMed" className="size-9 object-contain" />
+        <span className="font-extrabold tracking-tighter text-lg">KOTAMED</span>
       </Link>
 
       <div className="flex items-center gap-3">
@@ -306,7 +306,7 @@ function LockedView({
           Tu cuenta aún no está matriculada
         </h1>
         <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-pretty">
-          El acceso al contenido académico se activa cuando el administrador de Kotaro Academy
+          El acceso al contenido académico se activa cuando el administrador de KotaMed
           matricula tu cuenta en uno o más programas.
           {expired.length > 0 && " Tienes matrículas anteriores vencidas."}
         </p>

@@ -19,7 +19,7 @@ import AdminAnalytics from "@/components/admin/AdminAnalytics";
 export const Route = createFileRoute("/_authenticated/admin/command")({
   head: () => ({
     meta: [
-      { title: "Command Center · Kotaro Academy" },
+      { title: "Command Center · KotaMed" },
       { name: "robots", content: "noindex" },
     ],
   }),

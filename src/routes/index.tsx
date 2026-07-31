@@ -33,13 +33,13 @@ import audMedicos from "@/assets/aud-medicos.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Kotaro Academy · Educación médica premium con IA" },
+      { title: "KotaMed · Educación médica premium con IA" },
       {
         name: "description",
         content:
           "Formamos hoy, cuidamos el mañana. Plataforma integral de educación médica con IA: ENAM, ESSALUD, internado y residencia. Evidencia AAP, Nelson y UpToDate.",
       },
-      { property: "og:title", content: "Kotaro Academy · Educación médica premium con IA" },
+      { property: "og:title", content: "KotaMed · Educación médica premium con IA" },
       {
         property: "og:description",
         content:
@@ -132,14 +132,14 @@ function Nav() {
           <Link to="/" className="flex min-w-0 items-center gap-2.5">
             <img
               src={kotaroLogo}
-              alt="Kotaro Academy"
+              alt="KotaMed"
               className="size-9 shrink-0 object-contain"
               width={36}
               height={36}
             />
             <span className="min-w-0 leading-none">
               <span className="block truncate text-[15px] font-extrabold tracking-tight">
-                KOTARO ACADEMY
+                KOTAMED
               </span>
               <span className="hidden sm:block text-[8.5px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
                 Educación médica premium con IA
@@ -301,7 +301,7 @@ function CoreEmblem() {
       <div className="relative grid size-[64%] place-items-center rounded-full bg-white/55 backdrop-blur-md ring-1 ring-inset ring-white/60 shadow-[0_30px_80px_-40px_oklch(0.24_0.04_258_/_0.45)] animate-float-slow">
         <img
           src={kotaroLogo}
-          alt="Kotaro Core — isotipo de Kotaro Academy"
+          alt="KotaMed Core — isotipo de KotaMed"
           className="size-[68%] object-contain"
         />
         <svg
@@ -368,7 +368,7 @@ function LiveClassCard() {
           <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
             <Stethoscope className="size-3.5" strokeWidth={2.25} />
           </span>
-          <span className="truncate text-[11.5px] font-bold">Dr. Kotaro</span>
+          <span className="truncate text-[11.5px] font-bold">KotaMed AI</span>
         </div>
         <Link
           to="/dashboard"
@@ -442,7 +442,7 @@ const RAIL = [
   },
   {
     icon: Sparkles,
-    title: "IA Kotaro",
+    title: "KotaMed AI",
     desc: "Tu tutor inteligente",
     to: "/dashboard" as const,
   },
@@ -554,7 +554,7 @@ function ImpactAndAudience() {
 
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight">
-            ¿Para quién es Kotaro Academy?
+            ¿Para quién es KotaMed?
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {AUDIENCE.map(({ icon: Icon, title, desc, image }) => (
@@ -833,13 +833,13 @@ function Footer() {
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5">
-              <img src={kotaroLogo} alt="Kotaro Academy" className="size-9 object-contain" />
+              <img src={kotaroLogo} alt="KotaMed" className="size-9 object-contain" />
               <span className="leading-none">
                 <span className="block text-[15px] font-extrabold tracking-tight">
-                  KOTARO ACADEMY
+                  KOTAMED
                 </span>
                 <span className="block text-[8.5px] font-bold uppercase tracking-[0.22em] text-muted-foreground">
-                  Kotaro Core™ · Inteligencia médica
+                  KotaMed Core™ · Inteligencia médica
                 </span>
               </span>
             </div>
@@ -900,7 +900,7 @@ function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 text-[11px] text-muted-foreground md:flex-row">
-          <span className="font-mono">© 2026 Kotaro Academy™ · Kotaro Core™</span>
+          <span className="font-mono">© 2026 KotaMed™ · KotaMed Core™</span>
           <span className="font-mono">Educación médica premium con IA</span>
         </div>
       </div>

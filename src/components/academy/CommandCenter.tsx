@@ -1343,7 +1343,7 @@ function SystemWorkspace({
         </div>
         <p className="mt-1 text-sm font-semibold">{email || "Sesión no identificada"}</p>
         <p className="text-xs text-muted-foreground">
-          Seguridad y privacidad gestionadas por Kotaro Cloud. Tu Command Center es privado: solo tú
+          Seguridad y privacidad gestionadas por KotaMed Cloud. Tu Command Center es privado: solo tú
           puedes leerlo o modificarlo.
         </p>
       </div>

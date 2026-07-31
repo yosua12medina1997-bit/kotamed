@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 export const Route = createFileRoute("/programas/residentado/areas/")({
   head: () => ({
     meta: [
-      { title: "Áreas ENAM · Residentado · Kotaro Academy" },
+      { title: "Áreas ENAM · Residentado · KotaMed" },
       {
         name: "description",
         content:

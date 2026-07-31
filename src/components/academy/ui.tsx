@@ -24,7 +24,7 @@ export function Panel({
           <div className="flex items-center gap-2" style={{ color: accent }}>
             {icon}
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Kotaro Academy
+              KotaMed
             </span>
           </div>
           <h2 className="mt-2 text-2xl md:text-3xl font-extrabold tracking-tight">{title}</h2>

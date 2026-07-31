@@ -8,7 +8,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Loader2, Shield, Sparkles, Trash2, Use
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Panel de administración · Kotaro Academy" },
+      { title: "Panel de administración · KotaMed" },
       { name: "robots", content: "noindex" },
     ],
   }),
