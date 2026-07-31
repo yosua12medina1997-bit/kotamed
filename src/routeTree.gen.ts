@@ -21,6 +21,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminContenidoRouteImport } from './routes/_authenticated/admin.contenido'
 import { Route as AuthenticatedAdminCommandRouteImport } from './routes/_authenticated/admin.command'
 import { Route as ProgramasResidentadoAreasIndexRouteImport } from './routes/programas.residentado.areas.index'
+import { Route as ProgramasInternadoAreasIndexRouteImport } from './routes/programas.internado.areas.index'
 import { Route as ProgramasResidentadoAreasAreaRouteImport } from './routes/programas.residentado.areas.$area'
 
 const AuthRoute = AuthRouteImport.update({
@@ -85,6 +86,12 @@ const ProgramasResidentadoAreasIndexRoute =
     path: '/programas/residentado/areas/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ProgramasInternadoAreasIndexRoute =
+  ProgramasInternadoAreasIndexRouteImport.update({
+    id: '/programas/internado/areas/',
+    path: '/programas/internado/areas/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ProgramasResidentadoAreasAreaRoute =
   ProgramasResidentadoAreasAreaRouteImport.update({
     id: '/programas/residentado/areas/$area',
@@ -104,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
+  '/programas/internado/areas/': typeof ProgramasInternadoAreasIndexRoute
   '/programas/residentado/areas/': typeof ProgramasResidentadoAreasIndexRoute
 }
 export interface FileRoutesByTo {
@@ -118,6 +126,7 @@ export interface FileRoutesByTo {
   '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
+  '/programas/internado/areas': typeof ProgramasInternadoAreasIndexRoute
   '/programas/residentado/areas': typeof ProgramasResidentadoAreasIndexRoute
 }
 export interface FileRoutesById {
@@ -134,6 +143,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/command': typeof AuthenticatedAdminCommandRoute
   '/_authenticated/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
+  '/programas/internado/areas/': typeof ProgramasInternadoAreasIndexRoute
   '/programas/residentado/areas/': typeof ProgramasResidentadoAreasIndexRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/admin/command'
     | '/admin/contenido'
     | '/programas/residentado/areas/$area'
+    | '/programas/internado/areas/'
     | '/programas/residentado/areas/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/admin/command'
     | '/admin/contenido'
     | '/programas/residentado/areas/$area'
+    | '/programas/internado/areas'
     | '/programas/residentado/areas'
   id:
     | '__root__'
@@ -179,6 +191,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/command'
     | '/_authenticated/admin/contenido'
     | '/programas/residentado/areas/$area'
+    | '/programas/internado/areas/'
     | '/programas/residentado/areas/'
   fileRoutesById: FileRoutesById
 }
@@ -189,6 +202,7 @@ export interface RootRouteChildren {
   ProgramasSlugRoute: typeof ProgramasSlugRoute
   ProgramasIndexRoute: typeof ProgramasIndexRoute
   ProgramasResidentadoAreasAreaRoute: typeof ProgramasResidentadoAreasAreaRoute
+  ProgramasInternadoAreasIndexRoute: typeof ProgramasInternadoAreasIndexRoute
   ProgramasResidentadoAreasIndexRoute: typeof ProgramasResidentadoAreasIndexRoute
 }
 
@@ -278,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramasResidentadoAreasIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/programas/internado/areas/': {
+      id: '/programas/internado/areas/'
+      path: '/programas/internado/areas'
+      fullPath: '/programas/internado/areas/'
+      preLoaderRoute: typeof ProgramasInternadoAreasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/programas/residentado/areas/$area': {
       id: '/programas/residentado/areas/$area'
       path: '/programas/residentado/areas/$area'
@@ -325,6 +346,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProgramasSlugRoute: ProgramasSlugRoute,
   ProgramasIndexRoute: ProgramasIndexRoute,
   ProgramasResidentadoAreasAreaRoute: ProgramasResidentadoAreasAreaRoute,
+  ProgramasInternadoAreasIndexRoute: ProgramasInternadoAreasIndexRoute,
   ProgramasResidentadoAreasIndexRoute: ProgramasResidentadoAreasIndexRoute,
 }
 export const routeTree = rootRouteImport
