@@ -11,6 +11,17 @@ import {
   Trophy,
   Loader2,
   CheckCircle2,
+  ArrowRight,
+  Clock,
+  Users,
+  Newspaper,
+  CalendarDays,
+  Calculator,
+  Layers,
+  Stethoscope,
+  PlayCircle,
+  Library,
+  UserRound,
 } from "lucide-react";
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +36,21 @@ import {
 } from "@/lib/session";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProgramCatalog } from "@/lib/content-catalog";
+import { useMyAdmission } from "@/lib/admission";
+
+/** Accesos incluidos en la experiencia Free (sin matrícula). */
+const FREE_ITEMS = [
+  { label: "Biblioteca gratuita", hint: "Selección abierta", icon: Library, to: "/programas" },
+  { label: "Videos demo", hint: "Clases de bienvenida", icon: PlayCircle, to: "/programas" },
+  { label: "Casos demo", hint: "5–10 casos clínicos", icon: Stethoscope, to: "/programas" },
+  { label: "Flashcards muestra", hint: "Repaso guiado", icon: Layers, to: "/programas" },
+  { label: "Calculadoras", hint: "Herramientas médicas", icon: Calculator, to: "/programas" },
+  { label: "KotaMed AI demo", hint: "Tutor inteligente", icon: Sparkles, to: "/programas" },
+  { label: "Comunidad", hint: "Foro académico", icon: Users, to: "/programas" },
+  { label: "Noticias", hint: "Actualizaciones", icon: Newspaper, to: "/" },
+  { label: "Calendario", hint: "Eventos abiertos", icon: CalendarDays, to: "/" },
+  { label: "Mi perfil", hint: "Datos y cuenta", icon: UserRound, to: "/admision" },
+] as const;
 
 import doctorAvatar from "@/assets/doctor-avatar.jpg";
 import { useEffect } from "react";
@@ -102,7 +128,7 @@ function DashboardPage() {
           {hasAccess ? (
             <EnrolledView active={active} displayName={displayName} isAdmin={!!isAdmin} />
           ) : (
-            <LockedView enrollments={enrollments} email={profile?.email} />
+            <LockedView enrollments={enrollments} email={profile?.email} userId={user.id} />
           )}
         </div>
       </main>
