@@ -1,5 +1,5 @@
 /**
- * Paneles adicionales del KOTARO LIVING EDITOR™ (solo admin).
+ * Paneles adicionales del KOTAMED LIVING EDITOR™ (solo admin).
  * Notebook IA, Plantillas, Versiones y catálogo de componentes.
  * Aditivo: no modifica la arquitectura ni el diseño existente.
  */

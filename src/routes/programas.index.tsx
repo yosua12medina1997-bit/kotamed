@@ -66,7 +66,7 @@ function ProgramsIndex() {
           </h1>
           <p className="mt-5 text-muted-foreground text-pretty leading-relaxed">
             Cinco programas independientes con dashboard, progreso, módulos, casos y evaluaciones
-            propios. Todos comparten el mismo Design System y experiencia premium de Kotaro
+            propios. Todos comparten el mismo Design System y experiencia premium de KotaMed
             Academy.
           </p>
         </header>

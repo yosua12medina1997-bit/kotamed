@@ -312,7 +312,7 @@ function LockedView({
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
           <a
-            href={`mailto:yosua12medina1997@gmail.com?subject=Solicitud%20de%20matr%C3%ADcula%20Kotaro%20Academy&body=Hola%2C%20soy%20${encodeURIComponent(email ?? "")}%20y%20solicito%20matr%C3%ADcula.`}
+            href={`mailto:yosua12medina1997@gmail.com?subject=Solicitud%20de%20matr%C3%ADcula%20KotaMed&body=Hola%2C%20soy%20${encodeURIComponent(email ?? "")}%20y%20solicito%20matr%C3%ADcula.`}
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 transition-all"
           >
             <Mail className="size-4" strokeWidth={2.5} /> Contactar al administrador
