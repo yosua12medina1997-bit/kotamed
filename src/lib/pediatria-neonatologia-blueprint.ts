@@ -16,7 +16,9 @@ export interface BlueprintCategory {
 }
 
 export interface BlueprintBlock {
-  key: "neonatologia" | "pediatria";
+  key: string;
+  /** Icono opcional del bloque (usado en la barra de bloques). */
+  icon?: import("lucide-react").LucideIcon;
   title: string;
   tagline: string;
   accent: string;

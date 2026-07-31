@@ -46,12 +46,31 @@ import { PharmaWorkspace } from "@/components/pharma/PharmaWorkspace";
 
 import type { Topic } from "@/lib/topic-schema";
 
-type BlockKey = BlueprintBlock["key"];
+type BlockKey = string;
 
 const ROOT_SLUG = "biblioteca-pediatria-neo";
 const ROOT_TITLE = "Biblioteca · Pediatría & Neonatología";
 
 const OVERRIDES_SLUG = "pednn-blueprint-overrides";
+
+/** Espacio de almacenamiento del contenido (permite reutilizar la vista en otros programas). */
+export interface ContenidoScope {
+  /** Slug del nodo raíz en `content_nodes`. */
+  rootSlug: string;
+  /** Título del nodo raíz. */
+  rootTitle: string;
+  /** Slug del nodo donde se guardan los temas agregados/quitados por el admin. */
+  overridesSlug: string;
+  /** Prefijo de las query keys de React Query. */
+  namespace: string;
+}
+
+const PEDNN_SCOPE: ContenidoScope = {
+  rootSlug: ROOT_SLUG,
+  rootTitle: ROOT_TITLE,
+  overridesSlug: OVERRIDES_SLUG,
+  namespace: "pednn",
+};
 
 type BlueprintOverrides = {
   added: Record<string, string[]>;
@@ -71,17 +90,17 @@ function slugify(s: string) {
 }
 
 /** Overrides de temas (agregados/quitados por admin) guardados globalmente. */
-function useBlueprintOverrides() {
+function useBlueprintOverrides(scope: ContenidoScope) {
   const qc = useQueryClient();
   const user = useSupabaseUser();
 
   const q = useQuery({
-    queryKey: ["pednn-blueprint-overrides"],
+    queryKey: [scope.namespace, "blueprint-overrides", scope.overridesSlug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("content_nodes")
         .select("id, metadata")
-        .eq("slug", OVERRIDES_SLUG)
+        .eq("slug", scope.overridesSlug)
         .limit(1);
       if (error) throw error;
       return data && data.length > 0 ? data[0] : null;
@@ -101,8 +120,8 @@ function useBlueprintOverrides() {
         const { error } = await supabase.from("content_nodes").insert({
           parent_id: null,
           kind: "course",
-          title: "Overrides · Blueprint Pediatría & Neonatología",
-          slug: OVERRIDES_SLUG,
+          title: `Overrides · ${scope.rootTitle}`,
+          slug: scope.overridesSlug,
           sort_order: 999,
           created_by: user?.id ?? null,
           metadata: { blueprint: next } as never,
@@ -118,7 +137,7 @@ function useBlueprintOverrides() {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pednn-blueprint-overrides"] });
+      qc.invalidateQueries({ queryKey: [scope.namespace, "blueprint-overrides", scope.overridesSlug] });
     },
     onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar el cambio"),
   });
@@ -143,8 +162,24 @@ function applyOverrides(block: BlueprintBlock, ov: BlueprintOverrides): Blueprin
 }
 
 
-export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
-  const [active, setActive] = useState<BlockKey>("neonatologia");
+export function PediatriaNeoContenido({
+  meta,
+  blueprint = PEDIATRIA_NEONATOLOGIA_BLUEPRINT,
+  scope = PEDNN_SCOPE,
+  heading,
+  intro,
+  showPharma = true,
+}: {
+  meta: EnamAreaMeta;
+  /** Estructura académica a mostrar. Por defecto, el blueprint de Pediatría & Neonatología. */
+  blueprint?: BlueprintBlock[];
+  /** Namespace de persistencia (root, overrides y query keys). */
+  scope?: ContenidoScope;
+  heading?: string;
+  intro?: string;
+  showPharma?: boolean;
+}) {
+  const [active, setActive] = useState<BlockKey>(blueprint[0]?.key ?? "");
   const [query, setQuery] = useState("");
   const [openCat, setOpenCat] = useState<string | null>(null);
   const [openTopic, setOpenTopic] = useState<string | null>(null);
@@ -153,13 +188,13 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
 
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
-  const { overrides, save: saveOverrides } = useBlueprintOverrides();
+  const { overrides, save: saveOverrides } = useBlueprintOverrides(scope);
 
   const blocks = useMemo(
-    () => PEDIATRIA_NEONATOLOGIA_BLUEPRINT.map((b) => applyOverrides(b, overrides)),
-    [overrides],
+    () => blueprint.map((b) => applyOverrides(b, overrides)),
+    [blueprint, overrides],
   );
-  const block = useMemo(() => blocks.find((b) => b.key === active)!, [blocks, active]);
+  const block = useMemo(() => blocks.find((b) => b.key === active) ?? blocks[0]!, [blocks, active]);
   const filtered = useMemo(() => filterBlock(block, query), [block, query]);
   const totalTopics = useMemo(
     () => blocks.reduce((acc, b) => acc + b.categories.reduce((a, c) => a + c.topics.length, 0), 0),
@@ -222,17 +257,17 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
             )}
           </div>
           <h2 className="mt-2 text-2xl md:text-3xl font-extrabold tracking-tight">
-            Contenido de {meta.title}
+            {heading ?? `Contenido de ${meta.title}`}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
-            Dividido en dos bloques independientes. Cada tema se despliega con la misma
-            estructura estándar (resumen, guías, casos, flashcards, banco de preguntas).
+            {intro ??
+              "Dividido en bloques independientes. Cada tema se despliega con la misma estructura estándar (resumen, guías, casos, flashcards, banco de preguntas)."}
             {isAdmin && " Como admin, puedes editar cada tema, subir archivos e insertar videos."}
           </p>
         </div>
         <div className="flex flex-col items-end gap-3">
           <div className="flex items-center gap-3">
-            <Stat label="Bloques" value="2" accent={meta.accent} />
+            <Stat label="Bloques" value={blocks.length} accent={meta.accent} />
             <Stat
               label="Categorías"
               value={blocks.reduce((a, b) => a + b.categories.length, 0)}
@@ -240,6 +275,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
             />
             <Stat label="Temas" value={totalTopics} accent={meta.accent} />
           </div>
+          {showPharma && (
           <button
             onClick={() => setPharmaOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
@@ -247,6 +283,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
             <Calculator className="size-3.5" style={{ color: meta.accent }} />
             Calculadora farmacológica
           </button>
+          )}
         </div>
 
       </div>
@@ -254,7 +291,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
       <div className="mt-6 flex flex-wrap gap-2">
         {blocks.map((b) => {
           const isActive = active === b.key;
-          const Icon = b.key === "neonatologia" ? Baby : Stethoscope;
+          const Icon = b.key === "neonatologia" ? Baby : b.icon ?? Stethoscope;
           return (
             <button
               key={b.key}
@@ -296,6 +333,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
 
       <p className="mt-3 text-xs text-muted-foreground">{block.tagline}</p>
 
+      {showPharma && (
       <button
         onClick={() => setPharmaOpen(true)}
         className="mt-4 w-full group flex items-center gap-3 rounded-2xl border border-border/60 bg-background/50 px-4 py-3 text-left backdrop-blur transition hover:border-primary/40 hover:bg-background/70"
@@ -316,6 +354,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
         </span>
         <ChevronRight className="size-4 text-muted-foreground transition group-hover:translate-x-0.5" />
       </button>
+      )}
 
 
       <div className="mt-6 space-y-3">
@@ -411,6 +450,7 @@ export function PediatriaNeoContenido({ meta }: { meta: EnamAreaMeta }) {
                             topic={topic}
                             accent={block.accent}
                             isAdmin={!!isAdmin}
+                            scope={scope}
                           />
                         )}
                       </li>
@@ -510,18 +550,20 @@ function TopicDetail({
   topic,
   accent,
   isAdmin,
+  scope,
 }: {
   block: BlueprintBlock;
   category: BlueprintCategory;
   topic: BlueprintTopic;
   accent: string;
   isAdmin: boolean;
+  scope: ContenidoScope;
 }) {
   const [tab, setTab] = useState<"plantilla" | "recursos">(
     isAdmin ? "recursos" : "plantilla",
   );
 
-  const nodeQ = useTopicNode(block, category, topic, { create: isAdmin });
+  const nodeQ = useTopicNode(block, category, topic, { create: isAdmin, scope });
 
   const [editing, setEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(topic.title);
@@ -544,7 +586,7 @@ function TopicDetail({
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pednn-topic-node"] });
+      qc.invalidateQueries({ queryKey: [scope.namespace, "topic-node"] });
       setEditing(false);
     },
   });
@@ -561,7 +603,7 @@ function TopicDetail({
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pednn-topic-node"] });
+      qc.invalidateQueries({ queryKey: [scope.namespace, "topic-node"] });
       toast.success("Tema guardado");
       setEditorOpen(false);
     },
@@ -781,12 +823,14 @@ function useTopicNode(
   block: BlueprintBlock,
   category: BlueprintCategory,
   topic: BlueprintTopic,
-  opts: { create: boolean },
+  opts: { create: boolean; scope: ContenidoScope },
 ) {
   const user = useSupabaseUser();
+  const scope = opts.scope;
   return useQuery({
     queryKey: [
-      "pednn-topic-node",
+      scope.namespace,
+      "topic-node",
       block.key,
       category.key,
       slugify(topic.title),
@@ -806,7 +850,7 @@ function useTopicNode(
         if (!opts.create) return null;
         return await insertNode({ parent_id, kind, title, slug, userId: uid });
       };
-      const root = await step(null, "course", ROOT_TITLE, ROOT_SLUG);
+      const root = await step(null, "course", scope.rootTitle, scope.rootSlug);
       if (!root) return null;
       const blockNode = await step(root.id, "program", block.title, block.key);
       if (!blockNode) return null;
