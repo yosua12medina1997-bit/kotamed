@@ -112,3 +112,48 @@ export function useProgramCatalog() {
   const q = useContentNodes();
   return { ...q, programs: buildProgramCatalog(q.data) };
 }
+
+/**
+ * Orden oficial del recorrido académico KotaMed.
+ * Los programas fuera de esta lista se muestran al final, por su orden propio.
+ */
+export const ACADEMIC_PATH_ORDER = [
+  "ciencias-basicas",
+  "ecb",
+  "ciencias-clinicas",
+  "essalud",
+  "internado",
+  "enam",
+  "residentado",
+] as const;
+
+/** Etiquetas cortas para el recorrido (algunos nodos usan siglas). */
+export const ACADEMIC_PATH_LABELS: Record<string, string> = {
+  "ciencias-basicas": "Ciencias Básicas",
+  ecb: "Examen de Cambio de Bloque",
+  "ciencias-clinicas": "Ciencias Clínicas",
+  essalud: "EsSalud",
+  internado: "Internado Médico",
+  enam: "ENAM",
+  residentado: "Residentado Médico",
+};
+
+export function academicPathIndex(slug: string) {
+  const i = (ACADEMIC_PATH_ORDER as readonly string[]).indexOf(slug);
+  return i === -1 ? 999 : i;
+}
+
+/** Programas del catálogo vivo ordenados según el recorrido académico. */
+export function sortByAcademicPath<T extends { slug: string; order?: number }>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const ia = academicPathIndex(a.slug);
+    const ib = academicPathIndex(b.slug);
+    if (ia !== ib) return ia - ib;
+    return (a.order ?? 0) - (b.order ?? 0);
+  });
+}
+
+/** Nombre a mostrar en el recorrido. */
+export function academicPathLabel(slug: string, fallback: string) {
+  return ACADEMIC_PATH_LABELS[slug] ?? fallback;
+}
