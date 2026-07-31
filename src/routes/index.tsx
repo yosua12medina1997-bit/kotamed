@@ -412,32 +412,32 @@ function SimulationCard() {
 const RAIL = [
   {
     icon: MonitorPlay,
-    title: "Clases en vivo",
-    desc: "Interactúa en tiempo real",
+    title: "KotaMed Campus",
+    desc: "Cursos, clases y evaluaciones",
     to: "/dashboard" as const,
   },
   {
     icon: ClipboardList,
-    title: "Casos clínicos",
-    desc: "Basados en evidencia",
+    title: "KotaMed Clinical",
+    desc: "Ciencias clínicas por especialidad",
     to: "/programas/residentado/areas" as const,
   },
   {
     icon: Brain,
-    title: "Simulaciones IA",
-    desc: "Practica sin límites",
+    title: "KotaMed Labs",
+    desc: "Simuladores y algoritmos",
     to: "/programas/residentado/areas" as const,
   },
   {
     icon: BookOpen,
-    title: "Biblioteca médica",
-    desc: "Recursos premium",
+    title: "KotaMed Library",
+    desc: "Libros, guías y protocolos",
     to: "/programas" as const,
   },
   {
     icon: BadgeCheck,
-    title: "Evaluaciones",
-    desc: "Mide tu progreso",
+    title: "KotaMed Exams",
+    desc: "ENAM, ESSALUD y Residentado",
     to: "/dashboard" as const,
   },
   {
