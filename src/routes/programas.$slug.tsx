@@ -45,7 +45,7 @@ function matchEnamSlug(title: string): EnamAreaSlug | null {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, " ")
       .trim();
-    if (norm === t || norm.includes(t) || t.includes(norm)) return a.slug;
+    if (norm === t || norm.includes(t) || t.includes(norm)) return a.slug as EnamAreaSlug;
   }
   // heuristics by keyword
   if (/\bmedicina\s+interna\b/.test(norm)) return "medicina-interna";

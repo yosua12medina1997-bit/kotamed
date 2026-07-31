@@ -33,7 +33,8 @@ export type EnamAreaSlug =
   | "salud-publica";
 
 export interface EnamAreaMeta {
-  slug: EnamAreaSlug;
+  /** Slug del módulo (ENAM o cualquier otro programa que reutilice el shell). */
+  slug: string;
   title: string;
   short: string;
   tagline: string;
