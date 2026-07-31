@@ -552,13 +552,17 @@ function AreasSection({
           {areas.map((area, i) => {
             const enamSlug = program.id === "residentado" ? matchEnamSlug(area) : null;
             const internadoSlug = program.id === "internado" ? matchInternadoSlug(area) : null;
+            const genericSlug =
+              enamSlug || internadoSlug
+                ? null
+                : (dbAreas.find((a) => a.title === area)?.slug ?? slugify(area) ?? null);
             const inner = (
               <>
                 <span className={`size-7 rounded-lg flex items-center justify-center text-[10px] font-bold tabular-nums ${accent.chip} border`}>
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="text-xs font-semibold text-foreground/85 leading-tight flex-1">{area}</span>
-                {(enamSlug || internadoSlug) && (
+                {(enamSlug || internadoSlug || genericSlug) && (
                   <span className="text-[10px] font-bold uppercase tracking-wider text-primary opacity-0 group-hover:opacity-100 transition">
                     Abrir →
                   </span>
@@ -581,6 +585,15 @@ function AreasSection({
                 key={`${area}-${i}`}
                 to="/programas/internado/areas/$area"
                 params={{ area: internadoSlug }}
+                className={cls + " hover:border-primary/40 hover:-translate-y-0.5"}
+              >
+                {inner}
+              </Link>
+            ) : genericSlug ? (
+              <Link
+                key={`${area}-${i}`}
+                to="/programas/$slug_/areas/$area"
+                params={{ slug: program.slug, area: genericSlug }}
                 className={cls + " hover:border-primary/40 hover:-translate-y-0.5"}
               >
                 {inner}
@@ -670,6 +683,23 @@ function AreasSection({
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold bg-primary text-primary-foreground hover:opacity-90 transition"
           >
             Ver módulos ENAM <Sparkles className="size-3.5" />
+          </Link>
+        </div>
+      )}
+
+      {program.id !== "residentado" && program.id !== "internado" && !editing && (
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <p className="text-[11px] text-foreground/80 leading-relaxed max-w-xl">
+            Cada módulo de este programa es un ecosistema independiente con ruta académica,
+            contenido editable, casos clínicos, banco de preguntas, flashcards, simuladores,
+            biblioteca y tutor IA.
+          </p>
+          <Link
+            to="/programas/$slug_/areas"
+            params={{ slug: program.slug }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold bg-primary text-primary-foreground hover:opacity-90 transition"
+          >
+            Ver módulos <Sparkles className="size-3.5" />
           </Link>
         </div>
       )}
