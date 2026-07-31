@@ -25,6 +25,11 @@ import {
 } from "lucide-react";
 import { useProgramCatalog } from "@/lib/content-catalog";
 import kotaroLogo from "@/assets/kotaro-logo.png";
+import doctorsImg from "@/assets/home-doctors.jpg";
+import audEstudiantes from "@/assets/aud-estudiantes.jpg";
+import audInternos from "@/assets/aud-internos.jpg";
+import audResidentes from "@/assets/aud-residentes.jpg";
+import audMedicos from "@/assets/aud-medicos.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -246,10 +251,24 @@ function Hero() {
           </div>
         </div>
 
-        {/* Right — Core emblem + floating dashboard */}
-        <div className="relative">
-          <CoreEmblem />
-          <div className="relative mt-8 space-y-3 lg:mt-0 lg:absolute lg:inset-y-0 lg:-right-4 lg:flex lg:w-[17.5rem] lg:flex-col lg:justify-center lg:space-y-3.5">
+        {/* Right — Core emblem + doctors + dashboard cards */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:gap-5">
+          <div className="flex flex-col gap-6">
+            <CoreEmblem />
+            <figure className="relative overflow-hidden rounded-3xl border border-border/70 bg-white/60 shadow-[0_25px_60px_-35px_oklch(0.24_0.04_258_/_0.45)]">
+              <img
+                src={doctorsImg}
+                alt="Equipo de médicos de Kotaro Academy"
+                width={1024}
+                height={1280}
+                className="h-48 w-full object-cover object-top sm:h-56"
+              />
+              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-4 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-white">
+                Docentes clínicos activos
+              </figcaption>
+            </figure>
+          </div>
+          <div className="flex flex-col justify-center gap-3.5">
             <ProgressCard />
             <LiveClassCard />
             <SimulationCard />
@@ -262,8 +281,9 @@ function Hero() {
 
 function CoreEmblem() {
   return (
-    <div className="relative mx-auto grid aspect-square w-full max-w-[26rem] place-items-center lg:max-w-[20rem] lg:-translate-x-24">
+    <div className="relative mx-auto grid aspect-square w-full max-w-[20rem] place-items-center">
       <div
+
         aria-hidden
         className="absolute inset-[8%] rounded-full blur-3xl animate-halo"
         style={{ background: "color-mix(in oklab, var(--primary) 22%, transparent)" }}
@@ -473,25 +493,30 @@ const STATS = [
 const AUDIENCE = [
   {
     icon: GraduationCap,
+    image: audEstudiantes,
     title: "Estudiantes de Medicina",
     desc: "Aprende desde donde estés y a tu ritmo.",
   },
   {
     icon: Stethoscope,
+    image: audInternos,
     title: "Internos",
     desc: "Potencia tu desempeño en el hospital.",
   },
   {
     icon: Brain,
+    image: audResidentes,
     title: "Residentes",
     desc: "Domina tu especialidad con casos reales.",
   },
   {
     icon: ShieldCheck,
+    image: audMedicos,
     title: "Médicos",
     desc: "Educación continua de alto nivel.",
   },
 ];
+
 
 function ImpactAndAudience() {
   return (
@@ -535,28 +560,41 @@ function ImpactAndAudience() {
             ¿Para quién es Kotaro Academy?
           </h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {AUDIENCE.map(({ icon: Icon, title, desc }) => (
+            {AUDIENCE.map(({ icon: Icon, title, desc, image }) => (
               <Link
                 key={title}
                 to="/programas"
-                className="group glass flex h-full flex-col rounded-3xl bg-white/75 p-5 transition-all hover:-translate-y-1 hover:shadow-xl"
+                className="group glass flex h-full flex-col overflow-hidden rounded-3xl bg-white/75 transition-all hover:-translate-y-1 hover:shadow-xl"
               >
-                <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="size-5" strokeWidth={2} />
-                </span>
-                <h3 className="mt-5 text-[13.5px] font-extrabold leading-snug tracking-tight">
-                  {title}
-                </h3>
-                <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">{desc}</p>
-                <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[11.5px] font-bold text-primary">
-                  Explorar ruta
-                  <ArrowRight
-                    className="size-3.5 transition-transform group-hover:translate-x-1"
-                    strokeWidth={2.5}
+                <div className="relative h-32 w-full overflow-hidden">
+                  <img
+                    src={image}
+                    alt={title}
+                    loading="lazy"
+                    width={800}
+                    height={600}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                </span>
+                  <span className="absolute bottom-2 left-2 grid size-9 place-items-center rounded-xl bg-white/85 text-primary backdrop-blur-sm">
+                    <Icon className="size-4.5" strokeWidth={2} />
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col p-5">
+                  <h3 className="text-[13.5px] font-extrabold leading-snug tracking-tight">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-[11.5px] leading-relaxed text-muted-foreground">{desc}</p>
+                  <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[11.5px] font-bold text-primary">
+                    Explorar ruta
+                    <ArrowRight
+                      className="size-3.5 transition-transform group-hover:translate-x-1"
+                      strokeWidth={2.5}
+                    />
+                  </span>
+                </div>
               </Link>
             ))}
+
           </div>
         </div>
       </div>
