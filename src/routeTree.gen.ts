@@ -23,6 +23,7 @@ import { Route as AuthenticatedAdminCommandRouteImport } from './routes/_authent
 import { Route as ProgramasResidentadoAreasIndexRouteImport } from './routes/programas.residentado.areas.index'
 import { Route as ProgramasInternadoAreasIndexRouteImport } from './routes/programas.internado.areas.index'
 import { Route as ProgramasResidentadoAreasAreaRouteImport } from './routes/programas.residentado.areas.$area'
+import { Route as ProgramasInternadoAreasAreaRouteImport } from './routes/programas.internado.areas.$area'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -98,6 +99,12 @@ const ProgramasResidentadoAreasAreaRoute =
     path: '/programas/residentado/areas/$area',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ProgramasInternadoAreasAreaRoute =
+  ProgramasInternadoAreasAreaRouteImport.update({
+    id: '/programas/internado/areas/$area',
+    path: '/programas/internado/areas/$area',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/programas/': typeof ProgramasIndexRoute
   '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
+  '/programas/internado/areas/$area': typeof ProgramasInternadoAreasAreaRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
   '/programas/internado/areas/': typeof ProgramasInternadoAreasIndexRoute
   '/programas/residentado/areas/': typeof ProgramasResidentadoAreasIndexRoute
@@ -125,6 +133,7 @@ export interface FileRoutesByTo {
   '/programas': typeof ProgramasIndexRoute
   '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
+  '/programas/internado/areas/$area': typeof ProgramasInternadoAreasAreaRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
   '/programas/internado/areas': typeof ProgramasInternadoAreasIndexRoute
   '/programas/residentado/areas': typeof ProgramasResidentadoAreasIndexRoute
@@ -142,6 +151,7 @@ export interface FileRoutesById {
   '/programas/': typeof ProgramasIndexRoute
   '/_authenticated/admin/command': typeof AuthenticatedAdminCommandRoute
   '/_authenticated/admin/contenido': typeof AuthenticatedAdminContenidoRoute
+  '/programas/internado/areas/$area': typeof ProgramasInternadoAreasAreaRoute
   '/programas/residentado/areas/$area': typeof ProgramasResidentadoAreasAreaRoute
   '/programas/internado/areas/': typeof ProgramasInternadoAreasIndexRoute
   '/programas/residentado/areas/': typeof ProgramasResidentadoAreasIndexRoute
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/programas/'
     | '/admin/command'
     | '/admin/contenido'
+    | '/programas/internado/areas/$area'
     | '/programas/residentado/areas/$area'
     | '/programas/internado/areas/'
     | '/programas/residentado/areas/'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/programas'
     | '/admin/command'
     | '/admin/contenido'
+    | '/programas/internado/areas/$area'
     | '/programas/residentado/areas/$area'
     | '/programas/internado/areas'
     | '/programas/residentado/areas'
@@ -190,6 +202,7 @@ export interface FileRouteTypes {
     | '/programas/'
     | '/_authenticated/admin/command'
     | '/_authenticated/admin/contenido'
+    | '/programas/internado/areas/$area'
     | '/programas/residentado/areas/$area'
     | '/programas/internado/areas/'
     | '/programas/residentado/areas/'
@@ -201,6 +214,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ProgramasSlugRoute: typeof ProgramasSlugRoute
   ProgramasIndexRoute: typeof ProgramasIndexRoute
+  ProgramasInternadoAreasAreaRoute: typeof ProgramasInternadoAreasAreaRoute
   ProgramasResidentadoAreasAreaRoute: typeof ProgramasResidentadoAreasAreaRoute
   ProgramasInternadoAreasIndexRoute: typeof ProgramasInternadoAreasIndexRoute
   ProgramasResidentadoAreasIndexRoute: typeof ProgramasResidentadoAreasIndexRoute
@@ -306,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramasResidentadoAreasAreaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/programas/internado/areas/$area': {
+      id: '/programas/internado/areas/$area'
+      path: '/programas/internado/areas/$area'
+      fullPath: '/programas/internado/areas/$area'
+      preLoaderRoute: typeof ProgramasInternadoAreasAreaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -345,6 +366,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ProgramasSlugRoute: ProgramasSlugRoute,
   ProgramasIndexRoute: ProgramasIndexRoute,
+  ProgramasInternadoAreasAreaRoute: ProgramasInternadoAreasAreaRoute,
   ProgramasResidentadoAreasAreaRoute: ProgramasResidentadoAreasAreaRoute,
   ProgramasInternadoAreasIndexRoute: ProgramasInternadoAreasIndexRoute,
   ProgramasResidentadoAreasIndexRoute: ProgramasResidentadoAreasIndexRoute,

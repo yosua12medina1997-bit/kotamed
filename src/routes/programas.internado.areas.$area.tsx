@@ -56,8 +56,8 @@ function InternadoAreaModule() {
             meta={meta}
             blueprint={blueprint}
             scope={{
-              rootSlug: "biblioteca-internado",
-              rootTitle: "Biblioteca · Internado Médico",
+              rootSlug: `biblioteca-internado-${slug}`,
+              rootTitle: `Biblioteca · Internado · ${meta.title}`,
               overridesSlug: `internado-${slug}-blueprint-overrides`,
               namespace: `internado-${slug}`,
             }}
