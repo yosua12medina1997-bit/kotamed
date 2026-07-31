@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { Stethoscope, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import kotaroLogo from "@/assets/kotaro-logo.png";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -115,9 +116,7 @@ function AuthPage() {
 
       <div className="relative w-full max-w-md">
         <Link to="/" className="flex items-center gap-2.5 justify-center mb-8">
-          <span className="size-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-            <Stethoscope className="size-5 text-primary-foreground" strokeWidth={2.25} />
-          </span>
+          <img src={kotaroLogo} alt="Kotaro Academy" className="size-10 object-contain" />
           <span className="font-extrabold tracking-tighter text-xl">KOTARO</span>
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">
             Academy

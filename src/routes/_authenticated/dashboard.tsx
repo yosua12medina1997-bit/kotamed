@@ -124,9 +124,7 @@ function TopNav({
   return (
     <header className="fixed top-0 inset-x-0 h-16 glass z-40 px-6 lg:px-10 flex items-center justify-between border-b border-border/60">
       <Link to="/" className="flex items-center gap-2.5">
-        <span className="size-9 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-          <Stethoscope className="size-5 text-primary-foreground" strokeWidth={2.25} />
-        </span>
+        <img src={kotaroLogo} alt="Kotaro Academy" className="size-9 object-contain" />
         <span className="font-extrabold tracking-tighter text-lg">KOTARO</span>
       </Link>
 
