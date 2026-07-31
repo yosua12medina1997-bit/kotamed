@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import {
   DEFAULT_ROUTE_STAGES,
-  ENAM_AREAS,
+
   MODULE_SECTIONS,
   type AreaLandingMeta,
   type EnamAreaMeta,
