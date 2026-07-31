@@ -251,16 +251,22 @@ function Hero() {
         </div>
 
         {/* Right — centered Core emblem with floating dashboard cards */}
-        <div className="relative mx-auto w-full max-w-3xl">
+        <div className="relative mx-auto w-full max-w-2xl lg:max-w-3xl">
           <div className="flex justify-center">
             <CoreEmblem />
           </div>
-          <div className="hidden lg:absolute lg:inset-y-0 lg:right-0 lg:flex lg:flex-col lg:justify-center lg:gap-3.5 lg:translate-x-1/2">
-            <ProgressCard />
-            <LiveClassCard />
-            <SimulationCard />
+          <div className="hidden lg:absolute lg:inset-y-0 lg:right-0 lg:flex lg:flex-col lg:justify-center lg:gap-3 lg:translate-x-8">
+            <div className="w-56">
+              <ProgressCard />
+            </div>
+            <div className="w-56">
+              <LiveClassCard />
+            </div>
+            <div className="w-56">
+              <SimulationCard />
+            </div>
           </div>
-          <div className="mt-5 grid gap-3.5 lg:hidden">
+          <div className="mt-6 grid gap-3.5 lg:hidden">
             <ProgressCard />
             <LiveClassCard />
             <SimulationCard />
