@@ -29,6 +29,7 @@ import {
 } from "@/lib/enam-modules";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { ModuleGate } from "@/components/access/ModuleGate";
 import { PediatriaNeoContenido } from "@/components/PediatriaNeoContenido";
 import { CasosSection } from "@/components/academy/CasosSection";
 import { BancoSection } from "@/components/academy/BancoSection";
@@ -138,6 +139,16 @@ function slugify(s: string) {
 }
 
 function AreaModule() {
+  const { slug } = Route.useLoaderData() as { slug: string };
+  const areaMeta = getEnamArea(slug);
+  return (
+    <ModuleGate programSlug="residentado" moduleName={areaMeta?.title}>
+      <AreaModuleInner />
+    </ModuleGate>
+  );
+}
+
+function AreaModuleInner() {
   const { slug } = Route.useLoaderData() as { slug: string };
   const meta = getEnamArea(slug) as EnamAreaMeta;
   const user = useSupabaseUser();

@@ -57,6 +57,7 @@ function matchEnamSlug(title: string): EnamAreaSlug | null {
 }
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { ModuleGate } from "@/components/access/ModuleGate";
 
 export const Route = createFileRoute("/programas/$slug")({
   loader: ({ params }): { program: Program } => {
@@ -160,6 +161,16 @@ function useAreas(programNodeId: string | undefined) {
 
 function ProgramDetail() {
   const { program } = Route.useLoaderData() as { program: Program };
+  return (
+    <ModuleGate programSlug={program.slug} moduleName={program.title}>
+      <ProgramDetailInner />
+    </ModuleGate>
+  );
+}
+
+function ProgramDetailInner() {
+  const { program } = Route.useLoaderData() as { program: Program };
+
   const accent = ACCENT_CLASSES[program.accent];
   const others = PROGRAMS.filter((p) => p.id !== program.id);
 
