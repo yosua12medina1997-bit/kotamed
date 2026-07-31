@@ -204,3 +204,31 @@
 @utility animate-orbit { animation: kotaro-orbit 38s linear infinite; }
 @utility animate-orbit-reverse { animation: kotaro-orbit 52s linear infinite reverse; }
 @utility animate-ecg { stroke-dasharray: 400; animation: kotaro-ecg 4.5s ease-in-out infinite; }
+
+/* ---- KotaMed Anatomy Lab — superficie inmersiva oscura ---- */
+:root {
+  --lab-bg: oklch(0.16 0.02 258);
+  --lab-bg-deep: oklch(0.12 0.02 258);
+  --lab-panel: oklch(0.21 0.02 258 / 0.72);
+  --lab-panel-solid: oklch(0.2 0.02 258);
+  --lab-border: oklch(0.85 0.02 258 / 0.1);
+  --lab-text: oklch(0.96 0.01 258);
+  --lab-muted: oklch(0.72 0.02 258);
+  --lab-accent: oklch(0.74 0.14 178);
+  --lab-accent-2: oklch(0.66 0.19 300);
+}
+@utility lab-root {
+  background:
+    radial-gradient(120% 90% at 50% -10%, oklch(0.28 0.06 200 / 0.55), transparent 60%),
+    radial-gradient(90% 70% at 100% 100%, oklch(0.3 0.09 300 / 0.35), transparent 60%),
+    var(--lab-bg-deep);
+  color: var(--lab-text);
+}
+@utility lab-panel {
+  background: var(--lab-panel);
+  border: 1px solid var(--lab-border);
+  backdrop-filter: blur(16px) saturate(140%);
+  color: var(--lab-text);
+}
+@utility lab-muted-text { color: var(--lab-muted); }
+@utility lab-accent-text { color: var(--lab-accent); }
