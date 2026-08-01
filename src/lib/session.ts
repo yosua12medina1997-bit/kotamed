@@ -65,7 +65,7 @@ export function useMyProfile(userId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id,email,full_name")
+        .select("id,email,full_name,avatar_url,created_at,last_seen_at")
         .eq("id", userId!)
         .maybeSingle();
       if (error) throw error;
@@ -73,6 +73,22 @@ export function useMyProfile(userId: string | undefined) {
     },
   });
 }
+
+export function useMyRoles(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["my-roles", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId!);
+      if (error) throw error;
+      return (data ?? []).map((r) => r.role as string);
+    },
+  });
+}
+
 
 export function useMyEnrollments(userId: string | undefined) {
   return useQuery({
