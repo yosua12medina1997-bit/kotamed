@@ -16,7 +16,18 @@ export interface Profile {
   id: string;
   email: string;
   full_name: string | null;
+  avatar_url?: string | null;
+  created_at?: string;
+  last_seen_at?: string | null;
 }
+
+export const ROLE_LABELS: Record<string, string> = {
+  admin: "Administrador",
+  teacher: "Docente",
+  moderator: "Moderador",
+  student: "Alumno",
+  guest: "Invitado",
+};
 
 export function useSupabaseUser() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
