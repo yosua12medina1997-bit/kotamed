@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Camera, Loader2, Trash2, Upload, X, ShieldCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -209,9 +210,9 @@ export function ProfileDialog({
     }
   };
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
@@ -422,7 +423,8 @@ export function ProfileDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
