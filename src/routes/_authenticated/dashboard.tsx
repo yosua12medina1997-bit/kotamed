@@ -142,11 +142,15 @@ function DashboardPage() {
 function TopNav({
   displayName,
   email,
+  avatarUrl,
+  userId,
   isAdmin,
   onSignOut,
 }: {
   displayName: string;
   email?: string;
+  avatarUrl?: string | null;
+  userId: string;
   isAdmin: boolean;
   onSignOut: () => void;
 }) {
@@ -166,27 +170,18 @@ function TopNav({
             <Shield className="size-3.5" strokeWidth={2.5} /> Admin
           </Link>
         )}
-        <div className="hidden md:flex flex-col items-end leading-tight">
-          <span className="text-xs font-bold">{displayName}</span>
-          <span className="text-[10px] text-muted-foreground truncate max-w-[180px]">{email}</span>
-        </div>
-        <img
-          src={doctorAvatar}
-          alt="Perfil"
-          className="size-9 rounded-full border-2 border-white shadow-sm object-cover"
+        <UserMenu
+          userId={userId}
+          displayName={displayName}
+          email={email}
+          avatarUrl={avatarUrl}
+          onSignOut={onSignOut}
         />
-        <button
-          onClick={onSignOut}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/[0.04] transition-colors"
-          aria-label="Cerrar sesión"
-          title="Cerrar sesión"
-        >
-          <LogOut className="size-4" strokeWidth={2} />
-        </button>
       </div>
     </header>
   );
 }
+
 
 function AdminBanner() {
   return (
