@@ -118,6 +118,8 @@ function DashboardPage() {
       <TopNav
         displayName={displayName}
         email={profile?.email}
+        avatarUrl={profile?.avatar_url ?? null}
+        userId={user.id}
         isAdmin={!!isAdmin}
         onSignOut={signOut}
       />
