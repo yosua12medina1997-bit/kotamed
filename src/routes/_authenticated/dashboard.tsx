@@ -4,7 +4,6 @@ import {
   ClipboardList,
   Home,
   Lock,
-  LogOut,
   Mail,
   Shield,
   Sparkles,
@@ -53,7 +52,7 @@ const FREE_ITEMS = [
   { label: "Mi perfil", hint: "Datos y cuenta", icon: UserRound, to: "/admision" },
 ] as const;
 
-import doctorAvatar from "@/assets/doctor-avatar.jpg";
+import { UserMenu } from "@/components/profile/UserMenu";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
