@@ -23,7 +23,8 @@ import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { generateVideoScript } from "@/lib/academy-ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Chip, Empty, Field, Input, Panel, Select, Textarea } from "./ui";
-import { db } from "./api";
+import { db, readFilesAsText } from "./api";
+import { extractTextFromFiles } from "@/lib/file-text";
 import { Modal } from "./CasosSection";
 import { ComicCreator, ComicEditor, ComicReader, type ComicDoc } from "./ComicWorkspace";
 
@@ -361,6 +362,7 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
       {genVideo && (
         <VideoCreator
           meta={meta}
+          library={items.data ?? []}
           onClose={() => setGenVideo(false)}
           onSaved={() => {
             setGenVideo(false);
