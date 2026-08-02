@@ -396,7 +396,71 @@ Genera aproximadamente ${data.nodes} nodos conectados. Reglas estrictas:
     );
   });
 
+/* ------------------------------------------------------------------ */
+/*  CÓMIC ILIMITADO: continuación bajo demanda                         */
+/* ------------------------------------------------------------------ */
+
+const comicNodeSchema = comicSchema.shape.nodes.element;
+const comicChunkSchema = z.object({ nodes: z.array(comicNodeSchema) });
+
+export type AcademyComicNodes = z.infer<typeof comicChunkSchema>;
+
+/**
+ * Genera nuevos nodos que continúan una historia existente. Disponible para
+ * cualquier usuario autenticado: es lo que permite la lectura ilimitada
+ * (el cómic nunca se queda sin camino). No escribe en base de datos.
+ */
+export const continueComic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        logline: z.string().default(""),
+        style: z.string().default("cómic americano moderno, tinta gruesa, colores planos saturados"),
+        level: z.string().default("residentado"),
+        characters: z.string().default(""),
+        recap: z.string().default(""),
+        fromNode: z.string().default(""),
+        decision: z.string().default(""),
+        existingIds: z.array(z.string()).default([]),
+        count: z.number().default(3),
+        closeArc: z.boolean().default(false),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const count = Math.max(1, Math.min(6, Math.round(data.count)));
+    const taken = data.existingIds.slice(-120).join(", ");
+    return structured(
+      comicChunkSchema,
+      `Continúa un CÓMIC MÉDICO INTERACTIVO ramificado ya iniciado. Devuelve EXACTAMENTE ${count} nodos nuevos.
+Historia (logline): ${data.logline}
+Nivel: ${data.level}. Estilo gráfico: ${data.style}.
+Personajes: ${data.characters || "los ya establecidos"}
+Resumen de lo ocurrido: ${data.recap || "inicio de la historia"}
+Nodo actual: ${data.fromNode}
+Decisión que tomó el lector: ${data.decision || "avanzar"}
+IDs YA USADOS (prohibido repetirlos): ${taken || "ninguno"}
+
+Reglas estrictas:
+- El primer nodo devuelto es la consecuencia clínica directa de la decisión del lector.
+- IDs nuevos, cortos, kebab-case y ÚNICOS (añade sufijo numérico si hace falta). Nunca repitas un ID ya usado.
+- Cada nodo: 1-3 viñetas con caption (narrador), dialogue (o cadena vacía) e imagePrompt MUY detallado en inglés
+  en estilo ${data.style}, sin texto dentro de la imagen.
+- Cada nodo con decisión: question y 2-4 choices con next, correct (true/false) y feedback clínico razonado.
+- Los "next" deben apuntar a IDs de los nodos que devuelves ahora; el último nodo puede dejar next apuntando a un ID nuevo
+  aún no creado (la historia seguirá generándose después) y ending = null.
+${
+  data.closeArc
+    ? "- Cierra el arco: el último nodo tiene ending (desenlace + aprendizaje clínico) y choices vacío."
+    : "- No cierres la historia: mantén ending = null para que pueda continuar indefinidamente."
+}
+- Contenido clínicamente correcto según AAP/OMS/MINSA/Nelson y coherente con lo ya ocurrido.`,
+    );
+  });
+
 /** Genera la imagen de una viñeta y devuelve un data URL PNG. */
+
 export const generatePanelImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
