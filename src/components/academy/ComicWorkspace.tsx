@@ -32,6 +32,8 @@ export type ComicPanel = {
   dialogue: string;
   imagePrompt: string;
   imagePath?: string | null;
+  /** Imagen generada en vivo durante la lectura ilimitada (no persistida). */
+  imageDataUrl?: string | null;
 };
 export type ComicChoice = { text: string; next: string; correct: boolean; feedback: string };
 export type ComicNode = {
@@ -51,10 +53,14 @@ export type ComicDoc = {
   startId: string;
   nodes: ComicNode[];
   references: string[];
+  /** Historia sin final: se expande con IA a medida que el lector avanza. */
+  endless?: boolean;
+  level?: string;
 };
 
 const DEFAULT_STYLE =
   "modern American comic book art, bold ink lines, flat saturated colors, halftone shading, dramatic lighting";
+
 
 /* ------------------------------------------------------------------ */
 /*  Imagen firmada                                                     */
