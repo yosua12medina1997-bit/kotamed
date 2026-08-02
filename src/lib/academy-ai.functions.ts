@@ -466,14 +466,15 @@ export const generatePanelImage = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        prompt: z.string().min(3),
-        style: z.string().default("modern American comic book art, bold ink lines, flat saturated colors, halftone shading"),
+        prompt: z.string().min(3).max(2000),
+        style: z.string().max(600).default("modern American comic book art, bold ink lines, flat saturated colors, halftone shading"),
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+  // Autenticado (no solo admin): la lectura ilimitada ilustra viñetas nuevas en vivo.
+  .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
+
     if (!key) throw new Error("Falta LOVABLE_API_KEY.");
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
