@@ -12,6 +12,7 @@ import {
   Check,
   ChevronRight,
   ImageIcon,
+  Infinity as InfinityIcon,
   Plus,
   RotateCcw,
   Save,
@@ -21,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import type { EnamAreaMeta } from "@/lib/enam-modules";
-import { generateComic, generatePanelImage } from "@/lib/academy-ai.functions";
+import { generateComic, continueComic, generatePanelImage } from "@/lib/academy-ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "./ui";
 import { db } from "./api";
