@@ -277,21 +277,54 @@ const videoSchema = z.object({
   voiceOverNotes: z.string(),
   downloadables: z.array(z.string()),
   references: z.array(z.string()),
+  sourceMap: z.array(z.object({ claim: z.string(), source: z.string() })).nullable(),
 });
+
+const NOTEBOOK_SYSTEM = `${SYSTEM}
+
+MODO NOTEBOOK (estilo NotebookLM): trabajas EXCLUSIVAMENTE con las FUENTES que entrega el administrador.
+Reglas inviolables:
+- No inventes datos, cifras, dosis ni recomendaciones que no estén en las FUENTES.
+- Cada escena debe poder rastrearse a una fuente concreta; usa el nombre del documento fuente.
+- En "references" cita únicamente los documentos fuente entregados (con su nombre tal cual).
+- En "sourceMap" enumera las afirmaciones clave del guion y el documento fuente exacto que las respalda.
+- Si las FUENTES no cubren algo necesario, dilo explícitamente en voiceOverNotes en lugar de rellenarlo.`;
 
 export const generateVideoScript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ prompt: z.string().min(3), minutes: z.number().default(6) }).parse(input),
+    z
+      .object({
+        prompt: z.string().min(3),
+        minutes: z.number().default(6),
+        sources: z.string().optional(),
+        instruction: z.string().optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
+    const base = `Duración objetivo: ${data.minutes} minutos. Divide en 6-14 escenas con visual, animación sugerida,
+texto en pantalla, narración lista para voice-over y subtítulo. Añade notas de voz (tono, ritmo),
+material descargable sugerido y referencias.`;
+
+    if (data.sources && data.sources.trim().length >= 40) {
+      return structured(
+        videoSchema,
+        `Construye el storyboard completo de un video educativo médico sobre: "${data.prompt}".
+${data.instruction ? `Instrucción del administrador: ${data.instruction}\n` : ""}${base}
+
+=== FUENTES (usa solo esto) ===
+${data.sources.slice(0, 120000)}
+=== FIN FUENTES ===`,
+        NOTEBOOK_SYSTEM,
+      );
+    }
+
     return structured(
       videoSchema,
       `Construye el storyboard completo de un video educativo médico sobre: "${data.prompt}".
-Duración objetivo: ${data.minutes} minutos. Divide en 6-14 escenas con visual, animación sugerida,
-texto en pantalla, narración lista para voice-over y subtítulo. Añade notas de voz (tono, ritmo),
-material descargable sugerido y referencias.`,
+${data.instruction ? `Instrucción del administrador: ${data.instruction}\n` : ""}${base}`,
     );
   });
 
