@@ -277,21 +277,54 @@ const videoSchema = z.object({
   voiceOverNotes: z.string(),
   downloadables: z.array(z.string()),
   references: z.array(z.string()),
+  sourceMap: z.array(z.object({ claim: z.string(), source: z.string() })).nullable(),
 });
+
+const NOTEBOOK_SYSTEM = `${SYSTEM}
+
+MODO NOTEBOOK (estilo NotebookLM): trabajas EXCLUSIVAMENTE con las FUENTES que entrega el administrador.
+Reglas inviolables:
+- No inventes datos, cifras, dosis ni recomendaciones que no estén en las FUENTES.
+- Cada escena debe poder rastrearse a una fuente concreta; usa el nombre del documento fuente.
+- En "references" cita únicamente los documentos fuente entregados (con su nombre tal cual).
+- En "sourceMap" enumera las afirmaciones clave del guion y el documento fuente exacto que las respalda.
+- Si las FUENTES no cubren algo necesario, dilo explícitamente en voiceOverNotes en lugar de rellenarlo.`;
 
 export const generateVideoScript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z.object({ prompt: z.string().min(3), minutes: z.number().default(6) }).parse(input),
+    z
+      .object({
+        prompt: z.string().min(3),
+        minutes: z.number().default(6),
+        sources: z.string().optional(),
+        instruction: z.string().optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
+    const base = `Duración objetivo: ${data.minutes} minutos. Divide en 6-14 escenas con visual, animación sugerida,
+texto en pantalla, narración lista para voice-over y subtítulo. Añade notas de voz (tono, ritmo),
+material descargable sugerido y referencias.`;
+
+    if (data.sources && data.sources.trim().length >= 40) {
+      return structured(
+        videoSchema,
+        `Construye el storyboard completo de un video educativo médico sobre: "${data.prompt}".
+${data.instruction ? `Instrucción del administrador: ${data.instruction}\n` : ""}${base}
+
+=== FUENTES (usa solo esto) ===
+${data.sources.slice(0, 120000)}
+=== FIN FUENTES ===`,
+        NOTEBOOK_SYSTEM,
+      );
+    }
+
     return structured(
       videoSchema,
       `Construye el storyboard completo de un video educativo médico sobre: "${data.prompt}".
-Duración objetivo: ${data.minutes} minutos. Divide en 6-14 escenas con visual, animación sugerida,
-texto en pantalla, narración lista para voice-over y subtítulo. Añade notas de voz (tono, ritmo),
-material descargable sugerido y referencias.`,
+${data.instruction ? `Instrucción del administrador: ${data.instruction}\n` : ""}${base}`,
     );
   });
 
@@ -363,20 +396,85 @@ Genera aproximadamente ${data.nodes} nodos conectados. Reglas estrictas:
     );
   });
 
+/* ------------------------------------------------------------------ */
+/*  CÓMIC ILIMITADO: continuación bajo demanda                         */
+/* ------------------------------------------------------------------ */
+
+const comicNodeSchema = comicSchema.shape.nodes.element;
+const comicChunkSchema = z.object({ nodes: z.array(comicNodeSchema) });
+
+export type AcademyComicNodes = z.infer<typeof comicChunkSchema>;
+
+/**
+ * Genera nuevos nodos que continúan una historia existente. Disponible para
+ * cualquier usuario autenticado: es lo que permite la lectura ilimitada
+ * (el cómic nunca se queda sin camino). No escribe en base de datos.
+ */
+export const continueComic = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        logline: z.string().default(""),
+        style: z.string().default("cómic americano moderno, tinta gruesa, colores planos saturados"),
+        level: z.string().default("residentado"),
+        characters: z.string().default(""),
+        recap: z.string().default(""),
+        fromNode: z.string().default(""),
+        decision: z.string().default(""),
+        existingIds: z.array(z.string()).default([]),
+        count: z.number().default(3),
+        closeArc: z.boolean().default(false),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }) => {
+    const count = Math.max(1, Math.min(6, Math.round(data.count)));
+    const taken = data.existingIds.slice(-120).join(", ");
+    return structured(
+      comicChunkSchema,
+      `Continúa un CÓMIC MÉDICO INTERACTIVO ramificado ya iniciado. Devuelve EXACTAMENTE ${count} nodos nuevos.
+Historia (logline): ${data.logline}
+Nivel: ${data.level}. Estilo gráfico: ${data.style}.
+Personajes: ${data.characters || "los ya establecidos"}
+Resumen de lo ocurrido: ${data.recap || "inicio de la historia"}
+Nodo actual: ${data.fromNode}
+Decisión que tomó el lector: ${data.decision || "avanzar"}
+IDs YA USADOS (prohibido repetirlos): ${taken || "ninguno"}
+
+Reglas estrictas:
+- El primer nodo devuelto es la consecuencia clínica directa de la decisión del lector.
+- IDs nuevos, cortos, kebab-case y ÚNICOS (añade sufijo numérico si hace falta). Nunca repitas un ID ya usado.
+- Cada nodo: 1-3 viñetas con caption (narrador), dialogue (o cadena vacía) e imagePrompt MUY detallado en inglés
+  en estilo ${data.style}, sin texto dentro de la imagen.
+- Cada nodo con decisión: question y 2-4 choices con next, correct (true/false) y feedback clínico razonado.
+- Los "next" deben apuntar a IDs de los nodos que devuelves ahora; el último nodo puede dejar next apuntando a un ID nuevo
+  aún no creado (la historia seguirá generándose después) y ending = null.
+${
+  data.closeArc
+    ? "- Cierra el arco: el último nodo tiene ending (desenlace + aprendizaje clínico) y choices vacío."
+    : "- No cierres la historia: mantén ending = null para que pueda continuar indefinidamente."
+}
+- Contenido clínicamente correcto según AAP/OMS/MINSA/Nelson y coherente con lo ya ocurrido.`,
+    );
+  });
+
 /** Genera la imagen de una viñeta y devuelve un data URL PNG. */
+
 export const generatePanelImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
-        prompt: z.string().min(3),
-        style: z.string().default("modern American comic book art, bold ink lines, flat saturated colors, halftone shading"),
+        prompt: z.string().min(3).max(2000),
+        style: z.string().max(600).default("modern American comic book art, bold ink lines, flat saturated colors, halftone shading"),
       })
       .parse(input),
   )
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.supabase, context.userId);
+  // Autenticado (no solo admin): la lectura ilimitada ilustra viñetas nuevas en vivo.
+  .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
+
     if (!key) throw new Error("Falta LOVABLE_API_KEY.");
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

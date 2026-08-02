@@ -12,6 +12,7 @@ import {
   Check,
   ChevronRight,
   ImageIcon,
+  Infinity as InfinityIcon,
   Plus,
   RotateCcw,
   Save,
@@ -21,7 +22,7 @@ import {
   X,
 } from "lucide-react";
 import type { EnamAreaMeta } from "@/lib/enam-modules";
-import { generateComic, generatePanelImage } from "@/lib/academy-ai.functions";
+import { generateComic, continueComic, generatePanelImage } from "@/lib/academy-ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "./ui";
 import { db } from "./api";
@@ -32,6 +33,8 @@ export type ComicPanel = {
   dialogue: string;
   imagePrompt: string;
   imagePath?: string | null;
+  /** Imagen generada en vivo durante la lectura ilimitada (no persistida). */
+  imageDataUrl?: string | null;
 };
 export type ComicChoice = { text: string; next: string; correct: boolean; feedback: string };
 export type ComicNode = {
@@ -51,19 +54,31 @@ export type ComicDoc = {
   startId: string;
   nodes: ComicNode[];
   references: string[];
+  /** Historia sin final: se expande con IA a medida que el lector avanza. */
+  endless?: boolean;
+  level?: string;
 };
 
 const DEFAULT_STYLE =
   "modern American comic book art, bold ink lines, flat saturated colors, halftone shading, dramatic lighting";
 
+
 /* ------------------------------------------------------------------ */
 /*  Imagen firmada                                                     */
 /* ------------------------------------------------------------------ */
 
-export function PanelImage({ path, alt }: { path?: string | null; alt: string }) {
+export function PanelImage({
+  path,
+  alt,
+  dataUrl,
+}: {
+  path?: string | null;
+  alt: string;
+  dataUrl?: string | null;
+}) {
   const q = useQuery({
     queryKey: ["signed-comic", path],
-    enabled: !!path,
+    enabled: !!path && !dataUrl,
     staleTime: 50 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase.storage.from("content").createSignedUrl(path!, 3600);
@@ -71,7 +86,8 @@ export function PanelImage({ path, alt }: { path?: string | null; alt: string })
       return data.signedUrl;
     },
   });
-  if (!path)
+  const src = dataUrl || q.data;
+  if (!path && !dataUrl)
     return (
       <div className="aspect-[4/3] w-full rounded-xl border border-dashed border-border/60 bg-background/40 grid place-items-center text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
@@ -79,17 +95,18 @@ export function PanelImage({ path, alt }: { path?: string | null; alt: string })
         </span>
       </div>
     );
-  if (!q.data)
+  if (!src)
     return <div className="aspect-[4/3] w-full rounded-xl bg-foreground/5 animate-pulse" />;
   return (
     <img
-      src={q.data}
+      src={src}
       alt={alt}
       loading="lazy"
       className="aspect-[4/3] w-full rounded-xl object-cover border border-border/50"
     />
   );
 }
+
 
 async function uploadDataUrl(slug: string, dataUrl: string) {
   const blob = await (await fetch(dataUrl)).blob();
@@ -115,12 +132,14 @@ export function ComicCreator({
   onSaved: () => void;
 }) {
   const gen = useServerFn(generateComic);
+  const more = useServerFn(continueComic);
   const img = useServerFn(generatePanelImage);
   const [prompt, setPrompt] = useState("");
   const [level, setLevel] = useState("residentado");
-  const [nodes, setNodes] = useState(7);
+  const [nodes, setNodes] = useState(8);
   const [style, setStyle] = useState(DEFAULT_STYLE);
   const [withArt, setWithArt] = useState(true);
+  const [endless, setEndless] = useState(true);
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState("");
 
@@ -128,15 +147,55 @@ export function ComicCreator({
     if (!prompt.trim()) return toast.error("Escribe el tema del cómic.");
     setBusy(true);
     try {
+      const target = Math.max(3, Math.min(80, Math.round(nodes) || 8));
       setStep("Escribiendo la historia ramificada…");
-      const res: any = await gen({ data: { prompt, level, nodes, style } });
+      const res: any = await gen({
+        data: { prompt, level, nodes: Math.min(target, 8), style },
+      });
       const { title, ...rest } = res;
-      const doc: ComicDoc = { kind: "comic", ...rest, style: rest.style || style };
+      const doc: ComicDoc = {
+        kind: "comic",
+        ...rest,
+        style: rest.style || style,
+        endless,
+        level,
+      };
+
+      // Generación por lotes: sin techo real de nodos.
+      let guard = 0;
+      while (doc.nodes.length < target && guard < 30) {
+        guard++;
+        setStep(`Ampliando la historia… ${doc.nodes.length}/${target} nodos`);
+        const last = doc.nodes[doc.nodes.length - 1];
+        try {
+          const chunk: any = await more({
+            data: {
+              logline: doc.logline,
+              style: doc.style,
+              level,
+              characters: doc.characters.map((c) => `${c.name} (${c.role})`).join(", "),
+              recap: doc.nodes
+                .slice(-4)
+                .map((n) => `${n.title}: ${n.situation}`)
+                .join(" | "),
+              fromNode: `${last?.title ?? ""} — ${last?.situation ?? ""}`,
+              decision: last?.choices?.[0]?.text ?? "",
+              existingIds: doc.nodes.map((n) => n.id),
+              count: Math.min(4, target - doc.nodes.length),
+              closeArc: !endless && doc.nodes.length + 4 >= target,
+            },
+          });
+          const added = mergeNodes(doc, chunk?.nodes ?? []);
+          if (added === 0) break;
+        } catch {
+          break;
+        }
+      }
 
       if (withArt) {
-        const all = doc.nodes.flatMap((n) => n.panels.map((p) => ({ n, p })));
+        const all = doc.nodes.flatMap((n) => n.panels.map((p) => p));
         let i = 0;
-        for (const { p } of all) {
+        for (const p of all) {
           i++;
           setStep(`Ilustrando viñeta ${i} de ${all.length}…`);
           try {
@@ -156,7 +215,7 @@ export function ComicCreator({
         storyboard: doc,
       });
       if (error) throw new Error(error.message);
-      toast.success("Cómic interactivo creado");
+      toast.success(`Cómic interactivo creado (${doc.nodes.length} nodos)`);
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Error al generar");
@@ -186,11 +245,11 @@ export function ComicCreator({
               ))}
             </Select>
           </Field>
-          <Field label="Nodos de la historia">
+          <Field label="Nodos iniciales (se generan por lotes, sin límite)">
             <Input
               type="number"
               min={3}
-              max={14}
+              max={80}
               value={nodes}
               onChange={(e) => setNodes(Number(e.target.value))}
             />
@@ -199,6 +258,15 @@ export function ComicCreator({
         <Field label="Estilo gráfico">
           <Textarea value={style} onChange={(e) => setStyle(e.target.value)} />
         </Field>
+        <label className="flex items-center gap-2 text-xs font-semibold">
+          <input
+            type="checkbox"
+            checked={endless}
+            onChange={(e) => setEndless(e.target.checked)}
+            className="size-3.5"
+          />
+          Historia ilimitada: la IA sigue creando nodos mientras el lector avanza
+        </label>
         <label className="flex items-center gap-2 text-xs font-semibold">
           <input
             type="checkbox"
@@ -217,41 +285,202 @@ export function ComicCreator({
   );
 }
 
+/** Añade nodos nuevos evitando IDs duplicados. Devuelve cuántos entraron. */
+function mergeNodes(doc: ComicDoc, incoming: any[]): number {
+  const taken = new Set(doc.nodes.map((n) => n.id));
+  let added = 0;
+  for (const raw of incoming) {
+    if (!raw?.id) continue;
+    let id: string = String(raw.id);
+    if (taken.has(id)) {
+      let k = 2;
+      while (taken.has(`${id}-${k}`)) k++;
+      const old = id;
+      id = `${id}-${k}`;
+      for (const other of incoming) {
+        for (const c of other?.choices ?? []) if (c.next === old) c.next = id;
+      }
+    }
+    taken.add(id);
+    doc.nodes.push({
+      id,
+      title: raw.title ?? "Continuación",
+      situation: raw.situation ?? "",
+      panels: (raw.panels ?? []).map((p: any) => ({
+        caption: p.caption ?? "",
+        dialogue: p.dialogue ?? "",
+        imagePrompt: p.imagePrompt ?? "",
+        imagePath: null,
+      })),
+      question: raw.question ?? "",
+      choices: (raw.choices ?? []).map((c: any) => ({
+        text: c.text ?? "",
+        next: c.next ?? "",
+        correct: !!c.correct,
+        feedback: c.feedback ?? "",
+      })),
+      ending: raw.ending ?? null,
+    });
+    added++;
+  }
+  return added;
+}
+
 /* ------------------------------------------------------------------ */
-/*  Lector interactivo                                                 */
+/*  Lector interactivo (ilimitado)                                     */
 /* ------------------------------------------------------------------ */
 
-export function ComicReader({ doc, accent }: { doc: ComicDoc; accent: string }) {
-  const map = useMemo(() => new Map(doc.nodes.map((n) => [n.id, n])), [doc.nodes]);
+export function ComicReader({
+  doc,
+  accent,
+  isAdmin,
+  rowId,
+  areaSlug,
+}: {
+  doc: ComicDoc;
+  accent: string;
+  isAdmin?: boolean;
+  rowId?: string;
+  areaSlug?: string;
+}) {
+  const more = useServerFn(continueComic);
+  const img = useServerFn(generatePanelImage);
+  const [d, setD] = useState<ComicDoc>(() => JSON.parse(JSON.stringify(doc)));
   const [current, setCurrent] = useState(doc.startId || doc.nodes[0]?.id);
   const [path, setPath] = useState<string[]>([]);
   const [picked, setPicked] = useState<ComicChoice | null>(null);
   const [score, setScore] = useState({ ok: 0, total: 0 });
+  const [expanding, setExpanding] = useState(false);
+  const [note, setNote] = useState("");
+  const [endlessOn, setEndlessOn] = useState(doc.endless !== false);
+
+  const map = useMemo(() => new Map(d.nodes.map((n) => [n.id, n])), [d.nodes]);
 
   useEffect(() => {
+    setD(JSON.parse(JSON.stringify(doc)));
     setCurrent(doc.startId || doc.nodes[0]?.id);
     setPath([]);
     setPicked(null);
     setScore({ ok: 0, total: 0 });
+    setEndlessOn(doc.endless !== false);
   }, [doc]);
 
-  const node = map.get(current) ?? doc.nodes[0];
+  const node = map.get(current) ?? d.nodes[0];
+
+  /** Genera nodos nuevos, ilustra sus viñetas y devuelve el id de destino. */
+  const expand = async (from: ComicNode, decision: string, close = false) => {
+    setExpanding(true);
+    setNote("La IA está dibujando la continuación de la historia…");
+    try {
+      const visited = [...path, from.id].slice(-5);
+      const recap = visited
+        .map((id) => {
+          const n = map.get(id);
+          return n ? `${n.title}: ${n.situation}` : "";
+        })
+        .filter(Boolean)
+        .join(" | ");
+
+      const chunk: any = await more({
+        data: {
+          logline: d.logline ?? "",
+          style: d.style ?? DEFAULT_STYLE,
+          level: d.level ?? "residentado",
+          characters: (d.characters ?? []).map((c) => `${c.name} (${c.role})`).join(", "),
+          recap,
+          fromNode: `${from.title} — ${from.situation}`,
+          decision,
+          existingIds: d.nodes.map((n) => n.id),
+          count: 3,
+          closeArc: close,
+        },
+      });
+
+      const draft: ComicDoc = JSON.parse(JSON.stringify(d));
+      const before = draft.nodes.length;
+      const added = mergeNodes(draft, chunk?.nodes ?? []);
+      if (!added) throw new Error("La IA no devolvió nuevos nodos.");
+      const fresh = draft.nodes.slice(before);
+
+      // Ilustrar en vivo: los admins persisten en storage, el resto en memoria.
+      setNote("Ilustrando las nuevas viñetas…");
+      for (const n of fresh) {
+        for (const p of n.panels) {
+          if (!p.imagePrompt) continue;
+          try {
+            const { dataUrl } = await img({ data: { prompt: p.imagePrompt, style: draft.style } });
+            if (isAdmin && areaSlug) {
+              try {
+                p.imagePath = await uploadDataUrl(areaSlug, dataUrl);
+              } catch {
+                p.imageDataUrl = dataUrl;
+              }
+            } else {
+              p.imageDataUrl = dataUrl;
+            }
+          } catch {
+            /* sin ilustración */
+          }
+        }
+      }
+
+      setD(draft);
+
+      if (isAdmin && rowId) {
+        const clean: ComicDoc = {
+          ...draft,
+          nodes: draft.nodes.map((n) => ({
+            ...n,
+            panels: n.panels.map(({ imageDataUrl: _drop, ...p }) => p),
+          })),
+        };
+        await db.from("academy_video_scripts").update({ storyboard: clean }).eq("id", rowId);
+      }
+
+      return fresh[0]?.id ?? null;
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo continuar la historia");
+      return null;
+    } finally {
+      setExpanding(false);
+      setNote("");
+    }
+  };
+
   if (!node) return <Empty text="Este cómic no tiene nodos." />;
 
   const choose = (c: ComicChoice) => {
-    if (picked) return;
+    if (picked || expanding) return;
     setPicked(c);
     setScore((s) => ({ ok: s.ok + (c.correct ? 1 : 0), total: s.total + 1 }));
   };
-  const advance = () => {
-    if (!picked) return;
-    const next = map.get(picked.next) ? picked.next : null;
-    setPath((p) => [...p, node.id]);
+
+  const advance = async () => {
+    if (!picked || expanding) return;
+    const chosen = picked;
+    const from = node;
+    const known = map.get(chosen.next);
+    setPath((p) => [...p, from.id]);
     setPicked(null);
+    if (known) {
+      setCurrent(known.id);
+      return;
+    }
+    const next = await expand(from, chosen.text);
     if (next) setCurrent(next);
+    else setCurrent(from.id);
   };
+
+  const keepGoing = async () => {
+    const next = await expand(node, "continuar la historia más allá del desenlace");
+    if (next) {
+      setPath((p) => [...p, node.id]);
+      setCurrent(next);
+    }
+  };
+
   const restart = () => {
-    setCurrent(doc.startId || doc.nodes[0].id);
+    setCurrent(d.startId || d.nodes[0].id);
     setPath([]);
     setPicked(null);
     setScore({ ok: 0, total: 0 });
@@ -259,7 +488,6 @@ export function ComicReader({ doc, accent }: { doc: ComicDoc; accent: string }) 
 
   return (
     <div className="space-y-4 mx-auto w-full max-w-6xl">
-
       <div className="flex flex-wrap items-center gap-2">
         <Chip accent={accent}>
           <BookOpen className="size-3" /> Nodo {path.length + 1}
@@ -267,7 +495,12 @@ export function ComicReader({ doc, accent }: { doc: ComicDoc; accent: string }) 
         <Chip>
           Decisiones acertadas {score.ok}/{score.total}
         </Chip>
+        <Chip>{d.nodes.length} nodos generados</Chip>
+        {endlessOn && <Chip accent={accent}>Modo ilimitado</Chip>}
         <div className="flex-1" />
+        <Btn onClick={() => setEndlessOn((v) => !v)}>
+          <InfinityIcon className="size-3" /> {endlessOn ? "Desactivar" : "Activar"} ilimitado
+        </Btn>
         <Btn onClick={restart}>
           <RotateCcw className="size-3" /> Reiniciar
         </Btn>
@@ -280,7 +513,7 @@ export function ComicReader({ doc, accent }: { doc: ComicDoc; accent: string }) 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {node.panels.map((p, i) => (
             <figure key={i} className="rounded-2xl border border-border/50 bg-background/60 p-2">
-              <PanelImage path={p.imagePath} alt={p.caption} />
+              <PanelImage path={p.imagePath} dataUrl={p.imageDataUrl} alt={p.caption} />
               <figcaption className="mt-2 space-y-1 px-1 pb-1">
                 {p.caption && <p className="text-[11px] leading-relaxed">{p.caption}</p>}
                 {p.dialogue && (
@@ -296,14 +529,16 @@ export function ComicReader({ doc, accent }: { doc: ComicDoc; accent: string }) 
           ))}
         </div>
 
-        {node.ending ? (
+        {node.ending && !(endlessOn && node.choices.length === 0) ? (
           <div className="mt-4 rounded-2xl border border-border/60 bg-background/60 p-4">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Desenlace
             </p>
             <p className="mt-1 text-sm">{node.ending}</p>
           </div>
-        ) : (
+        ) : null}
+
+        {node.choices.length > 0 ? (
           <div className="mt-4">
             <p className="text-sm font-bold">{node.question}</p>
             <div className="mt-2 grid gap-2">
@@ -338,20 +573,32 @@ export function ComicReader({ doc, accent }: { doc: ComicDoc; accent: string }) 
             </div>
             {picked && (
               <div className="mt-3">
-                <Btn variant="solid" accent={accent} onClick={advance}>
+                <Btn variant="solid" accent={accent} loading={expanding} onClick={advance}>
                   Continuar <ChevronRight className="size-3" />
                 </Btn>
               </div>
             )}
           </div>
+        ) : (
+          endlessOn && (
+            <div className="mt-4">
+              <Btn variant="solid" accent={accent} loading={expanding} onClick={keepGoing}>
+                <InfinityIcon className="size-3" /> Seguir la historia
+              </Btn>
+            </div>
+          )
+        )}
+
+        {expanding && note && (
+          <p className="mt-3 text-[11px] font-semibold text-muted-foreground">{note}</p>
         )}
       </div>
 
-      {doc.references?.length > 0 && (
+      {d.references?.length > 0 && (
         <div className="text-[11px] text-muted-foreground">
           <p className="font-bold">Referencias</p>
           <ul className="mt-1 list-disc pl-4 space-y-0.5">
-            {doc.references.map((r, i) => (
+            {d.references.map((r, i) => (
               <li key={i}>{r}</li>
             ))}
           </ul>
@@ -360,6 +607,7 @@ export function ComicReader({ doc, accent }: { doc: ComicDoc; accent: string }) 
     </div>
   );
 }
+
 
 /* ------------------------------------------------------------------ */
 /*  Editor total                                                       */

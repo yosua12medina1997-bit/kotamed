@@ -23,7 +23,8 @@ import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { generateVideoScript } from "@/lib/academy-ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Btn, Chip, Empty, Field, Input, Panel, Select, Textarea } from "./ui";
-import { db } from "./api";
+import { db, readFilesAsText } from "./api";
+import { extractTextFromFiles } from "@/lib/file-text";
 import { Modal } from "./CasosSection";
 import { ComicCreator, ComicEditor, ComicReader, type ComicDoc } from "./ComicWorkspace";
 
@@ -361,6 +362,7 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
       {genVideo && (
         <VideoCreator
           meta={meta}
+          library={items.data ?? []}
           onClose={() => setGenVideo(false)}
           onSaved={() => {
             setGenVideo(false);
@@ -388,7 +390,14 @@ export function BibliotecaSection({ meta, isAdmin }: { meta: EnamAreaMeta; isAdm
 
       {openComic && (
         <Modal title={openComic.title} onClose={() => setOpenComic(null)} full>
-          <ComicReader doc={openComic.storyboard as ComicDoc} accent={accent} />
+          <ComicReader
+            doc={openComic.storyboard as ComicDoc}
+            accent={accent}
+            isAdmin={isAdmin}
+            rowId={openComic.id}
+            areaSlug={meta.slug}
+          />
+
         </Modal>
       )}
 
@@ -547,21 +556,77 @@ function VideoCreator({
   meta,
   onClose,
   onSaved,
+  library,
 }: {
   meta: EnamAreaMeta;
   onClose: () => void;
   onSaved: () => void;
+  library: Item[];
 }) {
   const gen = useServerFn(generateVideoScript);
   const [prompt, setPrompt] = useState("");
   const [minutes, setMinutes] = useState(6);
+  const [instruction, setInstruction] = useState(
+    "Explica el tema como una clase magistral con narración fluida, apoyos visuales y cierre de puntos clave.",
+  );
+  const [picked, setPicked] = useState<string[]>([]);
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [pasted, setPasted] = useState("");
   const [busy, setBusy] = useState(false);
+  const [step, setStep] = useState("");
+
+  const toggle = (id: string) =>
+    setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
+
+  /** Compila el corpus de fuentes: biblioteca seleccionada + archivos + texto. */
+  const buildSources = async () => {
+    const chunks: string[] = [];
+    for (const id of picked) {
+      const it = library.find((l) => l.id === id);
+      if (!it) continue;
+      const head = `### FUENTE: ${it.title}${it.author ? ` — ${it.author}` : ""}${
+        it.year ? ` (${it.year})` : ""
+      }`;
+      let body = it.summary ?? "";
+      if (it.storage_path) {
+        setStep(`Leyendo "${it.title}"…`);
+        try {
+          const { data, error } = await supabase.storage
+            .from("content")
+            .download(it.storage_path);
+          if (!error && data) {
+            const name = it.storage_path.split("/").pop() || it.title;
+            const text = await extractTextFromFiles([new File([data], name, { type: data.type })]);
+            if (text.trim()) body = text;
+          }
+        } catch {
+          /* se conserva el resumen */
+        }
+      }
+      chunks.push(`${head}\n${body || "(sin texto extraíble; usar solo metadatos)"}`);
+    }
+    if (files && files.length > 0) {
+      setStep("Leyendo documentos subidos…");
+      const text = await readFilesAsText(files);
+      if (text.trim()) chunks.push(`### FUENTE: documentos subidos\n${text}`);
+    }
+    if (pasted.trim()) chunks.push(`### FUENTE: notas del docente\n${pasted.trim()}`);
+    return chunks.join("\n\n");
+  };
 
   const run = async () => {
     if (!prompt.trim()) return toast.error("Escribe el tema del video.");
     setBusy(true);
     try {
-      const res: any = await gen({ data: { prompt, minutes } });
+      const sources = await buildSources();
+      setStep(
+        sources
+          ? "Construyendo el video a partir de tus fuentes…"
+          : "Construyendo el storyboard…",
+      );
+      const res: any = await gen({
+        data: { prompt, minutes, instruction, sources: sources.slice(0, 120000) },
+      });
       const { title, ...storyboard } = res;
       const { error } = await db.from("academy_video_scripts").insert({
         area_slug: meta.slug,
@@ -570,17 +635,18 @@ function VideoCreator({
         storyboard,
       });
       if (error) throw new Error(error.message);
-      toast.success("Storyboard generado");
+      toast.success(sources ? "Video generado desde tus fuentes" : "Storyboard generado");
       onSaved();
     } catch (e: any) {
       toast.error(e?.message ?? "Error al generar");
     } finally {
       setBusy(false);
+      setStep("");
     }
   };
 
   return (
-    <Modal title="Generador de videos IA" onClose={onClose}>
+    <Modal title="Generador de videos IA · modo Notebook" onClose={onClose} wide>
       <div className="space-y-3">
         <Field label="Tema">
           <Input
@@ -589,22 +655,81 @@ function VideoCreator({
             placeholder='Ej. "Reanimación neonatal"'
           />
         </Field>
-        <Field label="Duración (minutos)">
-          <Input
-            type="number"
-            min={2}
-            max={30}
-            value={minutes}
-            onChange={(e) => setMinutes(Number(e.target.value))}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Duración (minutos)">
+            <Input
+              type="number"
+              min={2}
+              max={30}
+              value={minutes}
+              onChange={(e) => setMinutes(Number(e.target.value))}
+            />
+          </Field>
+          <Field label="Documentos externos (PDF, DOCX, TXT)">
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.txt,.md"
+              onChange={(e) => setFiles(e.target.files)}
+              className="w-full text-[11px]"
+            />
+          </Field>
+        </div>
+        <Field label="Instrucción de producción">
+          <Textarea value={instruction} onChange={(e) => setInstruction(e.target.value)} />
+        </Field>
+        <Field label={`Fuentes de la biblioteca (${picked.length} seleccionadas)`}>
+          <div className="max-h-44 overflow-auto rounded-xl border border-border/50 bg-background/40 p-2 space-y-1">
+            {library.length === 0 ? (
+              <p className="text-[11px] text-muted-foreground">
+                Aún no hay material indexado en esta área.
+              </p>
+            ) : (
+              library.map((it) => (
+                <label
+                  key={it.id}
+                  className="flex items-start gap-2 rounded-lg px-2 py-1 text-[11px] hover:bg-foreground/5"
+                >
+                  <input
+                    type="checkbox"
+                    checked={picked.includes(it.id)}
+                    onChange={() => toggle(it.id)}
+                    className="mt-0.5 size-3.5"
+                  />
+                  <span>
+                    <span className="font-semibold">{it.title}</span>{" "}
+                    <span className="text-muted-foreground">
+                      · {it.kind}
+                      {it.author ? ` · ${it.author}` : ""}
+                      {it.year ? ` · ${it.year}` : ""}
+                      {it.storage_path ? " · archivo" : ""}
+                    </span>
+                  </span>
+                </label>
+              ))
+            )}
+          </div>
+        </Field>
+        <Field label="Notas o texto adicional (opcional)">
+          <Textarea
+            value={pasted}
+            onChange={(e) => setPasted(e.target.value)}
+            placeholder="Pega aquí guías, apuntes o fragmentos que la IA debe usar como fuente."
           />
         </Field>
+        <p className="text-[11px] text-muted-foreground">
+          Con fuentes seleccionadas, la IA se limita a ellas (modo Notebook). Sin fuentes, genera
+          desde su conocimiento clínico general.
+        </p>
+        {busy && step && <p className="text-[11px] text-muted-foreground">{step}</p>}
         <Btn variant="solid" accent={meta.accent} loading={busy} onClick={run}>
-          <Sparkles className="size-3" /> Construir storyboard
+          <Sparkles className="size-3" /> Construir video
         </Btn>
       </div>
     </Modal>
   );
 }
+
 
 function StoryboardView({
   content,
