@@ -66,10 +66,18 @@ const DEFAULT_STYLE =
 /*  Imagen firmada                                                     */
 /* ------------------------------------------------------------------ */
 
-export function PanelImage({ path, alt }: { path?: string | null; alt: string }) {
+export function PanelImage({
+  path,
+  alt,
+  dataUrl,
+}: {
+  path?: string | null;
+  alt: string;
+  dataUrl?: string | null;
+}) {
   const q = useQuery({
     queryKey: ["signed-comic", path],
-    enabled: !!path,
+    enabled: !!path && !dataUrl,
     staleTime: 50 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase.storage.from("content").createSignedUrl(path!, 3600);
@@ -77,7 +85,8 @@ export function PanelImage({ path, alt }: { path?: string | null; alt: string })
       return data.signedUrl;
     },
   });
-  if (!path)
+  const src = dataUrl || q.data;
+  if (!path && !dataUrl)
     return (
       <div className="aspect-[4/3] w-full rounded-xl border border-dashed border-border/60 bg-background/40 grid place-items-center text-[11px] text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
@@ -85,17 +94,18 @@ export function PanelImage({ path, alt }: { path?: string | null; alt: string })
         </span>
       </div>
     );
-  if (!q.data)
+  if (!src)
     return <div className="aspect-[4/3] w-full rounded-xl bg-foreground/5 animate-pulse" />;
   return (
     <img
-      src={q.data}
+      src={src}
       alt={alt}
       loading="lazy"
       className="aspect-[4/3] w-full rounded-xl object-cover border border-border/50"
     />
   );
 }
+
 
 async function uploadDataUrl(slug: string, dataUrl: string) {
   const blob = await (await fetch(dataUrl)).blob();
