@@ -499,7 +499,7 @@ export function ComicReader({
         {endlessOn && <Chip accent={accent}>Modo ilimitado</Chip>}
         <div className="flex-1" />
         <Btn onClick={() => setEndlessOn((v) => !v)}>
-          <Infinity className="size-3" /> {endlessOn ? "Desactivar" : "Activar"} ilimitado
+          <InfinityIcon className="size-3" /> {endlessOn ? "Desactivar" : "Activar"} ilimitado
         </Btn>
         <Btn onClick={restart}>
           <RotateCcw className="size-3" /> Reiniciar
@@ -583,7 +583,7 @@ export function ComicReader({
           endlessOn && (
             <div className="mt-4">
               <Btn variant="solid" accent={accent} loading={expanding} onClick={keepGoing}>
-                <Infinity className="size-3" /> Seguir la historia
+                <InfinityIcon className="size-3" /> Seguir la historia
               </Btn>
             </div>
           )
