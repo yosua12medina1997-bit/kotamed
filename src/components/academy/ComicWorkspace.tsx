@@ -84,10 +84,15 @@ export function PanelImage({
   path,
   alt,
   dataUrl,
+  pending,
+  onPendingClick,
 }: {
   path?: string | null;
   alt: string;
   dataUrl?: string | null;
+  /** La ilustración está en cola (créditos IA en pausa). */
+  pending?: boolean;
+  onPendingClick?: () => void;
 }) {
   const q = useQuery({
     queryKey: ["signed-comic", path],
@@ -100,6 +105,23 @@ export function PanelImage({
     },
   });
   const src = dataUrl || q.data;
+  if (!path && !dataUrl && pending)
+    return (
+      <button
+        type="button"
+        onClick={onPendingClick}
+        className="aspect-[4/3] w-full rounded-xl border border-dashed border-primary/40 bg-primary/5 grid place-items-center px-3 text-center transition hover:bg-primary/10"
+      >
+        <span className="space-y-1">
+          <span className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-primary">
+            <Wand2 className="size-3.5" /> Ilustración en cola
+          </span>
+          <span className="block text-[10px] leading-snug text-muted-foreground">
+            La historia continúa. Esta viñeta se dibujará automáticamente.
+          </span>
+        </span>
+      </button>
+    );
   if (!path && !dataUrl)
     return (
       <div className="aspect-[4/3] w-full rounded-xl border border-dashed border-border/60 bg-background/40 grid place-items-center text-[11px] text-muted-foreground">
@@ -110,6 +132,7 @@ export function PanelImage({
     );
   if (!src)
     return <div className="aspect-[4/3] w-full rounded-xl bg-foreground/5 animate-pulse" />;
+
   return (
     <img
       src={src}
