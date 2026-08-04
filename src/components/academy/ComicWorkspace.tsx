@@ -474,7 +474,7 @@ export function ComicReader({
           continue;
         }
         setDrawing((n) => n + 1);
-        const ok = await art.illustrate(p.imagePrompt, d.style ?? DEFAULT_STYLE, (dataUrl) =>
+        const ok = await art.illustrate(p.imagePrompt, d.style ?? DEFAULT_STYLE, (dataUrl: string) =>
           applyArt(target.id, i, dataUrl),
         );
         setDrawing((n) => Math.max(0, n - 1));
