@@ -35,7 +35,10 @@ export type ComicPanel = {
   imagePath?: string | null;
   /** Imagen generada en vivo durante la lectura ilimitada (no persistida). */
   imageDataUrl?: string | null;
+  /** La ilustración está en cola y se completará cuando haya recursos. */
+  pendingArt?: boolean;
 };
+
 export type ComicChoice = { text: string; next: string; correct: boolean; feedback: string };
 export type ComicNode = {
   id: string;
