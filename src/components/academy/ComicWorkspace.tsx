@@ -229,18 +229,34 @@ export function ComicCreator({
       }
 
       if (withArt) {
-        const all = doc.nodes.flatMap((n) => n.panels.map((p) => p));
+        // Render progresivo y económico: se ilustran los primeros nodos y el
+        // resto queda pendiente para dibujarse durante la lectura.
+        const illustrator = createIllustrator(img as any);
+        const eager = doc.nodes.slice(0, 3).flatMap((n) => n.panels);
+        const later = doc.nodes.slice(3).flatMap((n) => n.panels);
         let i = 0;
-        for (const p of all) {
+        let degraded = false;
+        for (const p of eager) {
           i++;
-          setStep(`Ilustrando viñeta ${i} de ${all.length}…`);
-          try {
-            const { dataUrl } = await img({ data: { prompt: p.imagePrompt, style: doc.style } });
-            p.imagePath = await uploadDataUrl(meta.slug, dataUrl);
-          } catch {
-            p.imagePath = null;
+          setStep(`Ilustrando viñeta ${i} de ${eager.length}…`);
+          if (!p.imagePrompt) continue;
+          const ok = await illustrator.illustrate(p.imagePrompt, doc.style, async (dataUrl) => {
+            try {
+              p.imagePath = await uploadDataUrl(meta.slug, dataUrl);
+            } catch {
+              p.imagePath = null;
+            }
+          });
+          if (!ok) {
+            p.pendingArt = true;
+            degraded = true;
           }
         }
+        for (const p of later) p.pendingArt = !!p.imagePrompt;
+        if (degraded)
+          toast.info(
+            "Historia completa. Algunas ilustraciones quedaron en cola y se completarán automáticamente.",
+          );
       }
 
       setStep("Guardando…");
@@ -254,7 +270,8 @@ export function ComicCreator({
       toast.success(`Cómic interactivo creado (${doc.nodes.length} nodos)`);
       onSaved();
     } catch (e: any) {
-      toast.error(e?.message ?? "Error al generar");
+      toast.error(friendlyAiError(e));
+
     } finally {
       setBusy(false);
       setStep("");
