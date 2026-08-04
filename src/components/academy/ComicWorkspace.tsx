@@ -24,9 +24,19 @@ import {
 import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { generateComic, continueComic, generatePanelImage } from "@/lib/academy-ai.functions";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  createIllustrator,
+  friendlyAiError,
+  getCachedPanel,
+  loadProgress,
+  pruneNodes,
+  saveProgress,
+  type CreditState,
+} from "@/lib/comic-engine";
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "./ui";
 import { db } from "./api";
 import { Modal } from "./CasosSection";
+
 
 export type ComicPanel = {
   caption: string;
