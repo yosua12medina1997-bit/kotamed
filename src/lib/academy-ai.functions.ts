@@ -459,7 +459,18 @@ ${
     );
   });
 
-/** Genera la imagen de una viñeta y devuelve un data URL PNG. */
+/**
+ * Genera la imagen de una viñeta. NUNCA lanza por límites del proveedor:
+ * devuelve un resultado tipado para que la narrativa siga sin interrupciones.
+ * Incluye reintentos internos con backoff.
+ */
+export type PanelImageResult = {
+  dataUrl: string | null;
+  /** ok | quota (créditos agotados) | rate (límite temporal) | error */
+  status: "ok" | "quota" | "rate" | "error";
+  /** Segundos sugeridos antes de reintentar (solo rate/quota). */
+  retryAfter?: number;
+};
 
 export const generatePanelImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -472,32 +483,54 @@ export const generatePanelImage = createServerFn({ method: "POST" })
       .parse(input),
   )
   // Autenticado (no solo admin): la lectura ilimitada ilustra viñetas nuevas en vivo.
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<PanelImageResult> => {
     const key = process.env.LOVABLE_API_KEY;
+    if (!key) return { dataUrl: null, status: "error" };
 
-    if (!key) throw new Error("Falta LOVABLE_API_KEY.");
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        modalities: ["image", "text"],
-        messages: [
-          {
-            role: "user",
-            content: `${data.style}. Single comic panel, no speech bubbles, no lettering, no watermark. Scene: ${data.prompt}`,
-          },
-        ],
-      }),
-    });
-    if (res.status === 429) throw new Error("Límite de solicitudes alcanzado. Intenta en unos minutos.");
-    if (res.status === 402) throw new Error("Créditos de IA agotados.");
-    if (!res.ok) throw new Error(`Error de imagen (${res.status}): ${(await res.text()).slice(0, 200)}`);
-    const json: any = await res.json();
-    const url = json?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!url) throw new Error("La IA no devolvió imagen.");
-    return { dataUrl: url as string };
+    const models = ["google/gemini-2.5-flash-image", "google/gemini-3.1-flash-image"];
+    let last: PanelImageResult = { dataUrl: null, status: "error" };
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const model = models[Math.min(attempt, models.length - 1)]!;
+      try {
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
+          body: JSON.stringify({
+            model,
+            modalities: ["image", "text"],
+            messages: [
+              {
+                role: "user",
+                content: `${data.style}. Single comic panel, no speech bubbles, no lettering, no watermark. Scene: ${data.prompt}`,
+              },
+            ],
+          }),
+        });
+
+        if (res.status === 402) return { dataUrl: null, status: "quota", retryAfter: 900 };
+        if (res.status === 429) {
+          const ra = Number(res.headers.get("retry-after") ?? 0) || 20;
+          last = { dataUrl: null, status: "rate", retryAfter: ra };
+          await new Promise((r) => setTimeout(r, Math.min(4000, 800 * (attempt + 1))));
+          continue;
+        }
+        if (!res.ok) {
+          last = { dataUrl: null, status: res.status >= 500 ? "rate" : "error", retryAfter: 15 };
+          await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+          continue;
+        }
+        const json: any = await res.json();
+        const url = json?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        if (typeof url === "string" && url.length > 0) return { dataUrl: url, status: "ok" };
+        last = { dataUrl: null, status: "error" };
+      } catch {
+        last = { dataUrl: null, status: "rate", retryAfter: 15 };
+      }
+    }
+    return last;
   });
+
 
 
 /* ------------------------------------------------------------------ */
