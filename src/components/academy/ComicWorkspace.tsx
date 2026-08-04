@@ -627,6 +627,12 @@ export function ComicReader({
     setScore({ ok: 0, total: 0 });
   };
 
+  const resumeNow = () => {
+    if (!resumeOffer) return;
+    if (map.get(resumeOffer)) setCurrent(resumeOffer);
+    setResumeOffer(null);
+  };
+
   return (
     <div className="space-y-4 mx-auto w-full max-w-6xl">
       <div className="flex flex-wrap items-center gap-2">
@@ -636,8 +642,14 @@ export function ComicReader({
         <Chip>
           Decisiones acertadas {score.ok}/{score.total}
         </Chip>
-        <Chip>{d.nodes.length} nodos generados</Chip>
+        <Chip>{d.nodes.length} nodos vivos</Chip>
         {endlessOn && <Chip accent={accent}>Modo ilimitado</Chip>}
+        {drawing > 0 && <Chip>Dibujando {drawing} viñeta(s)…</Chip>}
+        {queued > 0 && (
+          <button type="button" onClick={() => setShowPremium(true)}>
+            <Chip>{queued} ilustración(es) en cola</Chip>
+          </button>
+        )}
         <div className="flex-1" />
         <Btn onClick={() => setEndlessOn((v) => !v)}>
           <InfinityIcon className="size-3" /> {endlessOn ? "Desactivar" : "Activar"} ilimitado
@@ -647,6 +659,40 @@ export function ComicReader({
         </Btn>
       </div>
 
+      {credit !== "ok" && (
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-[11px] leading-relaxed">
+          <p className="font-bold text-primary">
+            {credit === "exhausted"
+              ? "Modo narrativo activo"
+              : "Ilustración en pausa breve"}
+          </p>
+          <p className="mt-0.5 text-muted-foreground">
+            {credit === "exhausted"
+              ? "Las ilustraciones se están generando por lotes; la historia y las decisiones siguen funcionando al 100 %."
+              : "Estamos regulando el ritmo de dibujo. Las viñetas pendientes se completarán automáticamente."}{" "}
+            <button
+              type="button"
+              onClick={() => setShowPremium(true)}
+              className="font-bold text-primary underline underline-offset-2"
+            >
+              Más detalles
+            </button>
+          </p>
+        </div>
+      )}
+
+      {resumeOffer && (
+        <div className="rounded-2xl border border-border/60 bg-background/60 px-4 py-3 flex flex-wrap items-center gap-3">
+          <p className="text-[11px] font-semibold flex-1">
+            Tienes una lectura en curso guardada. ¿Continuar donde lo dejaste?
+          </p>
+          <Btn variant="solid" accent={accent} onClick={resumeNow}>
+            Reanudar
+          </Btn>
+          <Btn onClick={() => setResumeOffer(null)}>Empezar de nuevo</Btn>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-border/50 bg-background/40 p-4">
         <h3 className="text-base font-extrabold tracking-tight">{node.title}</h3>
         <p className="mt-1 text-xs text-muted-foreground">{node.situation}</p>
@@ -654,7 +700,16 @@ export function ComicReader({
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {node.panels.map((p, i) => (
             <figure key={i} className="rounded-2xl border border-border/50 bg-background/60 p-2">
-              <PanelImage path={p.imagePath} dataUrl={p.imageDataUrl} alt={p.caption} />
+              <PanelImage
+                path={p.imagePath}
+                dataUrl={p.imageDataUrl}
+                alt={p.caption}
+                pending={!!p.pendingArt}
+                onPendingClick={() => {
+                  void artRef.current.drain();
+                  setShowPremium(true);
+                }}
+              />
               <figcaption className="mt-2 space-y-1 px-1 pb-1">
                 {p.caption && <p className="text-[11px] leading-relaxed">{p.caption}</p>}
                 {p.dialogue && (
@@ -669,6 +724,7 @@ export function ComicReader({
             </figure>
           ))}
         </div>
+
 
         {node.ending && !(endlessOn && node.choices.length === 0) ? (
           <div className="mt-4 rounded-2xl border border-border/60 bg-background/60 p-4">
