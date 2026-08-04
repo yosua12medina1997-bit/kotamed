@@ -804,15 +804,27 @@ export function ComicEditor({
     if (!p.imagePrompt.trim()) return toast.error("Escribe la descripción visual primero.");
     setGen(`${sel}-${pi}`);
     try {
-      const { dataUrl } = await img({ data: { prompt: p.imagePrompt, style: d.style } });
-      const path = await uploadDataUrl(meta.slug, dataUrl);
+      const res: any = await img({ data: { prompt: p.imagePrompt, style: d.style } });
+      if (!res?.dataUrl) {
+        const panels = [...node.panels];
+        panels[pi] = { ...p, pendingArt: true };
+        patchNode({ panels });
+        toast.info(
+          res?.status === "quota"
+            ? "Los recursos de IA para imágenes están en pausa. La viñeta quedó marcada como pendiente."
+            : "No se pudo ilustrar ahora; la viñeta quedó pendiente. Reinténtalo en un momento.",
+        );
+        return;
+      }
+      const path = await uploadDataUrl(meta.slug, res.dataUrl as string);
       const panels = [...node.panels];
-      panels[pi] = { ...p, imagePath: path };
+      panels[pi] = { ...p, imagePath: path, pendingArt: false };
       patchNode({ panels });
       toast.success("Viñeta ilustrada");
     } catch (e: any) {
-      toast.error(e?.message ?? "No se pudo ilustrar");
+      toast.error(friendlyAiError(e));
     } finally {
+
       setGen(null);
     }
   };
