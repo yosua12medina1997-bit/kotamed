@@ -3,7 +3,7 @@
  * del usuario e edición total (nodos, viñetas, diálogos, opciones e imágenes).
  * Las imágenes se generan con IA y se guardan en el bucket privado "content".
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -24,9 +24,19 @@ import {
 import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { generateComic, continueComic, generatePanelImage } from "@/lib/academy-ai.functions";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  createIllustrator,
+  friendlyAiError,
+  getCachedPanel,
+  loadProgress,
+  pruneNodes,
+  saveProgress,
+  type CreditState,
+} from "@/lib/comic-engine";
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "./ui";
 import { db } from "./api";
 import { Modal } from "./CasosSection";
+
 
 export type ComicPanel = {
   caption: string;
@@ -35,7 +45,10 @@ export type ComicPanel = {
   imagePath?: string | null;
   /** Imagen generada en vivo durante la lectura ilimitada (no persistida). */
   imageDataUrl?: string | null;
+  /** La ilustración está en cola y se completará cuando haya recursos. */
+  pendingArt?: boolean;
 };
+
 export type ComicChoice = { text: string; next: string; correct: boolean; feedback: string };
 export type ComicNode = {
   id: string;
@@ -71,10 +84,15 @@ export function PanelImage({
   path,
   alt,
   dataUrl,
+  pending,
+  onPendingClick,
 }: {
   path?: string | null;
   alt: string;
   dataUrl?: string | null;
+  /** La ilustración está en cola (créditos IA en pausa). */
+  pending?: boolean;
+  onPendingClick?: () => void;
 }) {
   const q = useQuery({
     queryKey: ["signed-comic", path],
@@ -87,6 +105,23 @@ export function PanelImage({
     },
   });
   const src = dataUrl || q.data;
+  if (!path && !dataUrl && pending)
+    return (
+      <button
+        type="button"
+        onClick={onPendingClick}
+        className="aspect-[4/3] w-full rounded-xl border border-dashed border-primary/40 bg-primary/5 grid place-items-center px-3 text-center transition hover:bg-primary/10"
+      >
+        <span className="space-y-1">
+          <span className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-primary">
+            <Wand2 className="size-3.5" /> Ilustración en cola
+          </span>
+          <span className="block text-[10px] leading-snug text-muted-foreground">
+            La historia continúa. Esta viñeta se dibujará automáticamente.
+          </span>
+        </span>
+      </button>
+    );
   if (!path && !dataUrl)
     return (
       <div className="aspect-[4/3] w-full rounded-xl border border-dashed border-border/60 bg-background/40 grid place-items-center text-[11px] text-muted-foreground">
@@ -97,6 +132,7 @@ export function PanelImage({
     );
   if (!src)
     return <div className="aspect-[4/3] w-full rounded-xl bg-foreground/5 animate-pulse" />;
+
   return (
     <img
       src={src}
@@ -193,18 +229,34 @@ export function ComicCreator({
       }
 
       if (withArt) {
-        const all = doc.nodes.flatMap((n) => n.panels.map((p) => p));
+        // Render progresivo y económico: se ilustran los primeros nodos y el
+        // resto queda pendiente para dibujarse durante la lectura.
+        const illustrator = createIllustrator(img as any);
+        const eager = doc.nodes.slice(0, 3).flatMap((n) => n.panels);
+        const later = doc.nodes.slice(3).flatMap((n) => n.panels);
         let i = 0;
-        for (const p of all) {
+        let degraded = false;
+        for (const p of eager) {
           i++;
-          setStep(`Ilustrando viñeta ${i} de ${all.length}…`);
-          try {
-            const { dataUrl } = await img({ data: { prompt: p.imagePrompt, style: doc.style } });
-            p.imagePath = await uploadDataUrl(meta.slug, dataUrl);
-          } catch {
-            p.imagePath = null;
+          setStep(`Ilustrando viñeta ${i} de ${eager.length}…`);
+          if (!p.imagePrompt) continue;
+          const ok = await illustrator.illustrate(p.imagePrompt, doc.style, async (dataUrl) => {
+            try {
+              p.imagePath = await uploadDataUrl(meta.slug, dataUrl);
+            } catch {
+              p.imagePath = null;
+            }
+          });
+          if (!ok) {
+            p.pendingArt = true;
+            degraded = true;
           }
         }
+        for (const p of later) p.pendingArt = !!p.imagePrompt;
+        if (degraded)
+          toast.info(
+            "Historia completa. Algunas ilustraciones quedaron en cola y se completarán automáticamente.",
+          );
       }
 
       setStep("Guardando…");
@@ -218,7 +270,8 @@ export function ComicCreator({
       toast.success(`Cómic interactivo creado (${doc.nodes.length} nodos)`);
       onSaved();
     } catch (e: any) {
-      toast.error(e?.message ?? "Error al generar");
+      toast.error(friendlyAiError(e));
+
     } finally {
       setBusy(false);
       setStep("");
@@ -353,6 +406,19 @@ export function ComicReader({
   const [expanding, setExpanding] = useState(false);
   const [note, setNote] = useState("");
   const [endlessOn, setEndlessOn] = useState(doc.endless !== false);
+  const [credit, setCredit] = useState<CreditState>("ok");
+  const [queued, setQueued] = useState(0);
+  const [showPremium, setShowPremium] = useState(false);
+  const [drawing, setDrawing] = useState(0);
+  const [resumeOffer, setResumeOffer] = useState<string | null>(null);
+
+  /** Motor de ilustración desacoplado: caché, reintentos y cola. */
+  const artRef = useRef(
+    createIllustrator(img as any, {
+      onCredit: (state) => setCredit(state),
+      onQueue: (pending) => setQueued(pending),
+    }),
+  );
 
   const map = useMemo(() => new Map(d.nodes.map((n) => [n.id, n])), [d.nodes]);
 
@@ -363,14 +429,92 @@ export function ComicReader({
     setPicked(null);
     setScore({ ok: 0, total: 0 });
     setEndlessOn(doc.endless !== false);
-  }, [doc]);
+    const saved = rowId ? loadProgress(rowId) : null;
+    setResumeOffer(saved && saved.current !== (doc.startId || doc.nodes[0]?.id) ? saved.current : null);
+  }, [doc, rowId]);
 
   const node = map.get(current) ?? d.nodes[0];
 
-  /** Genera nodos nuevos, ilustra sus viñetas y devuelve el id de destino. */
+  // Reanudación: guarda el avance del lector.
+  useEffect(() => {
+    if (rowId && current) saveProgress(rowId, { current, path, score });
+  }, [rowId, current, path, score]);
+
+  /** Aplica una ilustración recibida al panel identificado por su prompt. */
+  const applyArt = useCallback(
+    (nodeId: string, panelIndex: number, dataUrl: string) => {
+      setD((prev) => ({
+        ...prev,
+        nodes: prev.nodes.map((n) =>
+          n.id !== nodeId
+            ? n
+            : {
+                ...n,
+                panels: n.panels.map((p, i) =>
+                  i !== panelIndex ? p : { ...p, imageDataUrl: dataUrl, pendingArt: false },
+                ),
+              },
+        ),
+      }));
+    },
+    [],
+  );
+
+  /** Ilustración perezosa: solo el nodo visible y el siguiente probable. */
+  const illustrateNode = useCallback(
+    async (target?: ComicNode) => {
+      if (!target) return;
+      const art = artRef.current;
+      for (let i = 0; i < target.panels.length; i++) {
+        const p = target.panels[i]!;
+        if (!p.imagePrompt || p.imagePath || p.imageDataUrl) continue;
+        const cached = getCachedPanel(p.imagePrompt, d.style ?? DEFAULT_STYLE);
+        if (cached) {
+          applyArt(target.id, i, cached);
+          continue;
+        }
+        setDrawing((n) => n + 1);
+        const ok = await art.illustrate(p.imagePrompt, d.style ?? DEFAULT_STYLE, (dataUrl: string) =>
+          applyArt(target.id, i, dataUrl),
+        );
+        setDrawing((n) => Math.max(0, n - 1));
+        if (!ok) {
+          setD((prev) => ({
+            ...prev,
+            nodes: prev.nodes.map((n) =>
+              n.id !== target.id
+                ? n
+                : {
+                    ...n,
+                    panels: n.panels.map((pp, ii) =>
+                      ii !== i ? pp : { ...pp, pendingArt: true },
+                    ),
+                  },
+            ),
+          }));
+        }
+      }
+    },
+    [applyArt, d.style],
+  );
+
+  // Dispara la ilustración del nodo actual al entrar (lazy, coste mínimo).
+  useEffect(() => {
+    void illustrateNode(node);
+  }, [node?.id, illustrateNode]);
+
+  // Cola de render: reintenta pendientes en segundo plano cuando hay recursos.
+  useEffect(() => {
+    const t = setInterval(() => {
+      void artRef.current.drain();
+    }, 15000);
+    return () => clearInterval(t);
+  }, []);
+
+  /** Genera nodos nuevos (solo narrativa) y devuelve el id de destino. */
   const expand = async (from: ComicNode, decision: string, close = false) => {
     setExpanding(true);
-    setNote("La IA está dibujando la continuación de la historia…");
+    setNote("Escribiendo la continuación de la historia…");
     try {
       const visited = [...path, from.id].slice(-5);
       const recap = visited
@@ -381,48 +525,44 @@ export function ComicReader({
         .filter(Boolean)
         .join(" | ");
 
-      const chunk: any = await more({
-        data: {
-          logline: d.logline ?? "",
-          style: d.style ?? DEFAULT_STYLE,
-          level: d.level ?? "residentado",
-          characters: (d.characters ?? []).map((c) => `${c.name} (${c.role})`).join(", "),
-          recap,
-          fromNode: `${from.title} — ${from.situation}`,
-          decision,
-          existingIds: d.nodes.map((n) => n.id),
-          count: 3,
-          closeArc: close,
-        },
-      });
+      let chunk: any = null;
+      let lastErr: unknown = null;
+      for (let attempt = 0; attempt < 3 && !chunk; attempt++) {
+        try {
+          chunk = await more({
+            data: {
+              logline: d.logline ?? "",
+              style: d.style ?? DEFAULT_STYLE,
+              level: d.level ?? "residentado",
+              characters: (d.characters ?? []).map((c) => `${c.name} (${c.role})`).join(", "),
+              recap,
+              fromNode: `${from.title} — ${from.situation}`,
+              decision,
+              existingIds: d.nodes.map((n) => n.id),
+              count: 3,
+              closeArc: close,
+            },
+          });
+        } catch (e) {
+          lastErr = e;
+          setNote("El asistente está ocupado, reintentando…");
+          await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+        }
+      }
+      if (!chunk) throw lastErr ?? new Error("sin respuesta");
 
       const draft: ComicDoc = JSON.parse(JSON.stringify(d));
       const before = draft.nodes.length;
       const added = mergeNodes(draft, chunk?.nodes ?? []);
-      if (!added) throw new Error("La IA no devolvió nuevos nodos.");
+      if (!added) throw new Error("sin nodos");
       const fresh = draft.nodes.slice(before);
+      // Las viñetas nuevas nacen pendientes: se dibujan al llegar a ellas.
+      for (const n of fresh)
+        for (const p of n.panels) p.pendingArt = !!p.imagePrompt;
 
-      // Ilustrar en vivo: los admins persisten en storage, el resto en memoria.
-      setNote("Ilustrando las nuevas viñetas…");
-      for (const n of fresh) {
-        for (const p of n.panels) {
-          if (!p.imagePrompt) continue;
-          try {
-            const { dataUrl } = await img({ data: { prompt: p.imagePrompt, style: draft.style } });
-            if (isAdmin && areaSlug) {
-              try {
-                p.imagePath = await uploadDataUrl(areaSlug, dataUrl);
-              } catch {
-                p.imageDataUrl = dataUrl;
-              }
-            } else {
-              p.imageDataUrl = dataUrl;
-            }
-          } catch {
-            /* sin ilustración */
-          }
-        }
-      }
+      // Ventana deslizante: mantiene ~20 nodos vivos para no degradar el rendimiento.
+      const keep = [...path, from.id, ...fresh.map((n) => n.id)];
+      draft.nodes = pruneNodes(draft.nodes, keep, 20);
 
       setD(draft);
 
@@ -439,13 +579,14 @@ export function ComicReader({
 
       return fresh[0]?.id ?? null;
     } catch (e: any) {
-      toast.error(e?.message ?? "No se pudo continuar la historia");
+      toast.error(friendlyAiError(e));
       return null;
     } finally {
       setExpanding(false);
       setNote("");
     }
   };
+
 
   if (!node) return <Empty text="Este cómic no tiene nodos." />;
 
@@ -486,6 +627,12 @@ export function ComicReader({
     setScore({ ok: 0, total: 0 });
   };
 
+  const resumeNow = () => {
+    if (!resumeOffer) return;
+    if (map.get(resumeOffer)) setCurrent(resumeOffer);
+    setResumeOffer(null);
+  };
+
   return (
     <div className="space-y-4 mx-auto w-full max-w-6xl">
       <div className="flex flex-wrap items-center gap-2">
@@ -495,8 +642,14 @@ export function ComicReader({
         <Chip>
           Decisiones acertadas {score.ok}/{score.total}
         </Chip>
-        <Chip>{d.nodes.length} nodos generados</Chip>
+        <Chip>{d.nodes.length} nodos vivos</Chip>
         {endlessOn && <Chip accent={accent}>Modo ilimitado</Chip>}
+        {drawing > 0 && <Chip>Dibujando {drawing} viñeta(s)…</Chip>}
+        {queued > 0 && (
+          <button type="button" onClick={() => setShowPremium(true)}>
+            <Chip>{queued} ilustración(es) en cola</Chip>
+          </button>
+        )}
         <div className="flex-1" />
         <Btn onClick={() => setEndlessOn((v) => !v)}>
           <InfinityIcon className="size-3" /> {endlessOn ? "Desactivar" : "Activar"} ilimitado
@@ -506,6 +659,40 @@ export function ComicReader({
         </Btn>
       </div>
 
+      {credit !== "ok" && (
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-[11px] leading-relaxed">
+          <p className="font-bold text-primary">
+            {credit === "exhausted"
+              ? "Modo narrativo activo"
+              : "Ilustración en pausa breve"}
+          </p>
+          <p className="mt-0.5 text-muted-foreground">
+            {credit === "exhausted"
+              ? "Las ilustraciones se están generando por lotes; la historia y las decisiones siguen funcionando al 100 %."
+              : "Estamos regulando el ritmo de dibujo. Las viñetas pendientes se completarán automáticamente."}{" "}
+            <button
+              type="button"
+              onClick={() => setShowPremium(true)}
+              className="font-bold text-primary underline underline-offset-2"
+            >
+              Más detalles
+            </button>
+          </p>
+        </div>
+      )}
+
+      {resumeOffer && (
+        <div className="rounded-2xl border border-border/60 bg-background/60 px-4 py-3 flex flex-wrap items-center gap-3">
+          <p className="text-[11px] font-semibold flex-1">
+            Tienes una lectura en curso guardada. ¿Continuar donde lo dejaste?
+          </p>
+          <Btn variant="solid" accent={accent} onClick={resumeNow}>
+            Reanudar
+          </Btn>
+          <Btn onClick={() => setResumeOffer(null)}>Empezar de nuevo</Btn>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-border/50 bg-background/40 p-4">
         <h3 className="text-base font-extrabold tracking-tight">{node.title}</h3>
         <p className="mt-1 text-xs text-muted-foreground">{node.situation}</p>
@@ -513,7 +700,16 @@ export function ComicReader({
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {node.panels.map((p, i) => (
             <figure key={i} className="rounded-2xl border border-border/50 bg-background/60 p-2">
-              <PanelImage path={p.imagePath} dataUrl={p.imageDataUrl} alt={p.caption} />
+              <PanelImage
+                path={p.imagePath}
+                dataUrl={p.imageDataUrl}
+                alt={p.caption}
+                pending={!!p.pendingArt}
+                onPendingClick={() => {
+                  void artRef.current.drain();
+                  setShowPremium(true);
+                }}
+              />
               <figcaption className="mt-2 space-y-1 px-1 pb-1">
                 {p.caption && <p className="text-[11px] leading-relaxed">{p.caption}</p>}
                 {p.dialogue && (
@@ -528,6 +724,7 @@ export function ComicReader({
             </figure>
           ))}
         </div>
+
 
         {node.ending && !(endlessOn && node.choices.length === 0) ? (
           <div className="mt-4 rounded-2xl border border-border/60 bg-background/60 p-4">
@@ -604,7 +801,52 @@ export function ComicReader({
           </ul>
         </div>
       )}
+
+      {showPremium && (
+        <Modal title="Cómo funcionan las ilustraciones" onClose={() => setShowPremium(false)}>
+          <div className="space-y-3 text-xs leading-relaxed">
+            <p>
+              KotaMed separa el <strong>motor narrativo</strong> del{" "}
+              <strong>motor de ilustración</strong>: la historia ramificada nunca se detiene,
+              incluso cuando el dibujo automático se pausa.
+            </p>
+            <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
+              <li>Las viñetas se dibujan solo cuando llegas a ellas (ahorro de recursos).</li>
+              <li>Si el dibujo se pausa, la viñeta entra en cola y se completa sola.</li>
+              <li>Cada ilustración se guarda en caché: nunca se paga dos veces.</li>
+              <li>Tu avance se guarda; puedes cerrar y reanudar la lectura cuando quieras.</li>
+            </ul>
+            <p className="text-muted-foreground">
+              Estado actual:{" "}
+              <strong>
+                {credit === "ok"
+                  ? "ilustración activa"
+                  : credit === "cooldown"
+                    ? "pausa breve por ritmo de generación"
+                    : "modo narrativo (dibujo por lotes)"}
+              </strong>
+              {queued > 0 ? ` · ${queued} viñeta(s) en cola` : ""}
+            </p>
+            <div className="flex gap-2 pt-1">
+              <Btn
+                variant="solid"
+                accent={accent}
+                onClick={() => {
+                  artRef.current.reset();
+                  void artRef.current.drain();
+                  setShowPremium(false);
+                  toast.info("Reintentando las ilustraciones pendientes…");
+                }}
+              >
+                <Wand2 className="size-3" /> Reintentar ahora
+              </Btn>
+              <Btn onClick={() => setShowPremium(false)}>Cerrar</Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
+
   );
 }
 
@@ -663,15 +905,27 @@ export function ComicEditor({
     if (!p.imagePrompt.trim()) return toast.error("Escribe la descripción visual primero.");
     setGen(`${sel}-${pi}`);
     try {
-      const { dataUrl } = await img({ data: { prompt: p.imagePrompt, style: d.style } });
-      const path = await uploadDataUrl(meta.slug, dataUrl);
+      const res: any = await img({ data: { prompt: p.imagePrompt, style: d.style } });
+      if (!res?.dataUrl) {
+        const panels = [...node.panels];
+        panels[pi] = { ...p, pendingArt: true };
+        patchNode({ panels });
+        toast.info(
+          res?.status === "quota"
+            ? "Los recursos de IA para imágenes están en pausa. La viñeta quedó marcada como pendiente."
+            : "No se pudo ilustrar ahora; la viñeta quedó pendiente. Reinténtalo en un momento.",
+        );
+        return;
+      }
+      const path = await uploadDataUrl(meta.slug, res.dataUrl as string);
       const panels = [...node.panels];
-      panels[pi] = { ...p, imagePath: path };
+      panels[pi] = { ...p, imagePath: path, pendingArt: false };
       patchNode({ panels });
       toast.success("Viñeta ilustrada");
     } catch (e: any) {
-      toast.error(e?.message ?? "No se pudo ilustrar");
+      toast.error(friendlyAiError(e));
     } finally {
+
       setGen(null);
     }
   };
