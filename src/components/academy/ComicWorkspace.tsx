@@ -3,7 +3,7 @@
  * del usuario e edición total (nodos, viñetas, diálogos, opciones e imágenes).
  * Las imágenes se generan con IA y se guardan en el bucket privado "content".
  */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
