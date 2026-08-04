@@ -801,7 +801,52 @@ export function ComicReader({
           </ul>
         </div>
       )}
+
+      {showPremium && (
+        <Modal title="Cómo funcionan las ilustraciones" onClose={() => setShowPremium(false)}>
+          <div className="space-y-3 text-xs leading-relaxed">
+            <p>
+              KotaMed separa el <strong>motor narrativo</strong> del{" "}
+              <strong>motor de ilustración</strong>: la historia ramificada nunca se detiene,
+              incluso cuando el dibujo automático se pausa.
+            </p>
+            <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
+              <li>Las viñetas se dibujan solo cuando llegas a ellas (ahorro de recursos).</li>
+              <li>Si el dibujo se pausa, la viñeta entra en cola y se completa sola.</li>
+              <li>Cada ilustración se guarda en caché: nunca se paga dos veces.</li>
+              <li>Tu avance se guarda; puedes cerrar y reanudar la lectura cuando quieras.</li>
+            </ul>
+            <p className="text-muted-foreground">
+              Estado actual:{" "}
+              <strong>
+                {credit === "ok"
+                  ? "ilustración activa"
+                  : credit === "cooldown"
+                    ? "pausa breve por ritmo de generación"
+                    : "modo narrativo (dibujo por lotes)"}
+              </strong>
+              {queued > 0 ? ` · ${queued} viñeta(s) en cola` : ""}
+            </p>
+            <div className="flex gap-2 pt-1">
+              <Btn
+                variant="solid"
+                accent={accent}
+                onClick={() => {
+                  artRef.current.reset();
+                  void artRef.current.drain();
+                  setShowPremium(false);
+                  toast.info("Reintentando las ilustraciones pendientes…");
+                }}
+              >
+                <Wand2 className="size-3" /> Reintentar ahora
+              </Btn>
+              <Btn onClick={() => setShowPremium(false)}>Cerrar</Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
+
   );
 }
 
