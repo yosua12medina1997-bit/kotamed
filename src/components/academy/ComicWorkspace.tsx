@@ -406,6 +406,19 @@ export function ComicReader({
   const [expanding, setExpanding] = useState(false);
   const [note, setNote] = useState("");
   const [endlessOn, setEndlessOn] = useState(doc.endless !== false);
+  const [credit, setCredit] = useState<CreditState>("ok");
+  const [queued, setQueued] = useState(0);
+  const [showPremium, setShowPremium] = useState(false);
+  const [drawing, setDrawing] = useState(0);
+  const [resumeOffer, setResumeOffer] = useState<string | null>(null);
+
+  /** Motor de ilustración desacoplado: caché, reintentos y cola. */
+  const artRef = useRef(
+    createIllustrator(img as any, {
+      onCredit: (state) => setCredit(state),
+      onQueue: (pending) => setQueued(pending),
+    }),
+  );
 
   const map = useMemo(() => new Map(d.nodes.map((n) => [n.id, n])), [d.nodes]);
 
@@ -416,14 +429,92 @@ export function ComicReader({
     setPicked(null);
     setScore({ ok: 0, total: 0 });
     setEndlessOn(doc.endless !== false);
-  }, [doc]);
+    const saved = rowId ? loadProgress(rowId) : null;
+    setResumeOffer(saved && saved.current !== (doc.startId || doc.nodes[0]?.id) ? saved.current : null);
+  }, [doc, rowId]);
 
   const node = map.get(current) ?? d.nodes[0];
 
-  /** Genera nodos nuevos, ilustra sus viñetas y devuelve el id de destino. */
+  // Reanudación: guarda el avance del lector.
+  useEffect(() => {
+    if (rowId && current) saveProgress(rowId, { current, path, score });
+  }, [rowId, current, path, score]);
+
+  /** Aplica una ilustración recibida al panel identificado por su prompt. */
+  const applyArt = useCallback(
+    (nodeId: string, panelIndex: number, dataUrl: string) => {
+      setD((prev) => ({
+        ...prev,
+        nodes: prev.nodes.map((n) =>
+          n.id !== nodeId
+            ? n
+            : {
+                ...n,
+                panels: n.panels.map((p, i) =>
+                  i !== panelIndex ? p : { ...p, imageDataUrl: dataUrl, pendingArt: false },
+                ),
+              },
+        ),
+      }));
+    },
+    [],
+  );
+
+  /** Ilustración perezosa: solo el nodo visible y el siguiente probable. */
+  const illustrateNode = useCallback(
+    async (target?: ComicNode) => {
+      if (!target) return;
+      const art = artRef.current;
+      for (let i = 0; i < target.panels.length; i++) {
+        const p = target.panels[i]!;
+        if (!p.imagePrompt || p.imagePath || p.imageDataUrl) continue;
+        const cached = getCachedPanel(p.imagePrompt, d.style ?? DEFAULT_STYLE);
+        if (cached) {
+          applyArt(target.id, i, cached);
+          continue;
+        }
+        setDrawing((n) => n + 1);
+        const ok = await art.illustrate(p.imagePrompt, d.style ?? DEFAULT_STYLE, (dataUrl) =>
+          applyArt(target.id, i, dataUrl),
+        );
+        setDrawing((n) => Math.max(0, n - 1));
+        if (!ok) {
+          setD((prev) => ({
+            ...prev,
+            nodes: prev.nodes.map((n) =>
+              n.id !== target.id
+                ? n
+                : {
+                    ...n,
+                    panels: n.panels.map((pp, ii) =>
+                      ii !== i ? pp : { ...pp, pendingArt: true },
+                    ),
+                  },
+            ),
+          }));
+        }
+      }
+    },
+    [applyArt, d.style],
+  );
+
+  // Dispara la ilustración del nodo actual al entrar (lazy, coste mínimo).
+  useEffect(() => {
+    void illustrateNode(node);
+  }, [node?.id, illustrateNode]);
+
+  // Cola de render: reintenta pendientes en segundo plano cuando hay recursos.
+  useEffect(() => {
+    const t = setInterval(() => {
+      void artRef.current.drain();
+    }, 15000);
+    return () => clearInterval(t);
+  }, []);
+
+  /** Genera nodos nuevos (solo narrativa) y devuelve el id de destino. */
   const expand = async (from: ComicNode, decision: string, close = false) => {
     setExpanding(true);
-    setNote("La IA está dibujando la continuación de la historia…");
+    setNote("Escribiendo la continuación de la historia…");
     try {
       const visited = [...path, from.id].slice(-5);
       const recap = visited
@@ -434,48 +525,44 @@ export function ComicReader({
         .filter(Boolean)
         .join(" | ");
 
-      const chunk: any = await more({
-        data: {
-          logline: d.logline ?? "",
-          style: d.style ?? DEFAULT_STYLE,
-          level: d.level ?? "residentado",
-          characters: (d.characters ?? []).map((c) => `${c.name} (${c.role})`).join(", "),
-          recap,
-          fromNode: `${from.title} — ${from.situation}`,
-          decision,
-          existingIds: d.nodes.map((n) => n.id),
-          count: 3,
-          closeArc: close,
-        },
-      });
+      let chunk: any = null;
+      let lastErr: unknown = null;
+      for (let attempt = 0; attempt < 3 && !chunk; attempt++) {
+        try {
+          chunk = await more({
+            data: {
+              logline: d.logline ?? "",
+              style: d.style ?? DEFAULT_STYLE,
+              level: d.level ?? "residentado",
+              characters: (d.characters ?? []).map((c) => `${c.name} (${c.role})`).join(", "),
+              recap,
+              fromNode: `${from.title} — ${from.situation}`,
+              decision,
+              existingIds: d.nodes.map((n) => n.id),
+              count: 3,
+              closeArc: close,
+            },
+          });
+        } catch (e) {
+          lastErr = e;
+          setNote("El asistente está ocupado, reintentando…");
+          await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+        }
+      }
+      if (!chunk) throw lastErr ?? new Error("sin respuesta");
 
       const draft: ComicDoc = JSON.parse(JSON.stringify(d));
       const before = draft.nodes.length;
       const added = mergeNodes(draft, chunk?.nodes ?? []);
-      if (!added) throw new Error("La IA no devolvió nuevos nodos.");
+      if (!added) throw new Error("sin nodos");
       const fresh = draft.nodes.slice(before);
+      // Las viñetas nuevas nacen pendientes: se dibujan al llegar a ellas.
+      for (const n of fresh)
+        for (const p of n.panels) p.pendingArt = !!p.imagePrompt;
 
-      // Ilustrar en vivo: los admins persisten en storage, el resto en memoria.
-      setNote("Ilustrando las nuevas viñetas…");
-      for (const n of fresh) {
-        for (const p of n.panels) {
-          if (!p.imagePrompt) continue;
-          try {
-            const { dataUrl } = await img({ data: { prompt: p.imagePrompt, style: draft.style } });
-            if (isAdmin && areaSlug) {
-              try {
-                p.imagePath = await uploadDataUrl(areaSlug, dataUrl);
-              } catch {
-                p.imageDataUrl = dataUrl;
-              }
-            } else {
-              p.imageDataUrl = dataUrl;
-            }
-          } catch {
-            /* sin ilustración */
-          }
-        }
-      }
+      // Ventana deslizante: mantiene ~20 nodos vivos para no degradar el rendimiento.
+      const keep = [...path, from.id, ...fresh.map((n) => n.id)];
+      draft.nodes = pruneNodes(draft.nodes, keep, 20);
 
       setD(draft);
 
@@ -492,13 +579,14 @@ export function ComicReader({
 
       return fresh[0]?.id ?? null;
     } catch (e: any) {
-      toast.error(e?.message ?? "No se pudo continuar la historia");
+      toast.error(friendlyAiError(e));
       return null;
     } finally {
       setExpanding(false);
       setNote("");
     }
   };
+
 
   if (!node) return <Empty text="Este cómic no tiene nodos." />;
 
