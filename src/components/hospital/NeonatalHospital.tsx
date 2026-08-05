@@ -421,6 +421,9 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
           </>
         ) : mod.kind === "calculadoras" ? (
           <CalculatorsModule accent={unitAccent} />
+        ) : mod.kind === "kotamed-ai" ? (
+          <KotamedAiModule isAdmin={isAdmin} accent={unitAccent} />
+
         ) : mod.id === "administracion" && isAdmin ? (
           <>
             <Panel
