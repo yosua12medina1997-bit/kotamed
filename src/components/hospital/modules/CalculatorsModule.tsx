@@ -50,10 +50,33 @@ export function CalculatorsModule({ accent }: { accent: string }) {
           </Btn>
         }
       >
+        {(tool.formula || tool.normal || tool.refs) && (
+          <div className="mb-5 grid grid-cols-1 gap-2 md:grid-cols-3">
+            {tool.formula && <Meta label="Fórmula / método" text={tool.formula} />}
+            {tool.normal && <Meta label="Valores de referencia" text={tool.normal} />}
+            {tool.refs && <Meta label="Bibliografía" text={tool.refs} />}
+          </div>
+        )}
         <ToolView id={tool.id} accent={accent} />
+        <p className="mt-5 text-[11px] leading-snug text-muted-foreground">
+          Herramienta de apoyo a la decisión clínica. Verifica siempre el resultado con el protocolo
+          del servicio y el criterio del médico tratante.
+        </p>
       </Panel>
     );
   }
+
+  function Meta({ label, text }: { label: string; text: string }) {
+    return (
+      <div className="rounded-2xl border border-border/50 bg-background/40 p-3">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {label}
+        </div>
+        <div className="mt-1 text-[11px] leading-snug">{text}</div>
+      </div>
+    );
+  }
+
 
   if (cat) {
     return (
