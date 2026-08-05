@@ -12,6 +12,12 @@ import { AreaModuleShell } from "@/components/academy/AreaModuleShell";
 import { PediatriaNeoContenido } from "@/components/PediatriaNeoContenido";
 import { buildModuleMeta, defaultProgramModules, genericBlueprint } from "@/lib/program-modules";
 import { getProgram } from "@/lib/pediatria-programs";
+import { NeonatalHospital } from "@/components/hospital/NeonatalHospital";
+import { Baby } from "lucide-react";
+
+/** Programa personalizado con módulo de Hospitalización Neonatal. */
+const HOSPITAL_PROGRAM = "internado-medico-hospitalizacion";
+const HOSPITAL_AREA = "neonatologia";
 
 function titleFromSlug(slug: string) {
   return slug
@@ -98,6 +104,20 @@ function GenericAreaModule() {
         areasPath="/programas/$slug_/areas"
         areasParams={{ slug }}
         areasLabel="Módulos"
+        extraSections={
+          slug === HOSPITAL_PROGRAM && area === HOSPITAL_AREA
+            ? [
+                {
+                  id: "hospitalizacion",
+                  label: "🏥 Hospitalización Neonatal",
+                  icon: Baby,
+                  render: ({ isAdmin }: { isAdmin: boolean }) => (
+                    <NeonatalHospital isAdmin={isAdmin} accent={meta.accent} />
+                  ),
+                },
+              ]
+            : []
+        }
         renderContenido={() => (
           <PediatriaNeoContenido
             meta={meta}
