@@ -257,7 +257,7 @@ export function CmsNodeEditor({
       <Panel
         title="Contenido por secciones"
         accent={accent}
-        right={
+        actions={
           <div className="flex flex-wrap items-center gap-2">
             <Select value={aiSection} onChange={(e) => setAiSection(e.target.value)}>
               {sections.map((s) => (
@@ -318,7 +318,7 @@ export function CmsNodeEditor({
       <Panel
         title="Recursos adjuntos"
         accent={accent}
-        right={
+        actions={
           <Btn
             variant="outline"
             onClick={() =>
