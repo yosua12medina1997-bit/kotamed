@@ -16,6 +16,8 @@ import { NavAdmin } from "@/components/hospital/NavAdmin";
 import { CensusTable } from "@/components/hospital/modules/CensusTable";
 import { GenericModule, ModuleTabs } from "@/components/hospital/modules/GenericModule";
 import { CalculatorsModule } from "@/components/hospital/modules/CalculatorsModule";
+import { KotamedAiModule } from "@/components/hospital/modules/KotamedAiModule";
+
 import { DEFAULT_NEO_NAV, navIcon, useNeoNav, type NeoModule } from "@/lib/neonatal-nav";
 import {
   DEFAULT_HOSPITAL_CONFIG,
@@ -419,6 +421,9 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
           </>
         ) : mod.kind === "calculadoras" ? (
           <CalculatorsModule accent={unitAccent} />
+        ) : mod.kind === "kotamed-ai" ? (
+          <KotamedAiModule isAdmin={isAdmin} accent={unitAccent} />
+
         ) : mod.id === "administracion" && isAdmin ? (
           <>
             <Panel
