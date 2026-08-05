@@ -1,0 +1,4 @@
+CREATE POLICY "clinico_read_authenticated" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'clinico');
+CREATE POLICY "clinico_insert_authenticated" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'clinico' AND owner = auth.uid());
+CREATE POLICY "clinico_update_owner" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'clinico' AND (owner = auth.uid() OR private.has_role(auth.uid(),'admin'))) WITH CHECK (bucket_id = 'clinico');
+CREATE POLICY "clinico_delete_owner" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'clinico' AND (owner = auth.uid() OR private.has_role(auth.uid(),'admin')));
