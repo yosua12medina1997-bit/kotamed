@@ -151,7 +151,64 @@ export function AreaModuleShell({
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: areaNode } = useAreaNode(programSlug, meta.slug);
+
+  const allSections = useMemo(
+    () =>
+      [...extraSections, ...MODULE_SECTIONS].map((s) => ({
+        id: s.id as string,
+        label: s.label as string,
+        icon: s.icon,
+        featured: extraSections.some((e) => e.id === s.id),
+      })),
+    [extraSections],
+  );
+
+  const navPrefsKey = `kotamed.moduleNav.${programSlug}.${meta.slug}`;
+  const [navPrefs, setNavPrefs] = useState<{ hidden: string[]; removed: string[] }>(() => {
+    if (typeof window === "undefined") return { hidden: [], removed: [] };
+    try {
+      const raw = JSON.parse(localStorage.getItem(navPrefsKey) || "");
+      return { hidden: raw?.hidden ?? [], removed: raw?.removed ?? [] };
+    } catch {
+      return { hidden: [], removed: [] };
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(navPrefsKey, JSON.stringify(navPrefs));
+    } catch {
+      /* almacenamiento no disponible */
+    }
+  }, [navPrefs, navPrefsKey]);
+
+  const [editingMenu, setEditingMenu] = useState(false);
+  const [navOpen, setNavOpen] = useState(true);
+
+  const visibleSections = useMemo(
+    () =>
+      allSections.filter(
+        (s) =>
+          !navPrefs.removed.includes(s.id) && (editingMenu || !navPrefs.hidden.includes(s.id)),
+      ),
+    [allSections, navPrefs, editingMenu],
+  );
+
+  const firstId = visibleSections[0]?.id ?? "presentacion";
   const [section, setSection] = useState<string>(extraSections[0]?.id ?? "presentacion");
+
+  useEffect(() => {
+    if (!visibleSections.some((s) => s.id === section)) setSection(firstId);
+  }, [visibleSections, section, firstId]);
+
+  /** Cambio de sección: pantalla enfocada en la sección elegida. */
+  const goSection = (id: string) => {
+    setSection(id);
+    setNavOpen(false);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const currentLabel = allSections.find((s) => s.id === section)?.label ?? "";
+
   const Icon = meta.icon;
 
   const landing: AreaLandingMeta = (areaNode?.metadata ?? {}) as AreaLandingMeta;
