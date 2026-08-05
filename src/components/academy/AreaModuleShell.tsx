@@ -380,8 +380,9 @@ export function AreaModuleShell({
               areaNode={areaNode ?? null}
               landing={landing}
               isAdmin={!!isAdmin}
-              onOpenRoute={() => setSection("ruta")}
-              onOpenContent={() => setSection("contenido")}
+              onOpenRoute={() => goSection("ruta")}
+              onOpenContent={() => goSection("contenido")}
+
             />
           )}
           {section === "ruta" && (
