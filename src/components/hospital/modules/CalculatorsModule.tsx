@@ -154,12 +154,100 @@ function ToolView({ id, accent }: { id: string; accent: string }) {
   if (id === "tet") return <TetTool accent={accent} />;
   if (id === "corregida") return <AgeTool accent={accent} />;
   if (id === "peso") return <WeightTool accent={accent} />;
-  if (id === "apgar")
+  if (id === "clasificacion") return <SgaTool accent={accent} />;
+  if (id === "superficie") return <BsaTool accent={accent} />;
+  if (id === "deficit") return <BicarbTool accent={accent} />;
+  if (id === "osmolaridad") return <NptOsmTool accent={accent} />;
+  if (id === "vis") return <VisTool accent={accent} />;
+  if (id === "io") return <OiTool accent={accent} />;
+  if (id === "aa") return <AaTool accent={accent} />;
+  if (id === "sf") return <SfTool accent={accent} />;
+  if (id === "fena") return <FenaTool accent={accent} />;
+  if (id === "osm") return <OsmTool accent={accent} />;
+  if (id === "aniongap") return <AnionTool accent={accent} />;
+  if (id === "nacorr") return <NaCorrTool accent={accent} />;
+  if (id === "cacorr") return <CaCorrTool accent={accent} />;
+  if (id === "gaso") return <GasoTool accent={accent} />;
+  if (id === "bili") return <BiliTool accent={accent} />;
+  if (id === "exanguino") return <ExchangeTool accent={accent} />;
+  if (id === "eos") return <EosTool accent={accent} />;
+  if (id === "crib") return <CribTool accent={accent} />;
+  if (id === "sarnat")
     return (
       <ScoreTool
         accent={accent}
         items={[
-          { key: "fc", label: "Frecuencia cardiaca" },
+          { key: "conciencia", label: "Nivel de conciencia" },
+          { key: "tono", label: "Tono muscular" },
+          { key: "postura", label: "Postura" },
+          { key: "reflejos", label: "Reflejos primitivos" },
+          { key: "autonomo", label: "Función autonómica" },
+          { key: "convulsiones", label: "Convulsiones" },
+        ]}
+        max={2}
+        reading={(t) =>
+          t === 0
+            ? "Sin datos de encefalopatía"
+            : t <= 4
+              ? "Estadio I (leve): vigilancia clínica"
+              : t <= 8
+                ? "Estadio II (moderada): valorar hipotermia terapéutica en las primeras 6 h"
+                : "Estadio III (severa): manejo intensivo, hipotermia y neuromonitorización"
+        }
+      />
+    );
+  if (id === "thompson")
+    return (
+      <ScoreTool
+        accent={accent}
+        items={[
+          { key: "tono", label: "Tono" },
+          { key: "conciencia", label: "Nivel de conciencia" },
+          { key: "convulsiones", label: "Convulsiones" },
+          { key: "postura", label: "Postura" },
+          { key: "moro", label: "Reflejo de Moro" },
+          { key: "prension", label: "Prensión" },
+          { key: "succion", label: "Succión" },
+          { key: "respiracion", label: "Respiración" },
+          { key: "fontanela", label: "Fontanela" },
+        ]}
+        max={3}
+        reading={(t) =>
+          t <= 6
+            ? `Puntaje ${t}: encefalopatía leve`
+            : t <= 10
+              ? `Puntaje ${t}: encefalopatía moderada`
+              : `Puntaje ${t}: encefalopatía severa, pronóstico reservado`
+        }
+      />
+    );
+  if (id === "snappe")
+    return (
+      <ScoreTool
+        accent={accent}
+        items={[
+          { key: "pam", label: "Presión arterial media (0–9)" },
+          { key: "temp", label: "Temperatura (0–8)" },
+          { key: "pao2", label: "PaO₂/FiO₂ (0–9)" },
+          { key: "ph", label: "pH sérico (0–9)" },
+          { key: "convulsiones", label: "Convulsiones múltiples (0–9)" },
+          { key: "diuresis", label: "Diuresis (0–9)" },
+          { key: "peso", label: "Peso al nacer (0–9)" },
+          { key: "peg", label: "Pequeño para EG (0–9)" },
+          { key: "apgar", label: "APGAR a los 5 min (0–9)" },
+        ]}
+        max={9}
+        reading={(t) =>
+          t < 20
+            ? `SNAPPE-II ${t}: severidad baja`
+            : t < 40
+              ? `SNAPPE-II ${t}: severidad intermedia`
+              : `SNAPPE-II ${t}: severidad alta, mayor riesgo de mortalidad`
+        }
+      />
+    );
+  if (id === "apgar")
+
           { key: "resp", label: "Esfuerzo respiratorio" },
           { key: "tono", label: "Tono muscular" },
           { key: "reflejo", label: "Irritabilidad refleja" },
