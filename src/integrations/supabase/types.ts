@@ -112,6 +112,169 @@ export type Database = {
         }
         Relationships: []
       }
+      academy_cms_fields: {
+        Row: {
+          applies_to: string[]
+          created_at: string
+          created_by: string | null
+          id: string
+          key: string
+          label: string
+          module: string
+          options: Json
+          scope: string
+          sort_order: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          applies_to?: string[]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key: string
+          label: string
+          module: string
+          options?: Json
+          scope?: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          applies_to?: string[]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key?: string
+          label?: string
+          module?: string
+          options?: Json
+          scope?: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      academy_cms_nodes: {
+        Row: {
+          body: string | null
+          case_type: string | null
+          close_at: string | null
+          created_at: string
+          created_by: string | null
+          data: Json
+          hidden: boolean
+          id: string
+          is_published: boolean
+          level_kind: string
+          module: string
+          parent_id: string | null
+          publish_at: string | null
+          roles: string[]
+          scope: string
+          sort_order: number
+          subtitle: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body?: string | null
+          case_type?: string | null
+          close_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          hidden?: boolean
+          id?: string
+          is_published?: boolean
+          level_kind?: string
+          module: string
+          parent_id?: string | null
+          publish_at?: string | null
+          roles?: string[]
+          scope?: string
+          sort_order?: number
+          subtitle?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          body?: string | null
+          case_type?: string | null
+          close_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          hidden?: boolean
+          id?: string
+          is_published?: boolean
+          level_kind?: string
+          module?: string
+          parent_id?: string | null
+          publish_at?: string | null
+          roles?: string[]
+          scope?: string
+          sort_order?: number
+          subtitle?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_cms_nodes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "academy_cms_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      academy_cms_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          node_id: string
+          note: string | null
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          node_id: string
+          note?: string | null
+          snapshot?: Json
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          node_id?: string
+          note?: string | null
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academy_cms_versions_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "academy_cms_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       academy_flashcard_reviews: {
         Row: {
           card_id: string
