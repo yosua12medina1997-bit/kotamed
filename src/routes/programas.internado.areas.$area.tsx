@@ -8,8 +8,6 @@ import {
   getInternadoBlueprint,
 } from "@/lib/internado-modules";
 import type { EnamAreaMeta } from "@/lib/enam-modules";
-import { Baby } from "lucide-react";
-import { NeonatalHospital } from "@/components/hospital/NeonatalHospital";
 
 export const Route = createFileRoute("/programas/internado/areas/$area")({
   loader: ({ params }) => {
@@ -53,20 +51,6 @@ function InternadoAreaModule() {
         programSlug={INTERNADO_PROGRAM_SLUG}
         areasPath="/programas/internado/areas"
         areasLabel="Rotaciones"
-        extraSections={
-          slug === "pediatria-neonatologia"
-            ? [
-                {
-                  id: "hospitalizacion",
-                  label: "🏥 Hospitalización Neonatal",
-                  icon: Baby,
-                  render: ({ isAdmin }) => (
-                    <NeonatalHospital isAdmin={isAdmin} accent={meta.accent} />
-                  ),
-                },
-              ]
-            : []
-        }
         renderContenido={() => (
           <PediatriaNeoContenido
             meta={meta}
