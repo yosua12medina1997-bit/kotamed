@@ -19,10 +19,6 @@ import {
   Plus,
   RotateCcw,
 
-  Loader2,
-  Lock,
-  Pencil,
-  Plus,
   Save,
   Shield,
   Sparkles,
