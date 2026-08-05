@@ -88,6 +88,8 @@ export type ModuleKind =
   | "hospitalizacion"
   | "calculadoras"
   | "kotamed-ai"
+  | "casos-cms"
+  | "docencia-cms"
   | "generic";
 
 
@@ -253,7 +255,7 @@ export const DEFAULT_NEO_MODULES: NeoModule[] = [
     ["cardiopatias", "Cardiopatías", "Ductus y cardiopatías congénitas."],
     ["malformaciones", "Malformaciones", "Abordaje inicial y quirúrgico."],
     ["enterocolitis", "Enterocolitis", "Estadios de Bell y manejo."],
-  ]),
+  ], { kind: "casos-cms", badge: "nuevo" }),
   m("docencia", "Docencia", "GraduationCap", "tabs", [
     ["cursos", "Cursos"],
     ["seminarios", "Seminarios"],
@@ -261,7 +263,7 @@ export const DEFAULT_NEO_MODULES: NeoModule[] = [
     ["videos", "Vídeos"],
     ["biblioteca", "Biblioteca"],
     ["evaluaciones", "Evaluaciones"],
-  ]),
+  ], { kind: "docencia-cms", badge: "nuevo" }),
   m("investigacion", "Investigación", "Microscope", "tabs", [
     ["pubmed", "PubMed"],
     ["neoreviews", "NeoReviews"],
@@ -525,7 +527,14 @@ function normalize(cfg: Partial<NeoNavConfig> | null): NeoNavConfig {
     hidden: mod.hidden === true,
     layout: mod.layout ?? "tabs",
     kind: mod.kind ?? "generic",
-  }));
+  })).map((mod) => {
+    // Sincroniza el motor de los módulos que la plataforma reimplementó.
+    const def = DEFAULT_NEO_MODULES.find((d) => d.id === mod.id);
+    if (def && (def.kind === "casos-cms" || def.kind === "docencia-cms")) {
+      return { ...mod, kind: def.kind, hidden: false, enabled: true };
+    }
+    return mod;
+  });
   // Los módulos nuevos incorporados por la plataforma se insertan en su
   // posición por defecto, sin borrar la arquitectura que el admin ya configuró.
   const modules = [...saved];
