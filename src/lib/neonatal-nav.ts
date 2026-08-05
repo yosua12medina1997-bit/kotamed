@@ -526,14 +526,29 @@ function normalize(cfg: Partial<NeoNavConfig> | null): NeoNavConfig {
     layout: mod.layout ?? "tabs",
     kind: mod.kind ?? "generic",
   }));
-  // Los módulos nuevos incorporados por la plataforma se añaden sin borrar la
-  // arquitectura que el administrador ya configuró.
-  const missing = DEFAULT_NEO_MODULES.filter((d) => !saved.some((s) => s.id === d.id));
+  // Los módulos nuevos incorporados por la plataforma se insertan en su
+  // posición por defecto, sin borrar la arquitectura que el admin ya configuró.
+  const modules = [...saved];
+  DEFAULT_NEO_MODULES.forEach((def, defIndex) => {
+    if (modules.some((s) => s.id === def.id)) return;
+    // Busca el módulo por defecto previo que sí exista para anclar la posición.
+    let anchor = -1;
+    for (let i = defIndex - 1; i >= 0; i--) {
+      const prev = DEFAULT_NEO_MODULES[i];
+      const at = prev ? modules.findIndex((s) => s.id === prev.id) : -1;
+      if (at >= 0) {
+        anchor = at;
+        break;
+      }
+    }
+    modules.splice(anchor + 1, 0, { ...def, badge: def.badge ?? null });
+  });
   return {
-    modules: [...saved, ...missing],
+    modules,
     home: cfg.home ?? {},
     quick: cfg.quick ?? DEFAULT_NEO_NAV.quick,
   };
+
 }
 
 
