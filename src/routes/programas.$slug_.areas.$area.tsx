@@ -17,7 +17,7 @@ import { Baby } from "lucide-react";
 
 /** Programa personalizado con módulo de Hospitalización Neonatal. */
 const HOSPITAL_PROGRAM = "internado-medico-hospitalizacion";
-const HOSPITAL_AREA = "neonatologia";
+
 
 function titleFromSlug(slug: string) {
   return slug
