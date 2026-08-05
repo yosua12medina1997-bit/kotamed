@@ -217,9 +217,10 @@ export function AreaModuleShell({
         {/* Sidebar */}
         <aside className="col-span-12 lg:col-span-3 xl:col-span-2">
           <nav className="glass rounded-2xl p-2 sticky top-20">
-            {[...MODULE_SECTIONS, ...extraSections].map((s) => {
+            {[...extraSections, ...MODULE_SECTIONS].map((s) => {
               const SIcon = s.icon;
               const active = section === s.id;
+              const featured = extraSections.some((e) => e.id === s.id);
               return (
                 <button
                   key={s.id}
@@ -227,13 +228,15 @@ export function AreaModuleShell({
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-sm transition ${
                     active
                       ? "bg-foreground/5 text-foreground font-semibold"
-                      : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
+                      : featured
+                        ? "border border-primary/30 bg-primary/10 text-foreground font-semibold mb-1"
+                        : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
                   }`}
                 >
                   <SIcon
                     className="size-4 shrink-0"
                     strokeWidth={2.25}
-                    style={active ? { color: meta.accent } : undefined}
+                    style={active || featured ? { color: meta.accent } : undefined}
                   />
                   <span className="truncate">{s.label}</span>
                 </button>
