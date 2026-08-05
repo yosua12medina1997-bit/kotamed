@@ -259,12 +259,17 @@ export function AreaModuleShell({
             </span>
             <span className="font-semibold text-foreground truncate">{meta.title}</span>
             <span className="hidden md:inline text-muted-foreground/60">·</span>
-            <span className="hidden md:inline text-muted-foreground truncate">
-              {[...extraSections, ...MODULE_SECTIONS].find((s) => s.id === section)?.label}
-            </span>
+            <span className="hidden md:inline text-muted-foreground truncate">{currentLabel}</span>
           </div>
+          <button
+            onClick={() => setNavOpen((v) => !v)}
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+          >
+            {navOpen ? <PanelLeftClose className="size-3.5" /> : <Menu className="size-3.5" />}
+            {navOpen ? "Ocultar menú" : "Menú"}
+          </button>
           {isAdmin && (
-            <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border border-primary/30 bg-primary/10 text-primary">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border border-primary/30 bg-primary/10 text-primary">
               <Shield className="size-3" /> Admin
             </span>
           )}
@@ -273,38 +278,96 @@ export function AreaModuleShell({
 
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 relative grid grid-cols-12 gap-6">
         {/* Sidebar */}
-        <aside className="col-span-12 lg:col-span-3 xl:col-span-2">
-          <nav className="glass rounded-2xl p-2 sticky top-20">
-            {[...extraSections, ...MODULE_SECTIONS].map((s) => {
-              const SIcon = s.icon;
-              const active = section === s.id;
-              const featured = extraSections.some((e) => e.id === s.id);
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => setSection(s.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-sm transition ${
-                    active
-                      ? "bg-foreground/5 text-foreground font-semibold"
-                      : featured
-                        ? "border border-primary/30 bg-primary/10 text-foreground font-semibold mb-1"
-                        : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
-                  }`}
-                >
-                  <SIcon
-                    className="size-4 shrink-0"
-                    strokeWidth={2.25}
-                    style={active || featured ? { color: meta.accent } : undefined}
-                  />
-                  <span className="truncate">{s.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </aside>
+        {navOpen && (
+          <aside className="col-span-12 lg:col-span-3 xl:col-span-2">
+            <nav className="glass rounded-2xl p-2 sticky top-20">
+              {isAdmin && (
+                <div className="mb-2 flex items-center gap-1.5 rounded-xl border border-border/50 bg-background/50 px-2 py-1.5">
+                  <button
+                    onClick={() => setEditingMenu((v) => !v)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition ${
+                      editingMenu
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Pencil className="size-3" /> {editingMenu ? "Listo" : "Editar menú"}
+                  </button>
+                  {editingMenu && (navPrefs.hidden.length > 0 || navPrefs.removed.length > 0) && (
+                    <button
+                      onClick={() => setNavPrefs({ hidden: [], removed: [] })}
+                      title="Restaurar menú"
+                      className="ml-auto inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-[10px] font-bold text-muted-foreground hover:text-foreground"
+                    >
+                      <RotateCcw className="size-3" /> Restaurar
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {visibleSections.map((s) => {
+                const SIcon = s.icon;
+                const active = section === s.id;
+                const featured = s.featured;
+                const hidden = navPrefs.hidden.includes(s.id);
+                return (
+                  <div key={s.id} className="group relative flex items-center">
+                    <button
+                      onClick={() => goSection(s.id)}
+                      className={`flex flex-1 items-center gap-2.5 px-3 py-2 rounded-xl text-left text-sm transition ${
+                        active
+                          ? "bg-foreground/5 text-foreground font-semibold"
+                          : featured
+                            ? "border border-primary/30 bg-primary/10 text-foreground font-semibold mb-1"
+                            : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.03]"
+                      } ${hidden ? "opacity-40" : ""}`}
+                    >
+                      <SIcon
+                        className="size-4 shrink-0"
+                        strokeWidth={2.25}
+                        style={active || featured ? { color: meta.accent } : undefined}
+                      />
+                      <span className="truncate">{s.label}</span>
+                    </button>
+                    {editingMenu && isAdmin && (
+                      <span className="ml-1 flex shrink-0 items-center gap-0.5">
+                        <button
+                          title={hidden ? "Mostrar" : "Ocultar"}
+                          onClick={() =>
+                            setNavPrefs((p) => ({
+                              ...p,
+                              hidden: hidden
+                                ? p.hidden.filter((x) => x !== s.id)
+                                : [...p.hidden, s.id],
+                            }))
+                          }
+                          className="rounded-md p-1 text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                        >
+                          {hidden ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                        </button>
+                        <button
+                          title="Eliminar del menú"
+                          onClick={() =>
+                            setNavPrefs((p) => ({ ...p, removed: [...p.removed, s.id] }))
+                          }
+                          className="rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
+          </aside>
+        )}
 
         {/* Main */}
-        <main className="col-span-12 lg:col-span-9 xl:col-span-10 space-y-6">
+        <main
+          className={`col-span-12 space-y-6 ${navOpen ? "lg:col-span-9 xl:col-span-10" : ""}`}
+        >
+
           {section === "presentacion" && (
             <PresentacionSection
               meta={meta}
