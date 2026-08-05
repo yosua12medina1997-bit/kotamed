@@ -373,6 +373,22 @@ export function AreaModuleShell({
         <main
           className={`col-span-12 space-y-6 ${navOpen ? "lg:col-span-9 xl:col-span-10" : ""}`}
         >
+          {/* Encabezado de sección enfocada */}
+          <div key={section} className="animate-slide-up flex items-center gap-3">
+            {!navOpen && (
+              <button
+                onClick={() => setNavOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground"
+              >
+                <Menu className="size-3.5" /> Secciones
+              </button>
+            )}
+            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              {currentLabel}
+            </div>
+          </div>
+
+
 
           {section === "presentacion" && (
             <PresentacionSection
