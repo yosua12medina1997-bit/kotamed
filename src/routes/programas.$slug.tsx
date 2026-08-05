@@ -202,6 +202,7 @@ function ProgramDetail() {
 
 function ProgramDetailInner() {
   const { program } = Route.useLoaderData() as { program: Program };
+  const { slug: routeProgramSlug } = Route.useParams();
 
   const accent = ACCENT_CLASSES[program.accent];
   const { programs: catalogPrograms } = useProgramCatalog();
@@ -312,6 +313,7 @@ function ProgramDetailInner() {
 
             <AreasSection
               program={program}
+                routeProgramSlug={routeProgramSlug}
               accent={accent}
               areas={areas}
               dbAreas={dbAreas ?? []}
@@ -423,6 +425,7 @@ function ProgramDetailInner() {
 
 function AreasSection({
   program,
+  routeProgramSlug,
   accent,
   areas,
   dbAreas,
@@ -431,6 +434,7 @@ function AreasSection({
   fallback,
 }: {
   program: Program;
+  routeProgramSlug: string;
   accent: (typeof ACCENT_CLASSES)[Program["accent"]];
   areas: string[];
   dbAreas: AreaNode[];
@@ -593,7 +597,7 @@ function AreasSection({
               <Link
                 key={`${area}-${i}`}
                 to="/programas/$slug_/areas/$area"
-                params={{ slug: program.slug, area: genericSlug }}
+                params={{ slug: routeProgramSlug, area: genericSlug }}
                 className={cls + " hover:border-primary/40 hover:-translate-y-0.5"}
               >
                 {inner}
