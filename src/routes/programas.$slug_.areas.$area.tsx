@@ -101,9 +101,9 @@ function GenericAreaModule() {
       <AreaModuleShell
         meta={meta}
         programSlug={slug}
-        areasPath="/programas/$slug_/areas"
+        areasPath="/programas/$slug"
         areasParams={{ slug }}
-        areasLabel="Módulos"
+        areasLabel="Programa"
         extraSections={
           (slug === HOSPITAL_PROGRAM || /hospitaliza/i.test(slug)) && /neonatolog/i.test(area)
             ? [

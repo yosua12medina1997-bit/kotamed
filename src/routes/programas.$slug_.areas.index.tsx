@@ -135,7 +135,7 @@ function ProgramModulesHub() {
             return (
               <Link
                 key={a.slug}
-                to="/programas/$slug_/areas/$area"
+                to="/programas/$slug/areas/$area"
                 params={{ slug, area: a.slug }}
                 className="group glass rounded-3xl p-6 relative overflow-hidden animate-slide-up hover:-translate-y-0.5 transition"
                 style={{ animationDelay: `${i * 60}ms` }}
