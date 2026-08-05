@@ -129,6 +129,13 @@ export interface AreaModuleShellProps {
   areasLabel?: string;
   /** Vista personalizada para la sección "Contenido". */
   renderContenido?: (ctx: { meta: EnamAreaMeta; isAdmin: boolean }) => ReactNode;
+  /** Secciones adicionales específicas del módulo (ej. Hospitalización). */
+  extraSections?: {
+    id: string;
+    label: string;
+    icon: typeof Shield;
+    render: (ctx: { meta: EnamAreaMeta; isAdmin: boolean }) => ReactNode;
+  }[];
 }
 
 export function AreaModuleShell({
@@ -138,11 +145,12 @@ export function AreaModuleShell({
   areasParams,
   areasLabel = "Áreas",
   renderContenido,
+  extraSections = [],
 }: AreaModuleShellProps) {
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: areaNode } = useAreaNode(programSlug, meta.slug);
-  const [section, setSection] = useState<ModuleSectionId>("presentacion");
+  const [section, setSection] = useState<string>("presentacion");
   const Icon = meta.icon;
 
   const landing: AreaLandingMeta = (areaNode?.metadata ?? {}) as AreaLandingMeta;
@@ -194,7 +202,7 @@ export function AreaModuleShell({
             <span className="font-semibold text-foreground truncate">{meta.title}</span>
             <span className="hidden md:inline text-muted-foreground/60">·</span>
             <span className="hidden md:inline text-muted-foreground truncate">
-              {MODULE_SECTIONS.find((s) => s.id === section)?.label}
+              {[...MODULE_SECTIONS, ...extraSections].find((s) => s.id === section)?.label}
             </span>
           </div>
           {isAdmin && (
@@ -209,7 +217,7 @@ export function AreaModuleShell({
         {/* Sidebar */}
         <aside className="col-span-12 lg:col-span-3 xl:col-span-2">
           <nav className="glass rounded-2xl p-2 sticky top-20">
-            {MODULE_SECTIONS.map((s) => {
+            {[...MODULE_SECTIONS, ...extraSections].map((s) => {
               const SIcon = s.icon;
               const active = section === s.id;
               return (
@@ -266,6 +274,11 @@ export function AreaModuleShell({
           {section === "tutor-ia" && <TutorSection meta={meta} />}
           {section === "progreso" && <ProgresoSection meta={meta} />}
           {section === "configuracion" && <CommandCenter meta={meta} isAdmin={!!isAdmin} />}
+          {extraSections
+            .filter((s) => s.id === section)
+            .map((s) => (
+              <div key={s.id}>{s.render({ meta, isAdmin: !!isAdmin })}</div>
+            ))}
         </main>
       </div>
     </div>

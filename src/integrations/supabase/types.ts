@@ -800,6 +800,497 @@ export type Database = {
         }
         Relationships: []
       }
+      neo_audit_log: {
+        Row: {
+          action: string
+          actor: string | null
+          actor_email: string | null
+          created_at: string
+          detail: Json
+          entity: string
+          entity_id: string | null
+          id: string
+          patient_id: string | null
+        }
+        Insert: {
+          action: string
+          actor?: string | null
+          actor_email?: string | null
+          created_at?: string
+          detail?: Json
+          entity: string
+          entity_id?: string | null
+          id?: string
+          patient_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          actor_email?: string | null
+          created_at?: string
+          detail?: Json
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          patient_id?: string | null
+        }
+        Relationships: []
+      }
+      neo_evolutions: {
+        Row: {
+          author: string | null
+          content: Json
+          created_at: string
+          created_by: string | null
+          day_number: number
+          format: string
+          id: string
+          patient_id: string
+          recorded_at: string
+          updated_at: string
+          vitals: Json
+        }
+        Insert: {
+          author?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          day_number?: number
+          format?: string
+          id?: string
+          patient_id: string
+          recorded_at?: string
+          updated_at?: string
+          vitals?: Json
+        }
+        Update: {
+          author?: string | null
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          day_number?: number
+          format?: string
+          id?: string
+          patient_id?: string
+          recorded_at?: string
+          updated_at?: string
+          vitals?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neo_evolutions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neo_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neo_form_config: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          scope: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          scope: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          scope?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      neo_labs: {
+        Row: {
+          category: string
+          comments: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          interpretation: string | null
+          name: string
+          patient_id: string
+          results: Json
+          storage_path: string | null
+          taken_at: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category?: string
+          comments?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          interpretation?: string | null
+          name?: string
+          patient_id: string
+          results?: Json
+          storage_path?: string | null
+          taken_at?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          comments?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          interpretation?: string | null
+          name?: string
+          patient_id?: string
+          results?: Json
+          storage_path?: string | null
+          taken_at?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neo_labs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neo_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neo_media: {
+        Row: {
+          comments: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          mime_type: string | null
+          patient_id: string
+          storage_path: string | null
+          taken_at: string
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          comments?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          patient_id: string
+          storage_path?: string | null
+          taken_at?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          comments?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          mime_type?: string | null
+          patient_id?: string
+          storage_path?: string | null
+          taken_at?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neo_media_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neo_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neo_medications: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dose: string | null
+          ended_at: string | null
+          frequency: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          patient_id: string
+          route: string | null
+          started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dose?: string | null
+          ended_at?: string | null
+          frequency?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          patient_id: string
+          route?: string | null
+          started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dose?: string | null
+          ended_at?: string | null
+          frequency?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          patient_id?: string
+          route?: string | null
+          started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neo_medications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neo_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neo_nutrition: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          id: string
+          kind: string
+          notes: string | null
+          patient_id: string
+          recorded_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          kind?: string
+          notes?: string | null
+          patient_id: string
+          recorded_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          kind?: string
+          notes?: string | null
+          patient_id?: string
+          recorded_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neo_nutrition_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neo_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neo_patients: {
+        Row: {
+          ai_summary: string | null
+          apellidos: string
+          area_slug: string
+          created_at: string
+          created_by: string | null
+          diagnoses: Json
+          diagnostico_ingreso: string | null
+          edad_gestacional: number | null
+          exam: Json
+          fecha_ingreso: string
+          fecha_nacimiento: string | null
+          general: Json
+          hc: string | null
+          hora_nacimiento: string | null
+          id: string
+          maternal: Json
+          medico_responsable: string | null
+          nombres: string
+          peso_nacimiento: number | null
+          program_slug: string
+          scales: Json
+          sexo: string | null
+          status: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          apellidos?: string
+          area_slug?: string
+          created_at?: string
+          created_by?: string | null
+          diagnoses?: Json
+          diagnostico_ingreso?: string | null
+          edad_gestacional?: number | null
+          exam?: Json
+          fecha_ingreso?: string
+          fecha_nacimiento?: string | null
+          general?: Json
+          hc?: string | null
+          hora_nacimiento?: string | null
+          id?: string
+          maternal?: Json
+          medico_responsable?: string | null
+          nombres?: string
+          peso_nacimiento?: number | null
+          program_slug?: string
+          scales?: Json
+          sexo?: string | null
+          status?: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_summary?: string | null
+          apellidos?: string
+          area_slug?: string
+          created_at?: string
+          created_by?: string | null
+          diagnoses?: Json
+          diagnostico_ingreso?: string | null
+          edad_gestacional?: number | null
+          exam?: Json
+          fecha_ingreso?: string
+          fecha_nacimiento?: string | null
+          general?: Json
+          hc?: string | null
+          hora_nacimiento?: string | null
+          id?: string
+          maternal?: Json
+          medico_responsable?: string | null
+          nombres?: string
+          peso_nacimiento?: number | null
+          program_slug?: string
+          scales?: Json
+          sexo?: string | null
+          status?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      neo_procedures: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          id: string
+          name: string
+          notes: string | null
+          patient_id: string
+          performed_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          name?: string
+          notes?: string | null
+          patient_id: string
+          performed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          name?: string
+          notes?: string | null
+          patient_id?: string
+          performed_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neo_procedures_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neo_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neo_transfers: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          from_unit: string | null
+          id: string
+          patient_id: string
+          reason: string | null
+          to_unit: string
+          transferred_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          from_unit?: string | null
+          id?: string
+          patient_id: string
+          reason?: string | null
+          to_unit: string
+          transferred_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          from_unit?: string | null
+          id?: string
+          patient_id?: string
+          reason?: string | null
+          to_unit?: string
+          transferred_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neo_transfers_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neo_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_settings: {
         Row: {
           created_at: string
