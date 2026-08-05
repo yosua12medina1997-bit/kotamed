@@ -202,7 +202,7 @@ export function AreaModuleShell({
             <span className="font-semibold text-foreground truncate">{meta.title}</span>
             <span className="hidden md:inline text-muted-foreground/60">·</span>
             <span className="hidden md:inline text-muted-foreground truncate">
-              {[...MODULE_SECTIONS, ...extraSections].find((s) => s.id === section)?.label}
+              {[...extraSections, ...MODULE_SECTIONS].find((s) => s.id === section)?.label}
             </span>
           </div>
           {isAdmin && (
