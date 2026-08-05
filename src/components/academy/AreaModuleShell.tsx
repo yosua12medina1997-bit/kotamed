@@ -150,7 +150,7 @@ export function AreaModuleShell({
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: areaNode } = useAreaNode(programSlug, meta.slug);
-  const [section, setSection] = useState<string>("presentacion");
+  const [section, setSection] = useState<string>(extraSections[0]?.id ?? "presentacion");
   const Icon = meta.icon;
 
   const landing: AreaLandingMeta = (areaNode?.metadata ?? {}) as AreaLandingMeta;
