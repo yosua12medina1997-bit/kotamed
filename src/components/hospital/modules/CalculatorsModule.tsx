@@ -247,8 +247,13 @@ function ToolView({ id, accent }: { id: string; accent: string }) {
       />
     );
   if (id === "apgar")
-
+    return (
+      <ScoreTool
+        accent={accent}
+        items={[
+          { key: "fc", label: "Frecuencia cardiaca" },
           { key: "resp", label: "Esfuerzo respiratorio" },
+
           { key: "tono", label: "Tono muscular" },
           { key: "reflejo", label: "Irritabilidad refleja" },
           { key: "color", label: "Color" },
