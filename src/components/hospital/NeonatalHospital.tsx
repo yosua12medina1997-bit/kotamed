@@ -1,21 +1,26 @@
 /**
- * KotaMed · Hospitalización Neonatal (Internado Médico · Neonatología).
- * Centro de Operaciones Clínicas: sidebar jerárquico tipo HIS + tablero,
- * censo por unidad y expediente clínico completo.
+ * KotaMed · Hospitalización Neonatal — Centro de Operaciones Clínicas.
+ * Sidebar de un solo nivel (índice minimalista) + módulos que abren su propia
+ * pantalla independiente. Toda la arquitectura es editable por el administrador
+ * desde Administración › Módulos (persistida en base de datos).
  */
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Baby, BedDouble, Loader2, Plus, Search, Settings2, Trash2 } from "lucide-react";
+import { Baby, BedDouble, ChevronRight, Plus, Settings2, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { Btn, Chip, Empty, Field, Input, Metric, Panel, Select } from "@/components/academy/ui";
+import { Btn, Empty, Field, Input, Metric, Panel, Select } from "@/components/academy/ui";
 import { PatientChart } from "@/components/hospital/PatientChart";
 import { HospitalConfigEditor } from "@/components/hospital/HospitalConfigEditor";
-import { HOSPITAL_NAV, HospitalSidebar } from "@/components/hospital/HospitalSidebar";
+import { HospitalSidebar } from "@/components/hospital/HospitalSidebar";
+import { NavAdmin } from "@/components/hospital/NavAdmin";
+import { CensusTable } from "@/components/hospital/modules/CensusTable";
+import { GenericModule, ModuleTabs } from "@/components/hospital/modules/GenericModule";
+import { CalculatorsModule } from "@/components/hospital/modules/CalculatorsModule";
+import { DEFAULT_NEO_NAV, navIcon, useNeoNav, type NeoModule } from "@/lib/neonatal-nav";
 import {
   DEFAULT_HOSPITAL_CONFIG,
   NEO_STATUS,
   NEO_UNITS,
-  dayOfLife,
   hdb,
   logAudit,
   usePatient,
@@ -23,34 +28,31 @@ import {
   useHospitalConfig,
 } from "@/lib/neonatal-hospital";
 
-/** Etiqueta legible de cualquier id de navegación. */
-function navLabel(id: string): string {
-  for (const b of HOSPITAL_NAV) {
-    for (const i of b.items) {
-      if (i.id === id) return i.label;
-      const c = i.children?.find((x) => x.id === id);
-      if (c) return `${i.label} · ${c.label}`;
-    }
-  }
-  return "Servicio de Neonatología";
-}
-
-const CENSO_SECTIONS = new Set(["censo", "areas", "ingresos-dia", "altas", "archivo"]);
-
 export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent: string }) {
   const [unit, setUnit] = useState<string>(NEO_UNITS[0]!.slug);
-  const [section, setSection] = useState<string>("dashboard");
+  const [moduleId, setModuleId] = useState<string>("dashboard");
+  const [tab, setTab] = useState<string>("");
+  const [unitOpen, setUnitOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [patientId, setPatientId] = useState<string | null>(null);
-  const [showConfig, setShowConfig] = useState(false);
-  const [creating, setCreating] = useState(false);
   const qc = useQueryClient();
 
+  const { data: nav = DEFAULT_NEO_NAV } = useNeoNav();
   const { data: config = DEFAULT_HOSPITAL_CONFIG } = useHospitalConfig();
   const { data: patients = [], isLoading } = usePatients(unit, search);
   const { data: patient } = usePatient(patientId);
-  const unitMeta = NEO_UNITS.find((u) => u.slug === unit)!;
+  const unitMeta = NEO_UNITS.find((u) => u.slug === unit) ?? NEO_UNITS[0]!;
   const unitAccent = unitMeta.accent || accent;
+
+  const modules = useMemo(
+    () =>
+      nav.modules.filter(
+        (m) => m.enabled && !m.hidden && (!m.adminOnly || isAdmin),
+      ),
+    [nav.modules, isAdmin],
+  );
+  const mod: NeoModule | undefined =
+    modules.find((m) => m.id === moduleId) ?? modules[0];
 
   const stats = useMemo(() => {
     const hosp = patients.filter((p: any) => p.status === "hospitalizado");
@@ -109,7 +111,6 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
     },
     onSuccess: (id) => {
       qc.invalidateQueries({ queryKey: ["neo-patients"] });
-      setCreating(false);
       setForm({ ...form, apellidos: "", nombres: "", hc: "", diagnostico_ingreso: "" });
       setPatientId(id);
       toast.success("Paciente ingresado al servicio.");
@@ -141,290 +142,349 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
     );
   }
 
-  const showDashboard = section === "dashboard" || section === "ocupacion" || section === "alertas";
-  const showCenso = showDashboard || CENSO_SECTIONS.has(section);
+  const goModule = (id: string) => {
+    setModuleId(id);
+    setTab("");
+    setUnitOpen(false);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goCenso = () => {
+    goModule("hospitalizacion");
+    setUnitOpen(true);
+  };
+
+  const Icon = mod ? navIcon(mod.icon) : BedDouble;
+  const activeTab = tab || mod?.tabs[0]?.id || "";
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4">
+    <div className="flex flex-col gap-4 lg:flex-row">
       <HospitalSidebar
-        active={section}
-        onSelect={(id) => {
-          if (id === "ingreso-nuevo") {
-            setCreating(true);
-            setSection("censo");
-            return;
-          }
-          if (id === "administracion" || id === "configuracion") {
-            setShowConfig(true);
-            setSection(id);
-            return;
-          }
-          setSection(id);
-        }}
-        units={NEO_UNITS}
-        unit={unit}
-        onUnit={setUnit}
+        modules={modules}
+        active={mod?.id ?? ""}
+        onSelect={goModule}
         accent={unitAccent}
-        isAdmin={isAdmin}
         openPatients={stats.hosp}
       />
 
-      <div className="min-w-0 flex-1 space-y-5">
-        <Panel
-          title="Hospitalización Neonatal"
-          subtitle="Servicio de Neonatología nivel III simulado: recibe al recién nacido, construye su historia clínica, evoluciona, solicita exámenes, calcula y traslada — igual que en el hospital."
-          icon={<Baby className="size-4" />}
-          accent={unitAccent}
-          actions={
+      <div className="min-w-0 flex-1 space-y-4">
+        {/* Breadcrumb del centro de operaciones */}
+        <div className="glass flex flex-wrap items-center gap-2 rounded-2xl px-4 py-2.5 text-[11px]">
+          <span className="font-bold uppercase tracking-widest text-muted-foreground">
+            Neonatología
+          </span>
+          <ChevronRight className="size-3 text-muted-foreground" />
+          <span className="inline-flex items-center gap-1.5 font-bold" style={{ color: unitAccent }}>
+            <Icon className="size-3.5" /> {mod?.label ?? "Centro de Operaciones"}
+          </span>
+          {mod?.layout === "tabs" && activeTab && (
             <>
-              <Btn onClick={() => setCreating((v) => !v)} variant="outline">
-                <Plus className="size-3" /> Ingresar recién nacido
-              </Btn>
-              {isAdmin && (
-                <Btn onClick={() => setShowConfig((v) => !v)}>
-                  <Settings2 className="size-3" /> {showConfig ? "Cerrar configuración" : "Configurar servicio"}
-                </Btn>
-              )}
+              <ChevronRight className="size-3 text-muted-foreground" />
+              <span className="text-muted-foreground">
+                {mod.tabs.find((t) => t.id === activeTab)?.label}
+              </span>
             </>
-          }
-        >
-          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            {navLabel(section)}
-          </div>
-          <div className="mt-3 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            <Metric label="Pacientes en la unidad" value={stats.total} accent={unitAccent} hint="Total actualmente" />
-            <Metric label="Hospitalizados" value={stats.hosp} accent={unitAccent} hint="Pacientes" />
-            <Metric
-              label="Prematuros (<37 sem)"
-              value={stats.prema}
-              accent={unitAccent}
-              hint={stats.total ? `${Math.round((stats.prema / stats.total) * 100)}% del total` : "—"}
-            />
-            <Metric
-              label="Bajo peso (<2500 g)"
-              value={stats.bajoPeso}
-              accent={unitAccent}
-              hint={stats.total ? `${Math.round((stats.bajoPeso / stats.total) * 100)}% del total` : "—"}
-            />
-            <Metric label="Camas disponibles" value={stats.camas} accent={unitAccent} hint="De 24 camas" />
-            <Metric label="Alertas activas" value={stats.alertas} accent="oklch(0.65 0.18 25)" hint="Requieren atención" />
-          </div>
-        </Panel>
-
-        {showConfig && isAdmin && <HospitalConfigEditor config={config} accent={unitAccent} />}
-
-        {creating && (
-          <Panel
-            title="Ingreso de recién nacido"
-            subtitle={`Unidad: ${unitMeta.title}`}
-            accent={unitAccent}
-            actions={
-              <Btn variant="solid" accent={unitAccent} loading={create.isPending} onClick={() => create.mutate()}>
-                <Plus className="size-3" /> Registrar ingreso
-              </Btn>
-            }
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Field label="Apellidos de la madre / del RN">
-                <Input value={form.apellidos} onChange={(e) => setForm({ ...form, apellidos: e.target.value })} />
-              </Field>
-              <Field label="Nombres">
-                <Input value={form.nombres} onChange={(e) => setForm({ ...form, nombres: e.target.value })} />
-              </Field>
-              <Field label="Historia clínica">
-                <Input value={form.hc} onChange={(e) => setForm({ ...form, hc: e.target.value })} />
-              </Field>
-              <Field label="Sexo">
-                <Select value={form.sexo} onChange={(e) => setForm({ ...form, sexo: e.target.value })}>
-                  <option value="">—</option>
-                  <option value="masculino">Masculino</option>
-                  <option value="femenino">Femenino</option>
-                  <option value="indeterminado">Indeterminado</option>
-                </Select>
-              </Field>
-              <Field label="Fecha de nacimiento">
-                <Input
-                  type="date"
-                  value={form.fecha_nacimiento}
-                  onChange={(e) => setForm({ ...form, fecha_nacimiento: e.target.value })}
-                />
-              </Field>
-              <Field label="Hora de nacimiento">
-                <Input
-                  type="time"
-                  value={form.hora_nacimiento}
-                  onChange={(e) => setForm({ ...form, hora_nacimiento: e.target.value })}
-                />
-              </Field>
-              <Field label="Edad gestacional (sem)">
-                <Input
-                  type="number"
-                  step="any"
-                  value={form.edad_gestacional}
-                  onChange={(e) => setForm({ ...form, edad_gestacional: e.target.value })}
-                />
-              </Field>
-              <Field label="Peso al nacer (g)">
-                <Input
-                  type="number"
-                  value={form.peso_nacimiento}
-                  onChange={(e) => setForm({ ...form, peso_nacimiento: e.target.value })}
-                />
-              </Field>
-              <Field label="Médico responsable">
-                <Input
-                  value={form.medico_responsable}
-                  onChange={(e) => setForm({ ...form, medico_responsable: e.target.value })}
-                />
-              </Field>
-              <div className="md:col-span-2">
-                <Field label="Diagnóstico de ingreso">
-                  <Input
-                    value={form.diagnostico_ingreso}
-                    onChange={(e) => setForm({ ...form, diagnostico_ingreso: e.target.value })}
-                  />
-                </Field>
-              </div>
-              <Field label="Estado">
-                <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                  {NEO_STATUS.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
-          </Panel>
-        )}
-
-        {showDashboard && (
-          <Panel
-            title="Áreas de hospitalización"
-            subtitle="Cada área abre su propio censo dentro del servicio."
-            icon={<BedDouble className="size-4" />}
-            accent={unitAccent}
-          >
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {NEO_UNITS.map((u) => {
-                const active = u.slug === unit;
-                return (
-                  <button
-                    key={u.slug}
-                    onClick={() => {
-                      setUnit(u.slug);
-                      setSection("areas");
-                    }}
-                    className={`rounded-2xl border p-3 text-left transition ${
-                      active ? "border-transparent text-white" : "border-border/50 bg-background/40 hover:border-primary/40"
-                    }`}
-                    style={active ? { background: u.accent } : undefined}
-                  >
-                    <div className="text-[11px] font-extrabold leading-tight">{u.title}</div>
-                    <div className={`mt-1 text-[10px] leading-snug ${active ? "text-white/80" : "text-muted-foreground"}`}>
-                      {u.description}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </Panel>
-        )}
-
-        {showCenso ? (
-          <Panel
-            title={`Censo · ${unitMeta.title}`}
-            subtitle="Selecciona un paciente para abrir su expediente clínico completo."
-            accent={unitAccent}
-            actions={
-              <div className="flex items-center gap-2">
-                <Search className="size-3.5 text-muted-foreground" />
-                <Input
-                  value={search}
-                  placeholder="Buscar por apellido, HC o diagnóstico"
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-56"
-                />
-              </div>
-            }
-          >
-            {isLoading ? (
-              <div className="flex justify-center py-10 text-muted-foreground">
-                <Loader2 className="size-5 animate-spin" />
-              </div>
-            ) : patients.length === 0 ? (
-              <Empty text="No hay pacientes en esta unidad. Registra un ingreso para comenzar." />
-            ) : (
-              <div className="overflow-x-auto rounded-2xl border border-border/50">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-border/50 text-[9px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                      <th className="px-3 py-2">Paciente</th>
-                      <th className="px-3 py-2">Edad gestacional</th>
-                      <th className="px-3 py-2">Día de vida</th>
-                      <th className="px-3 py-2">Peso</th>
-                      <th className="px-3 py-2">Diagnóstico principal</th>
-                      <th className="px-3 py-2">Estado</th>
-                      <th className="px-3 py-2" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {patients.map((p: any) => (
-                      <tr
-                        key={p.id}
-                        className="border-b border-border/40 last:border-0 transition hover:bg-background/60"
-                      >
-                        <td className="px-3 py-2.5">
-                          <button className="text-left" onClick={() => setPatientId(p.id)}>
-                            <div className="font-bold tracking-tight">
-                              RN de {p.apellidos || "—"} {p.nombres ? `· ${p.nombres}` : ""}
-                            </div>
-                            <div className="text-[10px] text-muted-foreground">HC {p.hc || "s/n"}</div>
-                          </button>
-                        </td>
-                        <td className="px-3 py-2.5 text-xs">{p.edad_gestacional ?? "—"} sem</td>
-                        <td className="px-3 py-2.5 text-xs">{dayOfLife(p.fecha_nacimiento)}</td>
-                        <td className="px-3 py-2.5 text-xs">{p.peso_nacimiento ?? "—"} g</td>
-                        <td className="px-3 py-2.5 text-xs text-foreground/80">
-                          {p.diagnostico_ingreso || "Sin diagnóstico de ingreso"}
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <Chip accent={unitMeta.accent}>{p.status}</Chip>
-                        </td>
-                        <td className="px-3 py-2.5 text-right">
-                          {isAdmin && (
-                            <button
-                              className="text-muted-foreground hover:text-destructive"
-                              onClick={() => remove.mutate(p.id)}
-                              aria-label="Eliminar expediente"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          )}
+          <div className="ml-auto flex items-center gap-2">
+            <Btn variant="outline" onClick={() => goModule("ingresos")}>
+              <Plus className="size-3" /> Ingresar RN
+            </Btn>
+            {isAdmin && (
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                <Shield className="size-3" /> Admin
+              </span>
             )}
+          </div>
+        </div>
+
+        {!mod ? (
+          <Panel title="Centro de Operaciones" accent={unitAccent}>
+            <Empty text="No hay módulos disponibles para tu perfil." />
           </Panel>
+        ) : mod.kind === "dashboard" ? (
+          <>
+            <Panel
+              title="Centro de Operaciones Clínicas"
+              subtitle="Estado en tiempo real del Servicio de Neonatología."
+              icon={<Baby className="size-4" />}
+              accent={unitAccent}
+            >
+              <ModuleTabs tabs={mod.tabs} active={activeTab} onSelect={setTab} accent={unitAccent} />
+              <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+                <Metric label="Pacientes en la unidad" value={stats.total} accent={unitAccent} hint={unitMeta.title} />
+                <Metric label="Hospitalizados" value={stats.hosp} accent={unitAccent} hint="Pacientes activos" />
+                <Metric
+                  label="Prematuros (<37 sem)"
+                  value={stats.prema}
+                  accent={unitAccent}
+                  hint={stats.total ? `${Math.round((stats.prema / stats.total) * 100)}% del total` : "—"}
+                />
+                <Metric
+                  label="Bajo peso (<2500 g)"
+                  value={stats.bajoPeso}
+                  accent={unitAccent}
+                  hint={stats.total ? `${Math.round((stats.bajoPeso / stats.total) * 100)}% del total` : "—"}
+                />
+                <Metric label="Camas disponibles" value={stats.camas} accent={unitAccent} hint="De 24 camas" />
+                <Metric
+                  label="Alertas activas"
+                  value={stats.alertas}
+                  accent="oklch(0.65 0.18 25)"
+                  hint="Requieren atención"
+                />
+              </div>
+            </Panel>
+            {activeTab === "ocupacion" ? (
+              <UnitCards unit={unit} onUnit={(u) => setUnit(u)} accent={unitAccent} />
+            ) : (
+              <CensusTable
+                title={`Censo · ${unitMeta.title}`}
+                accent={unitAccent}
+                patients={
+                  activeTab === "alertas"
+                    ? patients.filter(
+                        (p: any) => (p.edad_gestacional ?? 40) < 32 || (p.peso_nacimiento ?? 3000) < 2500,
+                      )
+                    : patients
+                }
+                isLoading={isLoading}
+                search={search}
+                onSearch={setSearch}
+                onOpen={setPatientId}
+                onDelete={(id) => remove.mutate(id)}
+                canDelete={isAdmin}
+              />
+            )}
+          </>
+        ) : mod.kind === "ingresos" ? (
+          <>
+            <Panel
+              title="Ingresos"
+              subtitle={`Unidad de destino: ${unitMeta.title}`}
+              icon={<Baby className="size-4" />}
+              accent={unitAccent}
+            >
+              <ModuleTabs tabs={mod.tabs} active={activeTab} onSelect={setTab} accent={unitAccent} />
+              {activeTab === "nuevo" || activeTab === "" ? (
+                <div className="mt-4">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <Field label="Unidad de ingreso">
+                      <Select value={unit} onChange={(e) => setUnit(e.target.value)}>
+                        {NEO_UNITS.map((u) => (
+                          <option key={u.slug} value={u.slug}>
+                            {u.title}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Apellidos de la madre / del RN">
+                      <Input value={form.apellidos} onChange={(e) => setForm({ ...form, apellidos: e.target.value })} />
+                    </Field>
+                    <Field label="Nombres">
+                      <Input value={form.nombres} onChange={(e) => setForm({ ...form, nombres: e.target.value })} />
+                    </Field>
+                    <Field label="Historia clínica">
+                      <Input value={form.hc} onChange={(e) => setForm({ ...form, hc: e.target.value })} />
+                    </Field>
+                    <Field label="Sexo">
+                      <Select value={form.sexo} onChange={(e) => setForm({ ...form, sexo: e.target.value })}>
+                        <option value="">—</option>
+                        <option value="masculino">Masculino</option>
+                        <option value="femenino">Femenino</option>
+                        <option value="indeterminado">Indeterminado</option>
+                      </Select>
+                    </Field>
+                    <Field label="Fecha de nacimiento">
+                      <Input
+                        type="date"
+                        value={form.fecha_nacimiento}
+                        onChange={(e) => setForm({ ...form, fecha_nacimiento: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Hora de nacimiento">
+                      <Input
+                        type="time"
+                        value={form.hora_nacimiento}
+                        onChange={(e) => setForm({ ...form, hora_nacimiento: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Edad gestacional (sem)">
+                      <Input
+                        type="number"
+                        step="any"
+                        value={form.edad_gestacional}
+                        onChange={(e) => setForm({ ...form, edad_gestacional: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Peso al nacer (g)">
+                      <Input
+                        type="number"
+                        value={form.peso_nacimiento}
+                        onChange={(e) => setForm({ ...form, peso_nacimiento: e.target.value })}
+                      />
+                    </Field>
+                    <Field label="Médico responsable">
+                      <Input
+                        value={form.medico_responsable}
+                        onChange={(e) => setForm({ ...form, medico_responsable: e.target.value })}
+                      />
+                    </Field>
+                    <div className="md:col-span-2">
+                      <Field label="Diagnóstico de ingreso">
+                        <Input
+                          value={form.diagnostico_ingreso}
+                          onChange={(e) => setForm({ ...form, diagnostico_ingreso: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+                    <Field label="Estado">
+                      <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                        {NEO_STATUS.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                  </div>
+                  <div className="mt-4">
+                    <Btn variant="solid" accent={unitAccent} loading={create.isPending} onClick={() => create.mutate()}>
+                      <Plus className="size-3" /> Registrar ingreso
+                    </Btn>
+                  </div>
+                </div>
+              ) : activeTab === "estadisticas" ? (
+                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  <Metric label="Ingresos en la unidad" value={stats.total} accent={unitAccent} />
+                  <Metric label="Hospitalizados" value={stats.hosp} accent={unitAccent} />
+                  <Metric label="Prematuros" value={stats.prema} accent={unitAccent} />
+                  <Metric label="Bajo peso" value={stats.bajoPeso} accent={unitAccent} />
+                </div>
+              ) : null}
+            </Panel>
+            {activeTab !== "nuevo" && activeTab !== "estadisticas" && activeTab !== "" && (
+              <CensusTable
+                title={
+                  activeTab === "dia"
+                    ? "Ingresos del día"
+                    : activeTab === "espera"
+                      ? "Lista de espera"
+                      : activeTab === "referidos"
+                        ? "Referidos"
+                        : "Traslados"
+                }
+                subtitle="Filtro sobre el censo del servicio."
+                accent={unitAccent}
+                patients={
+                  activeTab === "dia"
+                    ? patients.filter(
+                        (p: any) =>
+                          new Date(p.fecha_ingreso).toDateString() === new Date().toDateString(),
+                      )
+                    : activeTab === "referidos"
+                      ? patients.filter((p: any) => p.status === "referido")
+                      : patients
+                }
+                isLoading={isLoading}
+                search={search}
+                onSearch={setSearch}
+                onOpen={setPatientId}
+              />
+            )}
+          </>
+        ) : mod.kind === "hospitalizacion" ? (
+          <>
+            <UnitCards
+              unit={unit}
+              accent={unitAccent}
+              onUnit={(u) => {
+                setUnit(u);
+                setUnitOpen(true);
+              }}
+            />
+            {unitOpen && (
+              <CensusTable
+                title={`Censo · ${unitMeta.title}`}
+                subtitle={unitMeta.description}
+                accent={unitAccent}
+                patients={patients}
+                isLoading={isLoading}
+                search={search}
+                onSearch={setSearch}
+                onOpen={setPatientId}
+                onDelete={(id) => remove.mutate(id)}
+                canDelete={isAdmin}
+              />
+            )}
+          </>
+        ) : mod.kind === "calculadoras" ? (
+          <CalculatorsModule accent={unitAccent} />
+        ) : mod.id === "administracion" && isAdmin ? (
+          <>
+            <Panel
+              title="Administración del servicio"
+              subtitle="Configura la arquitectura, los formularios y los protocolos sin tocar el código."
+              icon={<Settings2 className="size-4" />}
+              accent={unitAccent}
+            >
+              <ModuleTabs tabs={mod.tabs} active={activeTab} onSelect={setTab} accent={unitAccent} />
+            </Panel>
+            {activeTab === "formularios" ? (
+              <HospitalConfigEditor config={config} accent={unitAccent} />
+            ) : (
+              <NavAdmin nav={nav} accent={unitAccent} />
+            )}
+          </>
         ) : (
-          <Panel
-            title={navLabel(section)}
-            subtitle="Este proceso se ejecuta dentro del expediente clínico del paciente."
-            icon={<AlertTriangle className="size-4" />}
-            accent={unitAccent}
-          >
-            <Empty text="Abre un paciente del censo para trabajar en esta sección (evoluciones, órdenes, exámenes, cálculos y más)." />
-            <div className="mt-3">
-              <Btn variant="outline" onClick={() => setSection("censo")}>
-                Ir al censo del servicio
-              </Btn>
-            </div>
-          </Panel>
+          <GenericModule mod={mod} accent={unitAccent} onGoCenso={goCenso} />
         )}
       </div>
     </div>
+  );
+}
+
+function UnitCards({
+  unit,
+  onUnit,
+  accent,
+}: {
+  unit: string;
+  onUnit: (slug: string) => void;
+  accent: string;
+}) {
+  return (
+    <Panel
+      title="Áreas de hospitalización"
+      subtitle="Cada área abre su propio censo dentro del servicio."
+      icon={<BedDouble className="size-4" />}
+      accent={accent}
+    >
+      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
+        {NEO_UNITS.map((u) => {
+          const active = u.slug === unit;
+          return (
+            <button
+              key={u.slug}
+              onClick={() => onUnit(u.slug)}
+              className={`rounded-2xl border p-3 text-left transition ${
+                active
+                  ? "border-transparent text-white"
+                  : "border-border/50 bg-background/40 hover:border-primary/40"
+              }`}
+              style={active ? { background: u.accent } : undefined}
+            >
+              <div className="text-[11px] font-extrabold leading-tight">{u.title}</div>
+              <div
+                className={`mt-1 text-[10px] leading-snug ${
+                  active ? "text-white/80" : "text-muted-foreground"
+                }`}
+              >
+                {u.description}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </Panel>
   );
 }
