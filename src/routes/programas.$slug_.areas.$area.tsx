@@ -105,7 +105,7 @@ function GenericAreaModule() {
         areasParams={{ slug }}
         areasLabel="Módulos"
         extraSections={
-          slug === HOSPITAL_PROGRAM && area === HOSPITAL_AREA
+          (slug === HOSPITAL_PROGRAM || /hospitaliza/i.test(slug)) && /neonatolog/i.test(area)
             ? [
                 {
                   id: "hospitalizacion",
