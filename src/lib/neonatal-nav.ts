@@ -541,7 +541,7 @@ function normalize(cfg: Partial<NeoNavConfig> | null): NeoNavConfig {
         break;
       }
     }
-    modules.splice(anchor + 1, 0, { ...def });
+    modules.splice(anchor + 1, 0, { ...def, badge: def.badge ?? null });
   });
   return {
     modules,
