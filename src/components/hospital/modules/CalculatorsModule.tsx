@@ -655,7 +655,7 @@ function CalcForm({
 }: {
   accent: string;
   fields: [string, string, string][];
-  compute: (v: Record<string, number>) => { label: string; value: string; hint?: string }[];
+  compute: (v: Record<string, number>) => { label: string; value: string | number; hint?: string }[];
   note?: string;
 }) {
   const initial = Object.fromEntries(fields.map(([k, , d]) => [k, d]));
