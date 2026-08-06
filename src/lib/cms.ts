@@ -324,6 +324,25 @@ export function useCmsBlocks(pageId: string | null) {
 }
 
 /** Página pública + bloques visibles, en una sola consulta. */
+/** Páginas informativas publicadas (para enlazarlas desde la web pública). */
+export function usePublicCmsPages() {
+  return useQuery({
+    queryKey: ["cms-public-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cms_pages")
+        .select(PAGE_COLS)
+        .eq("status", "published")
+        .neq("slug", "home")
+        .order("kind")
+        .order("sort_order")
+        .order("title");
+      if (error) throw error;
+      return (data ?? []) as unknown as CmsPage[];
+    },
+  });
+}
+
 export function usePublicCmsPage(slug: string) {
   return useQuery({
     queryKey: ["cms-public", slug],
