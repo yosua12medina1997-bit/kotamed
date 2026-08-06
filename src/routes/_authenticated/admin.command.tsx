@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { useIsAdmin, useIsEnrollmentAdmin, useSupabaseUser } from "@/lib/session";
 import {
   ArrowLeft,
   BarChart3,
@@ -44,7 +44,13 @@ function CommandCenterPage() {
   const user = useSupabaseUser();
   const navigate = useNavigate();
   const { data: isAdmin, isLoading } = useIsAdmin(user?.id);
+  const { data: canEnroll } = useIsEnrollmentAdmin(user?.id);
   const [section, setSection] = useState<SectionKey>("analitica");
+  const sections = SECTIONS.filter((s) => s.key !== "matriculacion" || canEnroll === true);
+
+  useEffect(() => {
+    if (section === "matriculacion" && canEnroll === false) setSection("analitica");
+  }, [section, canEnroll]);
 
   useEffect(() => {
     if (user === null) navigate({ to: "/auth", replace: true });
@@ -90,7 +96,7 @@ function CommandCenterPage() {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          {SECTIONS.map((s) => (
+          {sections.map((s) => (
             <button
               key={s.key}
               onClick={() => setSection(s.key)}
@@ -108,7 +114,7 @@ function CommandCenterPage() {
         {section === "analitica" && <AdminAnalytics />}
         {section === "matriculas" && <AdminAdmissions />}
         {section === "usuarios" && <AdminUsers />}
-        {section === "matriculacion" && <AdminEnrollments />}
+        {section === "matriculacion" && canEnroll === true && <AdminEnrollments />}
         {section === "membresias" && <AdminPlans />}
         {section === "docentes" && <AdminTeachers />}
       </div>
