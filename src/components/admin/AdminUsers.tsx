@@ -8,6 +8,7 @@ import { Badge, Btn, Card, Field, Modal, SectionTitle, Stat, inputCls } from "./
 import { usePlans, useCourseNodes } from "./AdminPlans";
 import { UserEnrollmentsTable } from "./UserEnrollmentsTable";
 import { EnrollmentModal } from "./EnrollmentModal";
+import { useIsEnrollmentAdmin, useSupabaseUser } from "@/lib/session";
 
 const db = supabase as any;
 
