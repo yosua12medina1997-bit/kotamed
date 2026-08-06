@@ -153,6 +153,12 @@ function CmsStudioPage() {
   const [navOpen, setNavOpen] = useState(false);
   const [view, setView] = useState<StudioView>("paginas");
   const seedDefaults = useSeedCmsDefaults();
+  const seedNav = useSeedNav();
+  const seedCollections = useSeedCollections();
+  const seedAll = () => {
+    seedNav.mutate();
+    seedCollections.mutate();
+  };
   const seeded = useRef(false);
 
   const history = useRef<DraftBlock[][]>([]);
