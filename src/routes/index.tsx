@@ -831,53 +831,8 @@ function Footer() {
             </p>
           </div>
 
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              Plataforma
-            </div>
-            <ul className="mt-4 space-y-2.5 text-[12.5px] font-semibold">
-              <li>
-                <Link to="/programas" className="text-muted-foreground hover:text-foreground">
-                  Programas
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/programas/residentado/areas"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Áreas ENAM
-                </Link>
-              </li>
-              <li>
-                <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">
-                  Mi panel
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              Explorar
-            </div>
-            <ul className="mt-4 space-y-2.5 text-[12.5px] font-semibold">
-              <li>
-                <a href="#metodologia" className="text-muted-foreground hover:text-foreground">
-                  Metodología
-                </a>
-              </li>
-              <li>
-                <a href="#evidencia" className="text-muted-foreground hover:text-foreground">
-                  Evidencia
-                </a>
-              </li>
-              <li>
-                <Link to="/auth" className="text-muted-foreground hover:text-foreground">
-                  Iniciar sesión
-                </Link>
-              </li>
-            </ul>
+          <div className="md:col-span-2">
+            <SiteFooterNav />
           </div>
         </div>
 
