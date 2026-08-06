@@ -74,6 +74,12 @@ import {
   type CmsPageKind,
 } from "@/lib/cms";
 import { useSeedCmsDefaults } from "@/lib/cms-defaults";
+import { SECTION_TEMPLATES } from "@/lib/cms-templates";
+import { NavEditor } from "@/components/cms/NavEditor";
+import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
+import { COLLECTIONS } from "@/lib/cms-collections";
+
+type StudioView = "paginas" | "navegacion" | "colecciones";
 
 export const Route = createFileRoute("/_authenticated/admin/cms")({
   head: () => ({
