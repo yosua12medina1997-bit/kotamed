@@ -241,7 +241,14 @@ function EnrolledView({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(isAdmin
             ? programs.map((p) => ({ slug: p.slug, expires_at: null as string | null }))
-            : active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at }))
+            : [
+                ...active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at })),
+                ...manual
+                  .filter((m) => m.node?.slug)
+                  .map((m) => ({ slug: m.node!.slug, expires_at: m.expires_at })),
+              ].filter(
+                (item, i, arr) => arr.findIndex((x) => x.slug === item.slug) === i,
+              )
           ).map(({ slug, expires_at }) => {
             const cat = programs.find((p) => p.slug === slug);
             const label =
