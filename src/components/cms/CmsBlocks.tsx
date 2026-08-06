@@ -408,6 +408,15 @@ function RichText({ block }: { block: CmsBlock }) {
 /* ------------------------------ Registro --------------------------- */
 
 export function CmsBlockView({ block }: { block: CmsBlock }) {
+  const { data: rows } = useCollectionItems((block.props.collection as CmsCollection) || null);
+  const resolved =
+    block.props.collection && rows && rows.length
+      ? { ...block, props: { ...block.props, items: collectionToItems(rows) } }
+      : block;
+  return <BlockSwitch block={resolved} />;
+}
+
+function BlockSwitch({ block }: { block: CmsBlock }) {
   switch (block.type) {
     case "hero":
       return <Hero block={block} />;
