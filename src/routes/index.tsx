@@ -66,7 +66,10 @@ function Landing() {
       <Nav />
       <main className="relative">
         {cmsBlocks.length > 0 ? (
-          cmsBlocks.map((b) => <CmsBlockView key={b.id} block={b} />)
+          <>
+            {cmsBlocks.map((b) => <CmsBlockView key={b.id} block={b} />)}
+            <CmsPagesRail />
+          </>
         ) : (
           <>
             <Hero />
@@ -74,6 +77,7 @@ function Landing() {
             <ImpactAndAudience />
             <TrustBar />
             <Programs />
+            <CmsPagesRail />
             <Pillars />
             <FinalCta />
           </>
@@ -83,6 +87,55 @@ function Landing() {
     </div>
   );
 }
+
+/* --------------------- Páginas publicadas (CMS) -------------------- */
+
+function CmsPagesRail() {
+  const { data: pages } = usePublicCmsPages();
+  const items = pages ?? [];
+  if (items.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-7xl px-6 lg:px-10 pb-20 lg:pb-28">
+      <div className="max-w-2xl">
+        <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+          Información
+        </span>
+        <h2 className="mt-3 text-3xl font-extrabold leading-[1.05] tracking-tight text-balance md:text-4xl">
+          Páginas publicadas de KotaMed.
+        </h2>
+      </div>
+      <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+        {items.map((p) => (
+          <Link
+            key={p.id}
+            to="/p/$slug"
+            params={{ slug: p.slug }}
+            className="group glass rounded-3xl bg-white/70 p-7 transition-all hover:-translate-y-1 hover:shadow-xl"
+          >
+            <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              {p.kind}
+            </div>
+            <h3 className="mt-1.5 text-xl font-extrabold tracking-tight">{p.title}</h3>
+            {(p.subtitle || p.seo?.description) && (
+              <p className="mt-3 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">
+                {p.subtitle || p.seo?.description}
+              </p>
+            )}
+            <span className="mt-6 inline-flex items-center gap-1.5 text-[12px] font-bold text-primary">
+              Ver página
+              <ArrowRight
+                className="size-3.5 transition-transform group-hover:translate-x-1"
+                strokeWidth={2.5}
+              />
+            </span>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 
 
 /* ------------------------------------------------------------------ */
