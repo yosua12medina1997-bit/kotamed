@@ -33,12 +33,16 @@ type ProfileRow = {
 };
 
 const TABS = ["Perfil", "Membresía", "Matrículas", "Accesos", "Actividad"] as const;
+type TabKey = (typeof TABS)[number];
 
 export default function AdminUsers() {
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<ProfileRow | null>(null);
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Perfil");
+  const [tab, setTab] = useState<TabKey>("Perfil");
+  const me = useSupabaseUser();
+  const { data: canEnroll } = useIsEnrollmentAdmin(me?.id);
+  const visibleTabs = TABS.filter((t) => t !== "Matrículas" || canEnroll === true);
 
   const usersQ = useQuery({
     queryKey: ["admin-profiles"],
@@ -71,11 +75,22 @@ export default function AdminUsers() {
   });
 
   const plansQ = usePlans();
-  const roleMap = useMemo(() => {
-    const m = new Map<string, string>();
-    (rolesQ.data ?? []).forEach((r: any) => m.set(r.user_id, r.role));
+  const rolesByUser = useMemo(() => {
+    const m = new Map<string, Set<string>>();
+    (rolesQ.data ?? []).forEach((r: any) => {
+      if (!m.has(r.user_id)) m.set(r.user_id, new Set());
+      m.get(r.user_id)!.add(r.role);
+    });
     return m;
   }, [rolesQ.data]);
+  const hasRoleFor = (userId: string, role: string) => !!rolesByUser.get(userId)?.has(role);
+  const roleMap = useMemo(() => {
+    const m = new Map<string, string>();
+    rolesByUser.forEach((set, userId) => {
+      m.set(userId, set.has("super_admin") ? "super_admin" : set.has("admin") ? "admin" : Array.from(set)[0] ?? "student");
+    });
+    return m;
+  }, [rolesByUser]);
 
   const memMap = useMemo(() => {
     const m = new Map<string, any>();
@@ -96,6 +111,9 @@ export default function AdminUsers() {
 
   const setRole = useMutation({
     mutationFn: async (v: { userId: string; role: "admin" | "student" }) => {
+      if (hasRoleFor(v.userId, "super_admin")) {
+        throw new Error("No se puede modificar el rol de un Super Admin");
+      }
       const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", v.userId);
       if (delErr) throw delErr;
       const { error } = await supabase.from("user_roles").insert({ user_id: v.userId, role: v.role });
@@ -106,6 +124,29 @@ export default function AdminUsers() {
       qc.invalidateQueries({ queryKey: ["admin-user-roles"] });
     },
     onError: (e: any) => toast.error(e?.message ?? "No se pudo actualizar el rol"),
+  });
+
+  const toggleAcademicAdmin = useMutation({
+    mutationFn: async (v: { userId: string; enable: boolean }) => {
+      if (v.enable) {
+        const { error } = await (supabase as any)
+          .from("user_roles")
+          .insert({ user_id: v.userId, role: "academic_admin" });
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any)
+          .from("user_roles")
+          .delete()
+          .eq("user_id", v.userId)
+          .eq("role", "academic_admin");
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Permisos de matriculación actualizados");
+      qc.invalidateQueries({ queryKey: ["admin-user-roles"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo actualizar el permiso"),
   });
 
   const careTeamQ = useQuery({
@@ -191,6 +232,8 @@ export default function AdminUsers() {
                       {u.email} {u.specialty ? `· ${u.specialty}` : ""}
                     </span>
                   </span>
+                  {hasRoleFor(u.id, "super_admin") && <Badge tone="warn">Super Admin</Badge>}
+                  {hasRoleFor(u.id, "academic_admin") && <Badge tone="warn">Admin académico</Badge>}
                   {roleMap.get(u.id) === "admin" && <Badge tone="warn">Admin</Badge>}
                   {plan ? <Badge tone="ok">{plan.name}</Badge> : <Badge>Sin plan</Badge>}
                 </button>
@@ -212,7 +255,7 @@ export default function AdminUsers() {
         {selected && (
           <div>
             <div className="flex flex-wrap gap-2 mb-5">
-              {TABS.map((t) => (
+              {visibleTabs.map((t) => (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
@@ -248,6 +291,22 @@ export default function AdminUsers() {
                   <ShieldCheck className="size-3.5" />
                   {roleMap.get(selected.id) === "admin" ? "Quitar admin" : "Hacer admin"}
                 </Btn>
+                {hasRoleFor(me?.id ?? "", "super_admin") && !hasRoleFor(selected.id, "super_admin") && (
+                  <Btn
+                    variant={hasRoleFor(selected.id, "academic_admin") ? "danger" : "ghost"}
+                    onClick={() =>
+                      toggleAcademicAdmin.mutate({
+                        userId: selected.id,
+                        enable: !hasRoleFor(selected.id, "academic_admin"),
+                      })
+                    }
+                  >
+                    <ShieldCheck className="size-3.5" />
+                    {hasRoleFor(selected.id, "academic_admin")
+                      ? "Quitar admin académico"
+                      : "Hacer admin académico"}
+                  </Btn>
+                )}
               </div>
             </div>
 
@@ -258,7 +317,7 @@ export default function AdminUsers() {
                 userLabel={selected.full_name || selected.email}
               />
             )}
-            {tab === "Matrículas" && (
+            {tab === "Matrículas" && canEnroll === true && (
               <UserEnrollmentsTable
                 userId={selected.id}
                 userLabel={selected.full_name || selected.email}
