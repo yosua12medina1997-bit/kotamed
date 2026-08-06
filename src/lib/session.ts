@@ -22,6 +22,8 @@ export interface Profile {
 }
 
 export const ROLE_LABELS: Record<string, string> = {
+  super_admin: "Super Admin",
+  academic_admin: "Administrador Académico",
   admin: "Administrador",
   teacher: "Docente",
   moderator: "Moderador",
@@ -54,6 +56,25 @@ export function useIsAdmin(userId: string | undefined) {
         .maybeSingle();
       if (error) throw error;
       return !!data;
+    },
+  });
+}
+
+/** Solo Super Admin y Administrador Académico pueden gestionar matriculación manual. */
+export const ENROLLMENT_ADMIN_ROLES = ["super_admin", "academic_admin"] as const;
+
+export function useIsEnrollmentAdmin(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["is-enrollment-admin", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId!)
+        .in("role", ENROLLMENT_ADMIN_ROLES as unknown as string[]);
+      if (error) throw error;
+      return (data ?? []).length > 0;
     },
   });
 }
