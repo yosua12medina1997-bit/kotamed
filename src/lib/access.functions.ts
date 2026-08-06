@@ -50,26 +50,46 @@ export const checkProgramAccess = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (node?.id) {
-      // 3.1) Matrícula manual vigente sobre el nodo del programa.
+      // 3.0) Nodos del programa (el propio + toda su descendencia): una matrícula
+      // manual sobre un área/módulo también habilita el programa completo.
+      const { data: allNodes } = await supabase
+        .from("content_nodes")
+        .select("id,parent_id");
+      const childrenOf = new Map<string, string[]>();
+      for (const n of allNodes ?? []) {
+        if (!n.parent_id) continue;
+        childrenOf.set(n.parent_id, [...(childrenOf.get(n.parent_id) ?? []), n.id]);
+      }
+      const scope: string[] = [];
+      const stack = [node.id];
+      while (stack.length > 0 && scope.length < 5000) {
+        const cur = stack.pop()!;
+        if (scope.includes(cur)) continue;
+        scope.push(cur);
+        stack.push(...(childrenOf.get(cur) ?? []));
+      }
+
+      // 3.1) Matrícula manual vigente sobre el programa o cualquiera de sus nodos.
       const { data: manual } = await supabase
         .from("user_enrollments")
-        .select("status,expires_at")
+        .select("status,expires_at,node_id")
         .eq("user_id", userId)
-        .eq("node_id", node.id)
-        .maybeSingle();
-      if (manual?.status === "active" && (!manual.expires_at || manual.expires_at > nowIso)) {
+        .eq("status", "active")
+        .in("node_id", scope);
+      if ((manual ?? []).some((m) => !m.expires_at || m.expires_at > nowIso)) {
         return { allowed: true, reason: "enrollment" };
       }
 
       const { data: grant } = await supabase
         .from("user_content_access")
-        .select("granted,expires_at")
+        .select("granted,expires_at,node_id")
         .eq("user_id", userId)
-        .eq("node_id", node.id)
-        .maybeSingle();
-      if (grant?.granted && (!grant.expires_at || grant.expires_at > nowIso)) {
+        .eq("granted", true)
+        .in("node_id", scope);
+      if ((grant ?? []).some((g) => !g.expires_at || g.expires_at > nowIso)) {
         return { allowed: true, reason: "grant" };
       }
+
 
       const { data: memberships } = await supabase
         .from("user_memberships")
@@ -81,7 +101,7 @@ export const checkProgramAccess = createServerFn({ method: "POST" })
         const { data: planAccess } = await supabase
           .from("plan_content_access")
           .select("plan_id")
-          .eq("node_id", node.id)
+          .in("node_id", scope)
           .in("plan_id", planIds);
         if ((planAccess ?? []).length > 0) return { allowed: true, reason: "membership" };
       }
