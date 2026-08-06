@@ -14,12 +14,14 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProgramasIndexRouteImport } from './routes/programas.index'
 import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
+import { Route as ApiCmsImageRouteImport } from './routes/api/cms-image'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
 import { Route as AuthenticatedAdmisionRouteImport } from './routes/_authenticated/admision'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminContenidoRouteImport } from './routes/_authenticated/admin.contenido'
 import { Route as AuthenticatedAdminCommandRouteImport } from './routes/_authenticated/admin.command'
+import { Route as AuthenticatedAdminCmsRouteImport } from './routes/_authenticated/admin.cms'
 import { Route as ProgramasResidentadoAreasIndexRouteImport } from './routes/programas.residentado.areas.index'
 import { Route as ProgramasInternadoAreasIndexRouteImport } from './routes/programas.internado.areas.index'
 import { Route as ProgramasSlugAreasIndexRouteImport } from './routes/programas.$slug_.areas.index'
@@ -49,6 +51,11 @@ const ProgramasIndexRoute = ProgramasIndexRouteImport.update({
 const ProgramasSlugRoute = ProgramasSlugRouteImport.update({
   id: '/programas/$slug',
   path: '/programas/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCmsImageRoute = ApiCmsImageRouteImport.update({
+  id: '/api/cms-image',
+  path: '/api/cms-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -83,6 +90,11 @@ const AuthenticatedAdminCommandRoute =
     path: '/command',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCmsRoute = AuthenticatedAdminCmsRouteImport.update({
+  id: '/cms',
+  path: '/cms',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const ProgramasResidentadoAreasIndexRoute =
   ProgramasResidentadoAreasIndexRouteImport.update({
     id: '/programas/residentado/areas/',
@@ -125,8 +137,10 @@ export interface FileRoutesByFullPath {
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
+  '/admin/cms': typeof AuthenticatedAdminCmsRoute
   '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/$slug/areas/$area': typeof ProgramasSlugAreasAreaRoute
@@ -143,8 +157,10 @@ export interface FileRoutesByTo {
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas': typeof ProgramasIndexRoute
+  '/admin/cms': typeof AuthenticatedAdminCmsRoute
   '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/$slug/areas/$area': typeof ProgramasSlugAreasAreaRoute
@@ -163,8 +179,10 @@ export interface FileRoutesById {
   '/_authenticated/admision': typeof AuthenticatedAdmisionRoute
   '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
+  '/_authenticated/admin/cms': typeof AuthenticatedAdminCmsRoute
   '/_authenticated/admin/command': typeof AuthenticatedAdminCommandRoute
   '/_authenticated/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/$slug_/areas/$area': typeof ProgramasSlugAreasAreaRoute
@@ -183,8 +201,10 @@ export interface FileRouteTypes {
     | '/admision'
     | '/anatomy-lab'
     | '/dashboard'
+    | '/api/cms-image'
     | '/programas/$slug'
     | '/programas/'
+    | '/admin/cms'
     | '/admin/command'
     | '/admin/contenido'
     | '/programas/$slug/areas/$area'
@@ -201,8 +221,10 @@ export interface FileRouteTypes {
     | '/admision'
     | '/anatomy-lab'
     | '/dashboard'
+    | '/api/cms-image'
     | '/programas/$slug'
     | '/programas'
+    | '/admin/cms'
     | '/admin/command'
     | '/admin/contenido'
     | '/programas/$slug/areas/$area'
@@ -220,8 +242,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admision'
     | '/_authenticated/anatomy-lab'
     | '/_authenticated/dashboard'
+    | '/api/cms-image'
     | '/programas/$slug'
     | '/programas/'
+    | '/_authenticated/admin/cms'
     | '/_authenticated/admin/command'
     | '/_authenticated/admin/contenido'
     | '/programas/$slug_/areas/$area'
@@ -236,6 +260,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiCmsImageRoute: typeof ApiCmsImageRoute
   ProgramasSlugRoute: typeof ProgramasSlugRoute
   ProgramasIndexRoute: typeof ProgramasIndexRoute
   ProgramasSlugAreasAreaRoute: typeof ProgramasSlugAreasAreaRoute
@@ -283,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProgramasSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cms-image': {
+      id: '/api/cms-image'
+      path: '/api/cms-image'
+      fullPath: '/api/cms-image'
+      preLoaderRoute: typeof ApiCmsImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -323,6 +355,13 @@ declare module '@tanstack/react-router' {
       path: '/command'
       fullPath: '/admin/command'
       preLoaderRoute: typeof AuthenticatedAdminCommandRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/cms': {
+      id: '/_authenticated/admin/cms'
+      path: '/cms'
+      fullPath: '/admin/cms'
+      preLoaderRoute: typeof AuthenticatedAdminCmsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/programas/residentado/areas/': {
@@ -371,11 +410,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminCmsRoute: typeof AuthenticatedAdminCmsRoute
   AuthenticatedAdminCommandRoute: typeof AuthenticatedAdminCommandRoute
   AuthenticatedAdminContenidoRoute: typeof AuthenticatedAdminContenidoRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminCmsRoute: AuthenticatedAdminCmsRoute,
   AuthenticatedAdminCommandRoute: AuthenticatedAdminCommandRoute,
   AuthenticatedAdminContenidoRoute: AuthenticatedAdminContenidoRoute,
 }
@@ -404,6 +445,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiCmsImageRoute: ApiCmsImageRoute,
   ProgramasSlugRoute: ProgramasSlugRoute,
   ProgramasIndexRoute: ProgramasIndexRoute,
   ProgramasSlugAreasAreaRoute: ProgramasSlugAreasAreaRoute,
@@ -416,13 +458,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
