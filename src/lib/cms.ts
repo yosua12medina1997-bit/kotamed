@@ -393,6 +393,7 @@ export function useSaveCmsPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cms-pages"] });
       qc.invalidateQueries({ queryKey: ["cms-public"] });
+      qc.invalidateQueries({ queryKey: ["cms-public-list"] });
     },
   });
 }
@@ -404,7 +405,11 @@ export function useDeleteCmsPage() {
       const { error } = await supabase.from("cms_pages").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cms-pages"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cms-pages"] });
+      qc.invalidateQueries({ queryKey: ["cms-public"] });
+      qc.invalidateQueries({ queryKey: ["cms-public-list"] });
+    },
   });
 }
 
@@ -429,6 +434,7 @@ export function useSaveCmsBlock(pageId: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cms-blocks", pageId] });
       qc.invalidateQueries({ queryKey: ["cms-public"] });
+      qc.invalidateQueries({ queryKey: ["cms-public-list"] });
     },
   });
 }
@@ -443,6 +449,7 @@ export function useDeleteCmsBlock(pageId: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cms-blocks", pageId] });
       qc.invalidateQueries({ queryKey: ["cms-public"] });
+      qc.invalidateQueries({ queryKey: ["cms-public-list"] });
     },
   });
 }
@@ -460,6 +467,7 @@ export function useReorderCmsBlocks(pageId: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cms-blocks", pageId] });
       qc.invalidateQueries({ queryKey: ["cms-public"] });
+      qc.invalidateQueries({ queryKey: ["cms-public-list"] });
     },
   });
 }
@@ -482,6 +490,7 @@ export function useBulkInsertBlocks(pageId: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cms-blocks", pageId] });
       qc.invalidateQueries({ queryKey: ["cms-public"] });
+      qc.invalidateQueries({ queryKey: ["cms-public-list"] });
     },
   });
 }
@@ -557,6 +566,7 @@ export function useRestoreVersion(pageId: string | null) {
       qc.invalidateQueries({ queryKey: ["cms-blocks", pageId] });
       qc.invalidateQueries({ queryKey: ["cms-pages"] });
       qc.invalidateQueries({ queryKey: ["cms-public"] });
+      qc.invalidateQueries({ queryKey: ["cms-public-list"] });
     },
   });
 }
