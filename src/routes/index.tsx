@@ -684,6 +684,11 @@ function Programs() {
             </div>
             <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
               {p.subtitle}
+              {!p.isPublished && (
+                <span className="ml-2 rounded-md border border-border bg-foreground/5 px-1.5 py-0.5 text-[9px] font-bold tracking-normal text-muted-foreground">
+                  Acceso privado
+                </span>
+              )}
             </div>
             <h3 className="mt-1.5 text-xl font-extrabold tracking-tight">{p.title}</h3>
             <p className="mt-3 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">
