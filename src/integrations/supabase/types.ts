@@ -871,6 +871,54 @@ export type Database = {
           },
         ]
       }
+      enrollment_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          detail: Json
+          enrollment_id: string | null
+          id: string
+          ip_address: string | null
+          node_id: string | null
+          node_title: string | null
+          target_email: string | null
+          target_user_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          enrollment_id?: string | null
+          id?: string
+          ip_address?: string | null
+          node_id?: string | null
+          node_title?: string | null
+          target_email?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          enrollment_id?: string | null
+          id?: string
+          ip_address?: string | null
+          node_id?: string | null
+          node_title?: string | null
+          target_email?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       enrollments: {
         Row: {
           created_at: string
@@ -1722,6 +1770,72 @@ export type Database = {
             columns: ["node_id"]
             isOneToOne: false
             referencedRelation: "content_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_enrollments: {
+        Row: {
+          assigned_by: string | null
+          assignment_type: string
+          created_at: string
+          enrollment_kind: string
+          expires_at: string | null
+          id: string
+          node_id: string
+          observations: string | null
+          plan_id: string | null
+          reason: string | null
+          starts_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          assignment_type?: string
+          created_at?: string
+          enrollment_kind?: string
+          expires_at?: string | null
+          id?: string
+          node_id: string
+          observations?: string | null
+          plan_id?: string | null
+          reason?: string | null
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          assignment_type?: string
+          created_at?: string
+          enrollment_kind?: string
+          expires_at?: string | null
+          id?: string
+          node_id?: string
+          observations?: string | null
+          plan_id?: string | null
+          reason?: string | null
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_enrollments_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "content_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_enrollments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "membership_plans"
             referencedColumns: ["id"]
           },
         ]
