@@ -343,8 +343,9 @@ function ProfileTab({ profile, onSaved }: { profile: ProfileRow; onSaved: () => 
   );
 }
 
-function MembershipTab({ userId }: { userId: string }) {
+function MembershipTab({ userId, userLabel }: { userId: string; userLabel: string }) {
   const qc = useQueryClient();
+  const [enrollOpen, setEnrollOpen] = useState(false);
   const plansQ = usePlans();
   const memQ = useQuery({
     queryKey: ["user-membership", userId],
