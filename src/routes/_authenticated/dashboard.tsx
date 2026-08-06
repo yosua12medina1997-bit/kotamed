@@ -208,13 +208,14 @@ function EnrolledView({
   active,
   displayName,
   isAdmin,
+  manual = [],
 }: {
   active: Enrollment[];
   displayName: string;
   isAdmin: boolean;
+  manual?: { node: { slug: string; title: string } | null; expires_at: string | null }[];
 }) {
   const { programs } = useProgramCatalog();
-  const manual = useMyProgramEnrollments(undefined);
   return (
 
 
