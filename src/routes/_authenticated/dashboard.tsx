@@ -36,6 +36,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useProgramCatalog } from "@/lib/content-catalog";
 import { useMyAdmission } from "@/lib/admission";
+import { useMyProgramEnrollments } from "@/lib/enrollments";
 
 /** Accesos incluidos en la experiencia Free (sin matrícula). */
 const FREE_ITEMS = [

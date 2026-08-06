@@ -50,6 +50,17 @@ export const checkProgramAccess = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (node?.id) {
+      // 3.1) Matrícula manual vigente sobre el nodo del programa.
+      const { data: manual } = await supabase
+        .from("user_enrollments")
+        .select("status,expires_at")
+        .eq("user_id", userId)
+        .eq("node_id", node.id)
+        .maybeSingle();
+      if (manual?.status === "active" && (!manual.expires_at || manual.expires_at > nowIso)) {
+        return { allowed: true, reason: "enrollment" };
+      }
+
       const { data: grant } = await supabase
         .from("user_content_access")
         .select("granted,expires_at")
