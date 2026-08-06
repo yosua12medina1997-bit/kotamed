@@ -172,6 +172,7 @@ function CmsStudioPage() {
     seedDefaults.mutate(undefined, {
       onSuccess: (n) => n && toast.success(`${n} páginas por defecto creadas en el CMS`),
     });
+    seedAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagesLoading, pages.length]);
 
