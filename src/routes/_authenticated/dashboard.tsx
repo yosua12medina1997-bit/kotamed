@@ -130,7 +130,12 @@ function DashboardPage() {
           {isAdmin && <AdminBanner />}
 
           {hasAccess ? (
-            <EnrolledView active={active} displayName={displayName} isAdmin={!!isAdmin} />
+            <EnrolledView
+              active={active}
+              displayName={displayName}
+              isAdmin={!!isAdmin}
+              manual={manualQ.data ?? []}
+            />
           ) : (
             <LockedView enrollments={enrollments} email={profile?.email} userId={user.id} />
           )}
