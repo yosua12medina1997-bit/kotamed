@@ -106,6 +106,38 @@ export default function AdminUsers() {
     onError: (e: any) => toast.error(e?.message ?? "No se pudo actualizar el rol"),
   });
 
+  const careTeamQ = useQuery({
+    queryKey: ["admin-neo-care-team"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("neo_care_team").select("id,user_id");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const careTeamMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (careTeamQ.data ?? []).forEach((r: any) => m.set(r.user_id, r.id));
+    return m;
+  }, [careTeamQ.data]);
+
+  const toggleCareTeam = useMutation({
+    mutationFn: async (v: { userId: string; enable: boolean }) => {
+      if (v.enable) {
+        const { error } = await supabase.from("neo_care_team").insert({ user_id: v.userId });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("neo_care_team").delete().eq("user_id", v.userId);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Equipo clínico actualizado");
+      qc.invalidateQueries({ queryKey: ["admin-neo-care-team"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo actualizar el equipo clínico"),
+  });
+
   return (
     <div className="space-y-5">
       <SectionTitle title="Gestión de usuarios" hint="Perfil completo, rol, membresía, accesos y actividad." />
