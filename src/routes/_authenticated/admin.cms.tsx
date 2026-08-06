@@ -334,62 +334,132 @@ function CmsStudioPage() {
   return (
     <div className="min-h-screen bg-muted/20 text-foreground">
       {/* -------- Barra superior -------- */}
-      <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 border-b border-border/60 bg-background/90 px-4 py-2.5 backdrop-blur">
-        <Link
-          to="/admin"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-3.5" /> Admin
-        </Link>
-        <span className="text-sm font-black tracking-tight">CMS Studio</span>
-        <span className="text-xs text-muted-foreground">
-          {KINDS.find((k) => k.value === kind)?.label} ›{" "}
-          <b className="text-foreground">{page?.title ?? "—"}</b>
-        </span>
-        {page && (
-          <Chip accent={page.status === "published" ? undefined : undefined}>
-            {page.status === "published" ? "Publicado" : "Borrador"}
-          </Chip>
-        )}
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/90 px-4 py-2.5 backdrop-blur">
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/admin"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" /> Admin
+          </Link>
+          <span className="text-sm font-black tracking-tight">CMS Studio</span>
+          {page && <Chip>{page.status === "published" ? "Publicado" : "Borrador"}</Chip>}
 
-        <div className="ml-auto flex flex-wrap items-center gap-1.5">
-          <div className="mr-1 flex rounded-lg border border-border/60 p-0.5">
-            {DEVICES.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setDevice(d.id)}
-                className={`rounded-md px-2 py-1 ${device === d.id ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}
-                title={d.id}
-              >
-                <d.icon className="size-4" />
-              </button>
-            ))}
-          </div>
-          <Btn variant="ghost" onClick={undo}>
-            <Undo2 className="size-3.5" />
-          </Btn>
-          <Btn variant="ghost" onClick={redo}>
-            <Redo2 className="size-3.5" />
-          </Btn>
-          <Btn variant="ghost" onClick={() => setShowVersions((v) => !v)}>
-            <History className="size-3.5" /> Versiones
-          </Btn>
-          <Btn variant="outline" onClick={() => setShowSeo((v) => !v)}>
-            SEO
-          </Btn>
-          {page && (
-            <Btn variant="outline" onClick={publish}>
-              <Rocket className="size-3.5" /> {page.status === "published" ? "Despublicar" : "Publicar"}
+          <div className="ml-auto flex flex-wrap items-center gap-1.5">
+            <div className="mr-1 flex rounded-lg border border-border/60 p-0.5">
+              {DEVICES.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => setDevice(d.id)}
+                  className={`rounded-md px-2 py-1 ${device === d.id ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}
+                  title={d.id}
+                >
+                  <d.icon className="size-4" />
+                </button>
+              ))}
+            </div>
+            <Btn variant="ghost" onClick={undo}>
+              <Undo2 className="size-3.5" />
             </Btn>
-          )}
-          <Btn variant="solid" onClick={save} loading={saving} disabled={!pageId}>
-            <Save className="size-3.5" /> Guardar cambios{dirty ? " •" : ""}
-          </Btn>
+            <Btn variant="ghost" onClick={redo}>
+              <Redo2 className="size-3.5" />
+            </Btn>
+            <Btn variant="ghost" onClick={() => setShowVersions((v) => !v)}>
+              <History className="size-3.5" /> Versiones
+            </Btn>
+            <Btn variant="outline" onClick={() => setShowSeo((v) => !v)}>
+              SEO
+            </Btn>
+            {page && (
+              <Btn variant="outline" onClick={publish}>
+                <Rocket className="size-3.5" /> {page.status === "published" ? "Despublicar" : "Publicar"}
+              </Btn>
+            )}
+            <Btn variant="solid" onClick={save} loading={saving} disabled={!pageId}>
+              <Save className="size-3.5" /> Guardar cambios{dirty ? " •" : ""}
+            </Btn>
+          </div>
+        </div>
+
+        {/* -------- Selector desplegable (compacto) -------- */}
+        <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto]">
+          <Select
+            value={kind}
+            onChange={(e) => {
+              const k = e.target.value as CmsPageKind;
+              setKind(k);
+              const first = pages.find((p) => p.kind === k);
+              setPageId(first?.id ?? null);
+              setSelected(null);
+            }}
+          >
+            {KINDS.map((k) => (
+              <option key={k.value} value={k.value}>
+                {k.label} ({pages.filter((p) => p.kind === k.value).length})
+              </option>
+            ))}
+          </Select>
+          <Select
+            value={pageId ?? ""}
+            onChange={(e) => {
+              setPageId(e.target.value || null);
+              setSelected(null);
+            }}
+          >
+            <option value="">— Selecciona una página —</option>
+            {kindPages.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.title}
+                {p.status === "published" ? "" : " (borrador)"}
+              </option>
+            ))}
+          </Select>
+          <Select
+            value=""
+            disabled={!pageId}
+            onChange={(e) => {
+              if (e.target.value) addBlock(e.target.value as CmsBlockType);
+            }}
+          >
+            <option value="">+ Añadir bloque…</option>
+            {BLOCK_GROUPS.map((g) => (
+              <optgroup key={g.group} label={g.group}>
+                {g.types.map((t) => (
+                  <option key={t} value={t}>
+                    {BLOCK_LABEL[t]}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </Select>
+          <div className="flex items-center gap-1.5">
+            <Btn variant="outline" onClick={createPage}>
+              <FilePlus2 className="size-3" /> Nueva
+            </Btn>
+            <Btn
+              variant="outline"
+              loading={seedDefaults.isPending}
+              onClick={() =>
+                seedDefaults.mutate(undefined, {
+                  onSuccess: (n) =>
+                    toast.success(n ? `${n} páginas por defecto creadas` : "Todo el contenido por defecto ya existe"),
+                  onError: (e) => toast.error(String((e as { message?: string })?.message ?? e)),
+                })
+              }
+            >
+              <Layers className="size-3" /> Contenido por defecto
+            </Btn>
+            <Btn variant="ghost" onClick={() => setNavOpen((v) => !v)}>
+              {navOpen ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}{" "}
+              {navOpen ? "Ocultar paneles" : "Paneles"}
+            </Btn>
+          </div>
         </div>
       </header>
 
-      <div className="grid gap-3 p-3 xl:grid-cols-[210px_230px_1fr_320px]">
+      <div className={`grid gap-3 p-3 ${navOpen ? "xl:grid-cols-[210px_230px_1fr_320px]" : "xl:grid-cols-[1fr_320px]"}`}>
         {/* -------- Navegación del CMS -------- */}
+        {navOpen && (
         <aside className="space-y-1 rounded-2xl border border-border/60 bg-background p-2">
           <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Gestión de contenido
