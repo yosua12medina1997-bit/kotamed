@@ -998,6 +998,20 @@ function Inspector({
         </Btn>
       </div>
 
+      <Field label="Fuente de datos (colección reutilizable)">
+        <Select
+          value={(props.collection as string) ?? ""}
+          onChange={(e) => setProps({ collection: e.target.value || undefined } as never)}
+        >
+          <option value="">Contenido manual de este bloque</option>
+          {COLLECTIONS.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
       <Field label="Antetítulo">
         <Input value={props.eyebrow ?? ""} onChange={(e) => setProps({ eyebrow: e.target.value })} />
       </Field>
