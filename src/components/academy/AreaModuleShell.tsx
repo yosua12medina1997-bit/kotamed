@@ -169,23 +169,20 @@ export function AreaModuleShell({
     [extraSections],
   );
 
-  const navPrefsKey = `kotamed.moduleNav.${programSlug}.${meta.slug}`;
-  const [navPrefs, setNavPrefs] = useState<{ hidden: string[]; removed: string[] }>(() => {
-    if (typeof window === "undefined") return { hidden: [], removed: [] };
-    try {
-      const raw = JSON.parse(localStorage.getItem(navPrefsKey) || "");
-      return { hidden: raw?.hidden ?? [], removed: raw?.removed ?? [] };
-    } catch {
-      return { hidden: [], removed: [] };
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(navPrefsKey, JSON.stringify(navPrefs));
-    } catch {
-      /* almacenamiento no disponible */
-    }
-  }, [navPrefs, navPrefsKey]);
+  // Configuración del menú guardada en el servidor: lo que el admin oculta o
+  // elimina se aplica a todos los usuarios del área.
+  const navScope = `module-nav:${programSlug}:${meta.slug}`;
+  const { data: savedPrefs } = useMenuPrefs(navScope);
+  const saveNavPrefs = useSaveMenuPrefs(navScope);
+  const navPrefs = savedPrefs ?? EMPTY_MENU_PREFS;
+  const setNavPrefs = (next: MenuPrefs | ((prev: MenuPrefs) => MenuPrefs)) => {
+    const value = typeof next === "function" ? next(navPrefs) : next;
+    saveNavPrefs.mutate(value, {
+      onError: () => toast.error("No se pudo guardar la configuración del menú"),
+      onSuccess: () => toast.success("Menú actualizado para todos los usuarios"),
+    });
+  };
+
 
   const [editingMenu, setEditingMenu] = useState(false);
   const [navOpen, setNavOpen] = useState(true);
