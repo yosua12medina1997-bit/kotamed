@@ -198,7 +198,12 @@ export const updateEnrollment = createServerFn({ method: "POST" })
     if (rowErr) throw rowErr;
     if (!row) throw new Error("Matrícula no encontrada");
 
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      status?: string;
+      expires_at?: string | null;
+      observations?: string | null;
+      reason?: string | null;
+    } = {};
     if (data.status !== undefined) patch.status = data.status;
     if (data.expiresAt !== undefined) {
       patch.expires_at = data.expiresAt ? new Date(data.expiresAt).toISOString() : null;
