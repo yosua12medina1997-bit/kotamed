@@ -528,10 +528,11 @@ function normalize(cfg: Partial<NeoNavConfig> | null): NeoNavConfig {
     layout: mod.layout ?? "tabs",
     kind: mod.kind ?? "generic",
   })).map((mod) => {
-    // Sincroniza el motor de los módulos que la plataforma reimplementó.
+    // Sincroniza el motor de los módulos que la plataforma reimplementó,
+    // respetando la configuración del admin (ocultar / desactivar).
     const def = DEFAULT_NEO_MODULES.find((d) => d.id === mod.id);
     if (def && (def.kind === "casos-cms" || def.kind === "docencia-cms")) {
-      return { ...mod, kind: def.kind, hidden: false, enabled: true };
+      return { ...mod, kind: def.kind };
     }
     return mod;
   });
