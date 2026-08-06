@@ -26,6 +26,7 @@ import {
 import { useProgramCatalog } from "@/lib/content-catalog";
 import { usePublicCmsPage } from "@/lib/cms";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
+import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import audEstudiantes from "@/assets/aud-estudiantes.jpg";
 import audInternos from "@/assets/aud-internos.jpg";
