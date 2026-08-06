@@ -552,14 +552,15 @@ function CmsStudioPage() {
             </Btn>
             <Btn
               variant="outline"
-              loading={seedDefaults.isPending}
-              onClick={() =>
+              loading={seedDefaults.isPending || seedNav.isPending || seedCollections.isPending}
+              onClick={() => {
+                seedAll();
                 seedDefaults.mutate(undefined, {
                   onSuccess: (n) =>
                     toast.success(n ? `${n} páginas por defecto creadas` : "Todo el contenido por defecto ya existe"),
                   onError: (e) => toast.error(String((e as { message?: string })?.message ?? e)),
-                })
-              }
+                });
+              }}
             >
               <Layers className="size-3" /> Contenido por defecto
             </Btn>
