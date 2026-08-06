@@ -6,6 +6,11 @@ import { Link } from "@tanstack/react-router";
 import * as Icons from "lucide-react";
 import { ArrowRight } from "lucide-react";
 import { embedVideoUrl, type CmsBlock, type CmsBlockStyle, type CmsItem } from "@/lib/cms";
+import {
+  collectionToItems,
+  useCollectionItems,
+  type CmsCollection,
+} from "@/lib/cms-collections";
 
 function pad(style?: CmsBlockStyle) {
   switch (style?.paddingY) {
