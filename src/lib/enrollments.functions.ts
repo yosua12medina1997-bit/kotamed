@@ -1,6 +1,6 @@
 /**
  * Matriculación manual: escritura auditada de matrículas individuales.
- * Solo administradores. Registra IP y dispositivo de cada acción.
+ * Solo Super Admin y Administrador Académico. Registra IP y dispositivo de cada acción.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -51,11 +51,12 @@ export const saveEnrollments = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<SaveEnrollmentsResult> => {
     const { supabase, userId: actorId } = context;
 
-    const { data: isAdmin } = await supabase.rpc("has_role", {
+    const { data: canManage } = await (supabase as any).rpc("is_enrollment_admin", {
       _user_id: actorId,
-      _role: "admin",
     });
-    if (!isAdmin) throw new Error("Solo un administrador puede matricular usuarios");
+    if (!canManage) {
+      throw new Error("Solo el Super Admin o un Administrador Académico puede matricular usuarios");
+    }
 
     const { data: nodes, error: nodesErr } = await supabase
       .from("content_nodes")
@@ -187,8 +188,10 @@ export const updateEnrollment = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId: actorId } = context;
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: actorId, _role: "admin" });
-    if (!isAdmin) throw new Error("Solo un administrador puede modificar matrículas");
+    const { data: canManage } = await (supabase as any).rpc("is_enrollment_admin", { _user_id: actorId });
+    if (!canManage) {
+      throw new Error("Solo el Super Admin o un Administrador Académico puede modificar matrículas");
+    }
 
     const { data: row, error: rowErr } = await supabase
       .from("user_enrollments")
@@ -259,8 +262,10 @@ export const deleteEnrollment = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId: actorId } = context;
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: actorId, _role: "admin" });
-    if (!isAdmin) throw new Error("Solo un administrador puede eliminar matrículas");
+    const { data: canManage } = await (supabase as any).rpc("is_enrollment_admin", { _user_id: actorId });
+    if (!canManage) {
+      throw new Error("Solo el Super Admin o un Administrador Académico puede eliminar matrículas");
+    }
 
     const { data: row } = await supabase
       .from("user_enrollments")
@@ -312,8 +317,10 @@ export const syncPlanEnrollments = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId: actorId } = context;
-    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: actorId, _role: "admin" });
-    if (!isAdmin) throw new Error("Solo un administrador puede sincronizar membresías");
+    const { data: canManage } = await (supabase as any).rpc("is_enrollment_admin", { _user_id: actorId });
+    if (!canManage) {
+      throw new Error("Solo el Super Admin o un Administrador Académico puede sincronizar membresías");
+    }
 
     const { data: planNodes } = await supabase
       .from("plan_content_access")
