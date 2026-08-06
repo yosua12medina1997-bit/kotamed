@@ -669,6 +669,7 @@ function CmsStudioPage() {
         {/* -------- Inspector -------- */}
         <aside className="space-y-3 rounded-2xl border border-border/60 bg-background p-3">
           <StudioAi pageId={pageId} page={page} onDone={() => qc.invalidateQueries({ queryKey: ["cms-blocks", pageId] })} />
+          {!navOpen && structure}
           {!block ? (
             <div className="text-xs text-muted-foreground">
               Selecciona un bloque en el lienzo para editar su contenido, diseño y opciones avanzadas.
