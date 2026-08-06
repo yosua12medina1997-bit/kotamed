@@ -643,7 +643,9 @@ function TrustBar() {
 
 function Programs() {
   const { programs } = useProgramCatalog();
-  const items = programs.filter((p) => p.isPublished);
+  // Los programas ocultos solo llegan al cliente si el usuario está matriculado
+  // (o es admin), así que se muestran con una etiqueta en vez de filtrarse.
+  const items = programs;
   const tint: Record<string, string> = {
     teal: "from-teal-400/20 to-teal-600/5 text-teal-700",
     indigo: "from-indigo-400/20 to-indigo-600/5 text-indigo-700",
