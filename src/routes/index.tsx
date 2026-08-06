@@ -24,6 +24,8 @@ import {
   Users,
 } from "lucide-react";
 import { useProgramCatalog } from "@/lib/content-catalog";
+import { usePublicCmsPage } from "@/lib/cms";
+import { CmsBlockView } from "@/components/cms/CmsBlocks";
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import audEstudiantes from "@/assets/aud-estudiantes.jpg";
 import audInternos from "@/assets/aud-internos.jpg";
@@ -54,23 +56,33 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const { data: cms } = usePublicCmsPage("home");
+  const cmsBlocks = cms?.blocks ?? [];
+
   return (
     <div id="top" className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
       <Ambience />
       <Nav />
       <main className="relative">
-        <Hero />
-        <FeatureRail />
-        <ImpactAndAudience />
-        <TrustBar />
-        <Programs />
-        <Pillars />
-        <FinalCta />
+        {cmsBlocks.length > 0 ? (
+          cmsBlocks.map((b) => <CmsBlockView key={b.id} block={b} />)
+        ) : (
+          <>
+            <Hero />
+            <FeatureRail />
+            <ImpactAndAudience />
+            <TrustBar />
+            <Programs />
+            <Pillars />
+            <FinalCta />
+          </>
+        )}
       </main>
       <Footer />
     </div>
   );
 }
+
 
 /* ------------------------------------------------------------------ */
 

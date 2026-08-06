@@ -115,9 +115,9 @@ function slugify(s: string) {
 }
 
 function CmsStudioPage() {
-  const { data: user, isLoading: userLoading } = useSupabaseUser();
+  const user = useSupabaseUser();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
-  const loading = userLoading || adminLoading;
+  const loading = user === undefined || adminLoading;
   const qc = useQueryClient();
   const { data: pages = [], isLoading: pagesLoading } = useCmsPages();
   const savePage = useSaveCmsPage();

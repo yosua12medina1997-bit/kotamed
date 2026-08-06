@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProgramasIndexRouteImport } from './routes/programas.index'
 import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as ApiCmsImageRouteImport } from './routes/api/cms-image'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
@@ -51,6 +52,11 @@ const ProgramasIndexRoute = ProgramasIndexRouteImport.update({
 const ProgramasSlugRoute = ProgramasSlugRouteImport.update({
   id: '/programas/$slug',
   path: '/programas/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCmsImageRoute = ApiCmsImageRouteImport.update({
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/api/cms-image': typeof ApiCmsImageRoute
+  '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
   '/admin/cms': typeof AuthenticatedAdminCmsRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/api/cms-image': typeof ApiCmsImageRoute
+  '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas': typeof ProgramasIndexRoute
   '/admin/cms': typeof AuthenticatedAdminCmsRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/api/cms-image': typeof ApiCmsImageRoute
+  '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
   '/_authenticated/admin/cms': typeof AuthenticatedAdminCmsRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/anatomy-lab'
     | '/dashboard'
     | '/api/cms-image'
+    | '/p/$slug'
     | '/programas/$slug'
     | '/programas/'
     | '/admin/cms'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/anatomy-lab'
     | '/dashboard'
     | '/api/cms-image'
+    | '/p/$slug'
     | '/programas/$slug'
     | '/programas'
     | '/admin/cms'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/_authenticated/anatomy-lab'
     | '/_authenticated/dashboard'
     | '/api/cms-image'
+    | '/p/$slug'
     | '/programas/$slug'
     | '/programas/'
     | '/_authenticated/admin/cms'
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiCmsImageRoute: typeof ApiCmsImageRoute
+  PSlugRoute: typeof PSlugRoute
   ProgramasSlugRoute: typeof ProgramasSlugRoute
   ProgramasIndexRoute: typeof ProgramasIndexRoute
   ProgramasSlugAreasAreaRoute: typeof ProgramasSlugAreasAreaRoute
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/programas/$slug'
       fullPath: '/programas/$slug'
       preLoaderRoute: typeof ProgramasSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/cms-image': {
@@ -446,6 +466,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiCmsImageRoute: ApiCmsImageRoute,
+  PSlugRoute: PSlugRoute,
   ProgramasSlugRoute: ProgramasSlugRoute,
   ProgramasIndexRoute: ProgramasIndexRoute,
   ProgramasSlugAreasAreaRoute: ProgramasSlugAreasAreaRoute,
