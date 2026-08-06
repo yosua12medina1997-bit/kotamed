@@ -643,7 +643,9 @@ function TrustBar() {
 
 function Programs() {
   const { programs } = useProgramCatalog();
-  const items = programs.filter((p) => p.isPublished);
+  // Los programas ocultos solo llegan al cliente si el usuario está matriculado
+  // (o es admin), así que se muestran con una etiqueta en vez de filtrarse.
+  const items = programs;
   const tint: Record<string, string> = {
     teal: "from-teal-400/20 to-teal-600/5 text-teal-700",
     indigo: "from-indigo-400/20 to-indigo-600/5 text-indigo-700",
@@ -682,6 +684,11 @@ function Programs() {
             </div>
             <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
               {p.subtitle}
+              {!p.isPublished && (
+                <span className="ml-2 rounded-md border border-border bg-foreground/5 px-1.5 py-0.5 text-[9px] font-bold tracking-normal text-muted-foreground">
+                  Acceso privado
+                </span>
+              )}
             </div>
             <h3 className="mt-1.5 text-xl font-extrabold tracking-tight">{p.title}</h3>
             <p className="mt-3 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">
