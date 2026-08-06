@@ -764,6 +764,137 @@ export type Database = {
           },
         ]
       }
+      cms_collection_items: {
+        Row: {
+          badge: string | null
+          collection: string
+          created_at: string
+          created_by: string | null
+          data: Json
+          features: Json
+          href: string | null
+          icon: string | null
+          id: string
+          image: string | null
+          label: string | null
+          price: string | null
+          rating: string | null
+          sort_order: number
+          subtitle: string | null
+          text: string | null
+          title: string
+          updated_at: string
+          value: string | null
+          visible: boolean
+        }
+        Insert: {
+          badge?: string | null
+          collection: string
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          features?: Json
+          href?: string | null
+          icon?: string | null
+          id?: string
+          image?: string | null
+          label?: string | null
+          price?: string | null
+          rating?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          text?: string | null
+          title?: string
+          updated_at?: string
+          value?: string | null
+          visible?: boolean
+        }
+        Update: {
+          badge?: string | null
+          collection?: string
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          features?: Json
+          href?: string | null
+          icon?: string | null
+          id?: string
+          image?: string | null
+          label?: string | null
+          price?: string | null
+          rating?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          text?: string | null
+          title?: string
+          updated_at?: string
+          value?: string | null
+          visible?: boolean
+        }
+        Relationships: []
+      }
+      cms_nav_items: {
+        Row: {
+          badge: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          group_label: string | null
+          href: string
+          icon: string | null
+          id: string
+          is_cta: boolean
+          label: string
+          location: string
+          parent_id: string | null
+          sort_order: number
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          badge?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          group_label?: string | null
+          href?: string
+          icon?: string | null
+          id?: string
+          is_cta?: boolean
+          label: string
+          location?: string
+          parent_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          badge?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          group_label?: string | null
+          href?: string
+          icon?: string | null
+          id?: string
+          is_cta?: boolean
+          label?: string
+          location?: string
+          parent_id?: string | null
+          sort_order?: number
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_nav_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "cms_nav_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cms_page_versions: {
         Row: {
           created_at: string
@@ -809,6 +940,7 @@ export type Database = {
           id: string
           kind: string
           metadata: Json
+          publish_at: string | null
           published_at: string | null
           seo: Json
           slug: string
@@ -825,6 +957,7 @@ export type Database = {
           id?: string
           kind?: string
           metadata?: Json
+          publish_at?: string | null
           published_at?: string | null
           seo?: Json
           slug: string
@@ -841,6 +974,7 @@ export type Database = {
           id?: string
           kind?: string
           metadata?: Json
+          publish_at?: string | null
           published_at?: string | null
           seo?: Json
           slug?: string
