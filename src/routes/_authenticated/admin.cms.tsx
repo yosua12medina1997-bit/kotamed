@@ -1005,7 +1005,7 @@ function Inspector({
         >
           <option value="">Contenido manual de este bloque</option>
           {COLLECTIONS.map((c) => (
-            <option key={c.id} value={c.id}>
+            <option key={c.value} value={c.value}>
               {c.label}
             </option>
           ))}
