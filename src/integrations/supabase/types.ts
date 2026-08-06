@@ -1967,6 +1967,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_enrollment_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "student" | "super_admin" | "academic_admin"
