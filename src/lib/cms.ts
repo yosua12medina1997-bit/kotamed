@@ -357,7 +357,7 @@ export function useSaveCmsPage() {
     mutationFn: async (patch: Partial<CmsPage> & { id?: string }) => {
       const payload: Record<string, unknown> = { ...patch };
       if (patch.id) {
-        const { error } = await supabase.from("cms_pages").update(payload).eq("id", patch.id);
+        const { error } = await supabase.from("cms_pages").update(payload as never).eq("id", patch.id);
         if (error) throw error;
         return patch.id;
       }
