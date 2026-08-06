@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Loader2, Search, ShieldCheck, User as UserIcon } from "lucide-react";
 import { Badge, Btn, Card, Field, Modal, SectionTitle, Stat, inputCls } from "./ui";
 import { usePlans, useCourseNodes } from "./AdminPlans";
+import { UserEnrollmentsTable } from "./UserEnrollmentsTable";
+import { EnrollmentModal } from "./EnrollmentModal";
 
 const db = supabase as any;
 
