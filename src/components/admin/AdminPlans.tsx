@@ -1,10 +1,12 @@
 /** Gestión de planes de membresía y permisos por curso. */
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Crown, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { Badge, Btn, Card, Field, Modal, SectionTitle, inputCls } from "./ui";
+import { syncPlanEnrollments } from "@/lib/enrollments.functions";
 
 const db = supabase as any;
 
@@ -135,6 +137,18 @@ export default function AdminPlans() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["membership-plans"] }),
     onError: (e: any) => toast.error(e?.message ?? "No se pudo eliminar"),
+  });
+
+  const syncFn = useServerFn(syncPlanEnrollments);
+  const sync = useMutation({
+    mutationFn: async (planId: string) => await syncFn({ data: { planId } }),
+    onSuccess: (res: any) => {
+      toast.success(`Sincronizados ${res?.enrollments ?? 0} accesos en ${res?.users ?? 0} usuarios`);
+      qc.invalidateQueries({ queryKey: ["user-enrollments"] });
+      qc.invalidateQueries({ queryKey: ["all-user-enrollments"] });
+      qc.invalidateQueries({ queryKey: ["my-program-enrollments"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo sincronizar"),
   });
 
   const toggleAccess = useMutation({
