@@ -32,7 +32,7 @@ type ProfileRow = {
   created_at: string;
 };
 
-const TABS = ["Perfil", "Membresía", "Accesos", "Actividad"] as const;
+const TABS = ["Perfil", "Membresía", "Matrículas", "Accesos", "Actividad"] as const;
 
 export default function AdminUsers() {
   const qc = useQueryClient();
@@ -252,7 +252,18 @@ export default function AdminUsers() {
             </div>
 
             {tab === "Perfil" && <ProfileTab profile={selected} onSaved={() => usersQ.refetch()} />}
-            {tab === "Membresía" && <MembershipTab userId={selected.id} />}
+            {tab === "Membresía" && (
+              <MembershipTab
+                userId={selected.id}
+                userLabel={selected.full_name || selected.email}
+              />
+            )}
+            {tab === "Matrículas" && (
+              <UserEnrollmentsTable
+                userId={selected.id}
+                userLabel={selected.full_name || selected.email}
+              />
+            )}
             {tab === "Accesos" && <AccessTab userId={selected.id} />}
             {tab === "Actividad" && <ActivityTab userId={selected.id} />}
           </div>
