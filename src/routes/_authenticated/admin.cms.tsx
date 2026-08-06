@@ -49,7 +49,7 @@ import {
 import { Btn, Chip, Field, Input, Panel, Select, Textarea } from "@/components/academy/ui";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin } from "@/lib/session";
+import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import { generateCmsBlock, generateCmsPagePlan } from "@/lib/cms-ai.functions";
 import {
   BLOCK_GROUPS,
@@ -115,7 +115,9 @@ function slugify(s: string) {
 }
 
 function CmsStudioPage() {
-  const { isAdmin, loading } = useIsAdmin();
+  const { data: user, isLoading: userLoading } = useSupabaseUser();
+  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin(user?.id);
+  const loading = userLoading || adminLoading;
   const qc = useQueryClient();
   const { data: pages = [], isLoading: pagesLoading } = useCmsPages();
   const savePage = useSaveCmsPage();
@@ -363,10 +365,10 @@ function CmsStudioPage() {
               </button>
             ))}
           </div>
-          <Btn variant="ghost" onClick={undo} title="Deshacer">
+          <Btn variant="ghost" onClick={undo}>
             <Undo2 className="size-3.5" />
           </Btn>
-          <Btn variant="ghost" onClick={redo} title="Rehacer">
+          <Btn variant="ghost" onClick={redo}>
             <Redo2 className="size-3.5" />
           </Btn>
           <Btn variant="ghost" onClick={() => setShowVersions((v) => !v)}>
@@ -1084,7 +1086,7 @@ function SeoPanel({
   const seo = draft.seo ?? page.seo ?? {};
   const set = (p: Partial<typeof seo>) => setDraft({ ...draft, seo: { ...seo, ...p } });
   return (
-    <Panel title="SEO y publicación" actions={<Btn onClick={onClose}>Volver al lienzo</Btn>}>
+    <Panel title="SEO y publicación" accent="hsl(var(--primary))" actions={<Btn onClick={onClose}>Volver al lienzo</Btn>}>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Título de la página">
           <Input value={draft.title ?? page.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
@@ -1132,6 +1134,7 @@ function VersionsPanel({ pageId, onClose }: { pageId: string; onClose: () => voi
   return (
     <Panel
       title="Historial de versiones"
+      accent="hsl(var(--primary))"
       actions={
         <div className="flex gap-1">
           <Btn
