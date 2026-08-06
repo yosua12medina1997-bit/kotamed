@@ -563,6 +563,15 @@ function CmsStudioPage() {
         </div>
       </header>
 
+      {view === "navegacion" ? (
+        <div className="p-3">
+          <NavEditor />
+        </div>
+      ) : view === "colecciones" ? (
+        <div className="p-3">
+          <CollectionsEditor />
+        </div>
+      ) : (
       <div className={`grid gap-3 p-3 ${navOpen ? "xl:grid-cols-[210px_230px_1fr_320px]" : "xl:grid-cols-[1fr_320px]"}`}>
         {/* -------- Navegación del CMS -------- */}
         {navOpen && (
