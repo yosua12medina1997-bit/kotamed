@@ -36,6 +36,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useProgramCatalog } from "@/lib/content-catalog";
 import { useMyAdmission } from "@/lib/admission";
+import { useMyProgramEnrollments } from "@/lib/enrollments";
 
 /** Accesos incluidos en la experiencia Free (sin matrícula). */
 const FREE_ITEMS = [
@@ -73,6 +74,7 @@ function DashboardPage() {
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: profile } = useMyProfile(user?.id);
   const enrollmentsQ = useMyEnrollments(user?.id);
+  const manualQ = useMyProgramEnrollments(user?.id);
 
   useEffect(() => {
     if (user === null) navigate({ to: "/auth", replace: true });
@@ -95,7 +97,7 @@ function DashboardPage() {
 
   const enrollments = enrollmentsQ.data ?? [];
   const active = enrollments.filter(isActive);
-  const hasAccess = isAdmin || active.length > 0;
+  const hasAccess = isAdmin || active.length > 0 || (manualQ.data ?? []).length > 0;
   const displayName = profile?.full_name || profile?.email?.split("@")[0] || "Estudiante";
 
   return (
@@ -128,7 +130,12 @@ function DashboardPage() {
           {isAdmin && <AdminBanner />}
 
           {hasAccess ? (
-            <EnrolledView active={active} displayName={displayName} isAdmin={!!isAdmin} />
+            <EnrolledView
+              active={active}
+              displayName={displayName}
+              isAdmin={!!isAdmin}
+              manual={manualQ.data ?? []}
+            />
           ) : (
             <LockedView enrollments={enrollments} email={profile?.email} userId={user.id} />
           )}
@@ -206,10 +213,12 @@ function EnrolledView({
   active,
   displayName,
   isAdmin,
+  manual = [],
 }: {
   active: Enrollment[];
   displayName: string;
   isAdmin: boolean;
+  manual?: { node: { slug: string; title: string } | null; expires_at: string | null }[];
 }) {
   const { programs } = useProgramCatalog();
   return (
@@ -237,7 +246,14 @@ function EnrolledView({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(isAdmin
             ? programs.map((p) => ({ slug: p.slug, expires_at: null as string | null }))
-            : active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at }))
+            : [
+                ...active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at })),
+                ...manual
+                  .filter((m) => m.node?.slug)
+                  .map((m) => ({ slug: m.node!.slug, expires_at: m.expires_at })),
+              ].filter(
+                (item, i, arr) => arr.findIndex((x) => x.slug === item.slug) === i,
+              )
           ).map(({ slug, expires_at }) => {
             const cat = programs.find((p) => p.slug === slug);
             const label =

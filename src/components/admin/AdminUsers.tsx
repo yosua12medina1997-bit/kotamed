@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Loader2, Search, ShieldCheck, User as UserIcon } from "lucide-react";
 import { Badge, Btn, Card, Field, Modal, SectionTitle, Stat, inputCls } from "./ui";
 import { usePlans, useCourseNodes } from "./AdminPlans";
+import { UserEnrollmentsTable } from "./UserEnrollmentsTable";
+import { EnrollmentModal } from "./EnrollmentModal";
 
 const db = supabase as any;
 
@@ -30,7 +32,7 @@ type ProfileRow = {
   created_at: string;
 };
 
-const TABS = ["Perfil", "Membresía", "Accesos", "Actividad"] as const;
+const TABS = ["Perfil", "Membresía", "Matrículas", "Accesos", "Actividad"] as const;
 
 export default function AdminUsers() {
   const qc = useQueryClient();
@@ -250,7 +252,18 @@ export default function AdminUsers() {
             </div>
 
             {tab === "Perfil" && <ProfileTab profile={selected} onSaved={() => usersQ.refetch()} />}
-            {tab === "Membresía" && <MembershipTab userId={selected.id} />}
+            {tab === "Membresía" && (
+              <MembershipTab
+                userId={selected.id}
+                userLabel={selected.full_name || selected.email}
+              />
+            )}
+            {tab === "Matrículas" && (
+              <UserEnrollmentsTable
+                userId={selected.id}
+                userLabel={selected.full_name || selected.email}
+              />
+            )}
             {tab === "Accesos" && <AccessTab userId={selected.id} />}
             {tab === "Actividad" && <ActivityTab userId={selected.id} />}
           </div>
@@ -330,8 +343,9 @@ function ProfileTab({ profile, onSaved }: { profile: ProfileRow; onSaved: () => 
   );
 }
 
-function MembershipTab({ userId }: { userId: string }) {
+function MembershipTab({ userId, userLabel }: { userId: string; userLabel: string }) {
   const qc = useQueryClient();
+  const [enrollOpen, setEnrollOpen] = useState(false);
   const plansQ = usePlans();
   const memQ = useQuery({
     queryKey: ["user-membership", userId],
@@ -447,11 +461,20 @@ function MembershipTab({ userId }: { userId: string }) {
           onChange={(e) => setForm({ ...value, notes: e.target.value })}
         />
       </Field>
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Btn variant="ghost" onClick={() => setEnrollOpen(true)}>
+          Agregar programa manualmente
+        </Btn>
         <Btn onClick={() => save.mutate()} disabled={save.isPending}>
           {save.isPending && <Loader2 className="size-3.5 animate-spin" />} Guardar membresía
         </Btn>
       </div>
+      <EnrollmentModal
+        open={enrollOpen}
+        onClose={() => setEnrollOpen(false)}
+        userId={userId}
+        userLabel={userLabel}
+      />
     </div>
   );
 }

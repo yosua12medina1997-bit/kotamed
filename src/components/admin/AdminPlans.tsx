@@ -1,10 +1,12 @@
 /** Gestión de planes de membresía y permisos por curso. */
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Crown, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { Badge, Btn, Card, Field, Modal, SectionTitle, inputCls } from "./ui";
+import { syncPlanEnrollments } from "@/lib/enrollments.functions";
 
 const db = supabase as any;
 
@@ -137,6 +139,18 @@ export default function AdminPlans() {
     onError: (e: any) => toast.error(e?.message ?? "No se pudo eliminar"),
   });
 
+  const syncFn = useServerFn(syncPlanEnrollments);
+  const sync = useMutation({
+    mutationFn: async (planId: string) => await syncFn({ data: { planId } }),
+    onSuccess: (res: any) => {
+      toast.success(`Sincronizados ${res?.enrollments ?? 0} accesos en ${res?.users ?? 0} usuarios`);
+      qc.invalidateQueries({ queryKey: ["user-enrollments"] });
+      qc.invalidateQueries({ queryKey: ["all-user-enrollments"] });
+      qc.invalidateQueries({ queryKey: ["my-program-enrollments"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo sincronizar"),
+  });
+
   const toggleAccess = useMutation({
     mutationFn: async (v: { planId: string; nodeId: string; on: boolean }) => {
       if (v.on) {
@@ -200,6 +214,51 @@ export default function AdminPlans() {
                 ))}
               </ul>
             )}
+
+            <details className="text-xs" open>
+              <summary className="cursor-pointer font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
+                Programas incluidos automáticamente
+              </summary>
+              <div className="mt-2 space-y-1 max-h-48 overflow-y-auto pr-1">
+                {(nodesQ.data ?? []).filter((n: any) => n.kind === "program").length === 0 && (
+                  <p className="text-muted-foreground">Aún no hay programas creados.</p>
+                )}
+                {(nodesQ.data ?? [])
+                  .filter((n: any) => n.kind === "program")
+                  .map((n: any) => {
+                    const on = accessSet.has(`${p.id}:${n.id}`);
+                    return (
+                      <label key={n.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={(e) =>
+                            toggleAccess.mutate({ planId: p.id, nodeId: n.id, on: e.target.checked })
+                          }
+                        />
+                        <span className="truncate">{n.title}</span>
+                      </label>
+                    );
+                  })}
+              </div>
+              <Btn
+                variant="ghost"
+                className="mt-2"
+                disabled={sync.isPending}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "¿Desea agregar este nuevo contenido también a todos los usuarios que ya poseen esta membresía?",
+                    )
+                  ) {
+                    sync.mutate(p.id);
+                  }
+                }}
+              >
+                {sync.isPending && <Loader2 className="size-3.5 animate-spin" />} Sincronizar usuarios
+                existentes
+              </Btn>
+            </details>
 
             <details className="text-xs">
               <summary className="cursor-pointer font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
