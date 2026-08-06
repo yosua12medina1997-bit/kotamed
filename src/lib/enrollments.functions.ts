@@ -337,7 +337,17 @@ export const syncPlanEnrollments = createServerFn({ method: "POST" })
       .in("node_id", nodeIds);
     const have = new Set((already ?? []).map((r) => `${r.user_id}:${r.node_id}`));
 
-    const rows: Record<string, unknown>[] = [];
+    const rows: {
+      user_id: string;
+      node_id: string;
+      plan_id: string;
+      enrollment_kind: string;
+      assignment_type: string;
+      reason: string;
+      status: string;
+      expires_at: string | null;
+      assigned_by: string;
+    }[] = [];
     userIds.forEach((uid) => {
       nodeIds.forEach((nid) => {
         if (have.has(`${uid}:${nid}`)) return;
