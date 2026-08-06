@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.is_enrollment_admin(uuid) FROM anon;
