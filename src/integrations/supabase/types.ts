@@ -1733,6 +1733,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ui_menu_prefs: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          scope: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          scope: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          scope?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_content_access: {
         Row: {
           created_at: string
