@@ -241,7 +241,7 @@ export const updateEnrollment = createServerFn({ method: "POST" })
       target_user_id: row.user_id,
       node_id: row.node_id,
       enrollment_id: row.id,
-      detail: patch as Record<string, unknown>,
+      detail: patch,
       ip_address: ip,
       user_agent: ua,
     });
