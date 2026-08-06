@@ -73,6 +73,7 @@ import {
   type CmsPage,
   type CmsPageKind,
 } from "@/lib/cms";
+import { useSeedCmsDefaults } from "@/lib/cms-defaults";
 
 export const Route = createFileRoute("/_authenticated/admin/cms")({
   head: () => ({
