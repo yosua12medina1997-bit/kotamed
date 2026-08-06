@@ -5,6 +5,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
+import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import { usePublicCmsPage } from "@/lib/cms";
 import kotaMedLogo from "@/assets/kotaro-logo.png";
 
@@ -35,20 +36,13 @@ function CmsPublicPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={kotaMedLogo} alt="KotaMed" className="size-8 rounded-lg object-contain" />
-            <span className="text-sm font-black tracking-tight">KotaMed</span>
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-3 lg:grid-cols-[auto_1fr_auto]">
+          <Link to="/" className="flex min-w-0 items-center gap-2">
+            <img src={kotaMedLogo} alt="KotaMed" className="size-8 shrink-0 rounded-lg object-contain" />
+            <span className="truncate text-sm font-black tracking-tight">KotaMed</span>
           </Link>
-          <Link
-            to="/programas"
-            className="ml-auto text-xs font-semibold text-muted-foreground hover:text-foreground"
-          >
-            Programas
-          </Link>
-          <Link to="/auth" className="text-xs font-semibold text-primary">
-            Ingresar
-          </Link>
+          <SiteNavLinks />
+          <SiteNavActions />
         </div>
       </header>
 
@@ -77,8 +71,13 @@ function CmsPublicPage() {
         )}
       </main>
 
-      <footer className="border-t border-border/60 py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} KotaMed · Formamos hoy, cuidamos el mañana.
+      <footer className="border-t border-border/60 py-10">
+        <div className="mx-auto max-w-7xl px-6">
+          <SiteFooterNav />
+          <div className="mt-8 border-t border-border/60 pt-5 text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} KotaMed · Formamos hoy, cuidamos el mañana.
+          </div>
+        </div>
       </footer>
     </div>
   );

@@ -74,6 +74,13 @@ import {
   type CmsPageKind,
 } from "@/lib/cms";
 import { useSeedCmsDefaults } from "@/lib/cms-defaults";
+import { SECTION_TEMPLATES } from "@/lib/cms-templates";
+import { NavEditor } from "@/components/cms/NavEditor";
+import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
+import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
+import { useSeedNav } from "@/lib/cms-nav";
+
+type StudioView = "paginas" | "navegacion" | "colecciones";
 
 export const Route = createFileRoute("/_authenticated/admin/cms")({
   head: () => ({
@@ -145,7 +152,14 @@ function CmsStudioPage() {
   const [showSeo, setShowSeo] = useState(false);
   const [pageDraft, setPageDraft] = useState<Partial<CmsPage>>({});
   const [navOpen, setNavOpen] = useState(false);
+  const [view, setView] = useState<StudioView>("paginas");
   const seedDefaults = useSeedCmsDefaults();
+  const seedNav = useSeedNav();
+  const seedCollections = useSeedCollections();
+  const seedAll = () => {
+    seedNav.mutate();
+    seedCollections.mutate();
+  };
   const seeded = useRef(false);
 
   const history = useRef<DraftBlock[][]>([]);
@@ -158,6 +172,7 @@ function CmsStudioPage() {
     seedDefaults.mutate(undefined, {
       onSuccess: (n) => n && toast.success(`${n} páginas por defecto creadas en el CMS`),
     });
+    seedAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagesLoading, pages.length]);
 
@@ -228,6 +243,28 @@ function CmsStudioPage() {
     setSelected(nb.id);
     setTab("contenido");
   };
+
+  /** Inserta una plantilla de sección completa (varios bloques). */
+  const addTemplate = (templateId: string) => {
+    const tpl = SECTION_TEMPLATES.find((t) => t.id === templateId);
+    if (!tpl) return;
+    const news: DraftBlock[] = tpl.blocks.map((b, i) => ({
+      id: `new-${crypto.randomUUID()}`,
+      page_id: pageId ?? "",
+      type: b.type,
+      name: null,
+      sort_order: draft.length + i,
+      visible: true,
+      props: b.props,
+      style: b.style,
+      _new: true,
+    }));
+    commitDraft([...draft, ...news]);
+    setSelected(news[0]?.id ?? null);
+    toast.success(`Plantilla "${tpl.label}" añadida (${news.length} bloques)`);
+  };
+
+
 
   const duplicateBlock = (b: DraftBlock) => {
     const copy: DraftBlock = {
@@ -435,8 +472,31 @@ function CmsStudioPage() {
           </div>
         </div>
 
-        {/* -------- Selector desplegable (compacto) -------- */}
-        <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto]">
+        {/* -------- Selector desplegable superior (compacto) -------- */}
+        <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+          <Select value={view} onChange={(e) => setView(e.target.value as StudioView)}>
+            <option value="paginas">🧱 Diseñador de páginas</option>
+            <option value="navegacion">🧭 Navegación del sitio</option>
+            <option value="colecciones">♻️ Colecciones reutilizables</option>
+          </Select>
+          <Select
+            value=""
+            disabled={!pageId || view !== "paginas"}
+            onChange={(e) => {
+              if (e.target.value) addTemplate(e.target.value);
+            }}
+          >
+            <option value="">✨ Plantilla de sección…</option>
+            {Array.from(new Set(SECTION_TEMPLATES.map((t) => t.group))).map((g) => (
+              <optgroup key={g} label={g}>
+                {SECTION_TEMPLATES.filter((t) => t.group === g).map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </Select>
           <Select
             value={kind}
             onChange={(e) => {
@@ -492,14 +552,15 @@ function CmsStudioPage() {
             </Btn>
             <Btn
               variant="outline"
-              loading={seedDefaults.isPending}
-              onClick={() =>
+              loading={seedDefaults.isPending || seedNav.isPending || seedCollections.isPending}
+              onClick={() => {
+                seedAll();
                 seedDefaults.mutate(undefined, {
                   onSuccess: (n) =>
                     toast.success(n ? `${n} páginas por defecto creadas` : "Todo el contenido por defecto ya existe"),
                   onError: (e) => toast.error(String((e as { message?: string })?.message ?? e)),
-                })
-              }
+                });
+              }}
             >
               <Layers className="size-3" /> Contenido por defecto
             </Btn>
@@ -511,6 +572,15 @@ function CmsStudioPage() {
         </div>
       </header>
 
+      {view === "navegacion" ? (
+        <div className="p-3">
+          <NavEditor />
+        </div>
+      ) : view === "colecciones" ? (
+        <div className="p-3">
+          <CollectionsEditor />
+        </div>
+      ) : (
       <div className={`grid gap-3 p-3 ${navOpen ? "xl:grid-cols-[210px_230px_1fr_320px]" : "xl:grid-cols-[1fr_320px]"}`}>
         {/* -------- Navegación del CMS -------- */}
         {navOpen && (
@@ -697,6 +767,7 @@ function CmsStudioPage() {
           )}
         </aside>
       </div>
+      )}
     </div>
   );
 }
@@ -935,6 +1006,20 @@ function Inspector({
           <Sparkles className="size-3.5" /> Generar con IA
         </Btn>
       </div>
+
+      <Field label="Fuente de datos (colección reutilizable)">
+        <Select
+          value={(props.collection as string) ?? ""}
+          onChange={(e) => setProps({ collection: e.target.value || undefined } as never)}
+        >
+          <option value="">Contenido manual de este bloque</option>
+          {COLLECTIONS.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
 
       <Field label="Antetítulo">
         <Input value={props.eyebrow ?? ""} onChange={(e) => setProps({ eyebrow: e.target.value })} />

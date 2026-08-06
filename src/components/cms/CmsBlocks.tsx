@@ -6,6 +6,11 @@ import { Link } from "@tanstack/react-router";
 import * as Icons from "lucide-react";
 import { ArrowRight } from "lucide-react";
 import { embedVideoUrl, type CmsBlock, type CmsBlockStyle, type CmsItem } from "@/lib/cms";
+import {
+  collectionToItems,
+  useCollectionItems,
+  type CmsCollection,
+} from "@/lib/cms-collections";
 
 function pad(style?: CmsBlockStyle) {
   switch (style?.paddingY) {
@@ -408,6 +413,15 @@ function RichText({ block }: { block: CmsBlock }) {
 /* ------------------------------ Registro --------------------------- */
 
 export function CmsBlockView({ block }: { block: CmsBlock }) {
+  const { data: rows } = useCollectionItems((block.props.collection as CmsCollection) || null);
+  const resolved =
+    block.props.collection && rows && rows.length
+      ? { ...block, props: { ...block.props, items: collectionToItems(rows) } }
+      : block;
+  return <BlockSwitch block={resolved} />;
+}
+
+function BlockSwitch({ block }: { block: CmsBlock }) {
   switch (block.type) {
     case "hero":
       return <Hero block={block} />;

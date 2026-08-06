@@ -26,6 +26,7 @@ import {
 import { useProgramCatalog } from "@/lib/content-catalog";
 import { usePublicCmsPage } from "@/lib/cms";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
+import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import audEstudiantes from "@/assets/aud-estudiantes.jpg";
 import audInternos from "@/assets/aud-internos.jpg";
@@ -113,14 +114,6 @@ function Ambience() {
 
 /* ------------------------------- Header --------------------------- */
 
-const NAV_LINKS = [
-  { label: "Inicio", href: "#top" },
-  { label: "Metodología", href: "#metodologia" },
-  { label: "Recursos", href: "#recursos" },
-  { label: "Evidencia", href: "#evidencia" },
-  { label: "Nosotros", href: "#impacto" },
-] as const;
-
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -159,39 +152,9 @@ function Nav() {
             </span>
           </Link>
 
-          <nav className="hidden lg:flex items-center justify-center gap-7 text-[13px] font-semibold text-muted-foreground">
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                className="relative py-1 transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:scale-x-0 after:rounded-full after:bg-primary after:transition-transform hover:after:scale-x-100"
-              >
-                {l.label}
-              </a>
-            ))}
-            <Link
-              to="/programas"
-              className="relative py-1 transition-colors hover:text-foreground after:absolute after:inset-x-0 after:-bottom-0.5 after:h-[2px] after:scale-x-0 after:rounded-full after:bg-primary after:transition-transform hover:after:scale-x-100"
-            >
-              Academia
-            </Link>
-          </nav>
+          <SiteNavLinks />
 
-          <div className="flex items-center justify-end gap-2">
-            <Link
-              to="/auth"
-              className="hidden sm:inline-flex items-center rounded-xl border border-border bg-white/70 px-4 py-2 text-[13px] font-bold transition-all hover:-translate-y-0.5 hover:shadow-md"
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              to="/programas"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-[13px] font-bold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25"
-            >
-              Comenzar ahora
-              <ArrowRight className="size-3.5" strokeWidth={2.5} />
-            </Link>
-          </div>
+          <SiteNavActions />
         </div>
       </header>
     </div>
@@ -868,53 +831,8 @@ function Footer() {
             </p>
           </div>
 
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              Plataforma
-            </div>
-            <ul className="mt-4 space-y-2.5 text-[12.5px] font-semibold">
-              <li>
-                <Link to="/programas" className="text-muted-foreground hover:text-foreground">
-                  Programas
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/programas/residentado/areas"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Áreas ENAM
-                </Link>
-              </li>
-              <li>
-                <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">
-                  Mi panel
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              Explorar
-            </div>
-            <ul className="mt-4 space-y-2.5 text-[12.5px] font-semibold">
-              <li>
-                <a href="#metodologia" className="text-muted-foreground hover:text-foreground">
-                  Metodología
-                </a>
-              </li>
-              <li>
-                <a href="#evidencia" className="text-muted-foreground hover:text-foreground">
-                  Evidencia
-                </a>
-              </li>
-              <li>
-                <Link to="/auth" className="text-muted-foreground hover:text-foreground">
-                  Iniciar sesión
-                </Link>
-              </li>
-            </ul>
+          <div className="md:col-span-2">
+            <SiteFooterNav />
           </div>
         </div>
 
