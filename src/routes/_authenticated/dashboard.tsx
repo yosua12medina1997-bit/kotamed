@@ -74,6 +74,7 @@ function DashboardPage() {
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: profile } = useMyProfile(user?.id);
   const enrollmentsQ = useMyEnrollments(user?.id);
+  const manualQ = useMyProgramEnrollments(user?.id);
 
   useEffect(() => {
     if (user === null) navigate({ to: "/auth", replace: true });
@@ -96,7 +97,7 @@ function DashboardPage() {
 
   const enrollments = enrollmentsQ.data ?? [];
   const active = enrollments.filter(isActive);
-  const hasAccess = isAdmin || active.length > 0;
+  const hasAccess = isAdmin || active.length > 0 || (manualQ.data ?? []).length > 0;
   const displayName = profile?.full_name || profile?.email?.split("@")[0] || "Estudiante";
 
   return (
