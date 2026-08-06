@@ -221,7 +221,19 @@ export default function AdminUsers() {
                   {t}
                 </button>
               ))}
-              <div className="ml-auto">
+              <div className="ml-auto flex flex-wrap gap-2">
+                <Btn
+                  variant={careTeamMap.has(selected.id) ? "danger" : "ghost"}
+                  onClick={() =>
+                    toggleCareTeam.mutate({
+                      userId: selected.id,
+                      enable: !careTeamMap.has(selected.id),
+                    })
+                  }
+                >
+                  <ShieldCheck className="size-3.5" />
+                  {careTeamMap.has(selected.id) ? "Quitar del equipo clínico" : "Dar acceso clínico (Neo)"}
+                </Btn>
                 <Btn
                   variant={roleMap.get(selected.id) === "admin" ? "danger" : "ghost"}
                   onClick={() =>
