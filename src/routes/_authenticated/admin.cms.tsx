@@ -435,8 +435,31 @@ function CmsStudioPage() {
           </div>
         </div>
 
-        {/* -------- Selector desplegable (compacto) -------- */}
-        <div className="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto]">
+        {/* -------- Selector desplegable superior (compacto) -------- */}
+        <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+          <Select value={view} onChange={(e) => setView(e.target.value as StudioView)}>
+            <option value="paginas">🧱 Diseñador de páginas</option>
+            <option value="navegacion">🧭 Navegación del sitio</option>
+            <option value="colecciones">♻️ Colecciones reutilizables</option>
+          </Select>
+          <Select
+            value=""
+            disabled={!pageId || view !== "paginas"}
+            onChange={(e) => {
+              if (e.target.value) addTemplate(e.target.value);
+            }}
+          >
+            <option value="">✨ Plantilla de sección…</option>
+            {Array.from(new Set(SECTION_TEMPLATES.map((t) => t.group))).map((g) => (
+              <optgroup key={g} label={g}>
+                {SECTION_TEMPLATES.filter((t) => t.group === g).map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </Select>
           <Select
             value={kind}
             onChange={(e) => {
