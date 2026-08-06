@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProgramasIndexRouteImport } from './routes/programas.index'
 import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
+import { Route as ApiCmsImageRouteImport } from './routes/api/cms-image'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
 import { Route as AuthenticatedAdmisionRouteImport } from './routes/_authenticated/admision'
@@ -49,6 +50,11 @@ const ProgramasIndexRoute = ProgramasIndexRouteImport.update({
 const ProgramasSlugRoute = ProgramasSlugRouteImport.update({
   id: '/programas/$slug',
   path: '/programas/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCmsImageRoute = ApiCmsImageRouteImport.update({
+  id: '/api/cms-image',
+  path: '/api/cms-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
   '/admin/command': typeof AuthenticatedAdminCommandRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas': typeof ProgramasIndexRoute
   '/admin/command': typeof AuthenticatedAdminCommandRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/_authenticated/admision': typeof AuthenticatedAdmisionRoute
   '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
   '/_authenticated/admin/command': typeof AuthenticatedAdminCommandRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/admision'
     | '/anatomy-lab'
     | '/dashboard'
+    | '/api/cms-image'
     | '/programas/$slug'
     | '/programas/'
     | '/admin/command'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/admision'
     | '/anatomy-lab'
     | '/dashboard'
+    | '/api/cms-image'
     | '/programas/$slug'
     | '/programas'
     | '/admin/command'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admision'
     | '/_authenticated/anatomy-lab'
     | '/_authenticated/dashboard'
+    | '/api/cms-image'
     | '/programas/$slug'
     | '/programas/'
     | '/_authenticated/admin/command'
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiCmsImageRoute: typeof ApiCmsImageRoute
   ProgramasSlugRoute: typeof ProgramasSlugRoute
   ProgramasIndexRoute: typeof ProgramasIndexRoute
   ProgramasSlugAreasAreaRoute: typeof ProgramasSlugAreasAreaRoute
@@ -281,6 +294,13 @@ declare module '@tanstack/react-router' {
       path: '/programas/$slug'
       fullPath: '/programas/$slug'
       preLoaderRoute: typeof ProgramasSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cms-image': {
+      id: '/api/cms-image'
+      path: '/api/cms-image'
+      fullPath: '/api/cms-image'
+      preLoaderRoute: typeof ApiCmsImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
@@ -404,6 +424,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiCmsImageRoute: ApiCmsImageRoute,
   ProgramasSlugRoute: ProgramasSlugRoute,
   ProgramasIndexRoute: ProgramasIndexRoute,
   ProgramasSlugAreasAreaRoute: ProgramasSlugAreasAreaRoute,
@@ -416,13 +437,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
