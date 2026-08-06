@@ -5,6 +5,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
+import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import { usePublicCmsPage } from "@/lib/cms";
 import kotaMedLogo from "@/assets/kotaro-logo.png";
 
