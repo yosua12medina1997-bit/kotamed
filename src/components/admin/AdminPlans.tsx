@@ -201,6 +201,51 @@ export default function AdminPlans() {
               </ul>
             )}
 
+            <details className="text-xs" open>
+              <summary className="cursor-pointer font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
+                Programas incluidos automáticamente
+              </summary>
+              <div className="mt-2 space-y-1 max-h-48 overflow-y-auto pr-1">
+                {(nodesQ.data ?? []).filter((n: any) => n.kind === "program").length === 0 && (
+                  <p className="text-muted-foreground">Aún no hay programas creados.</p>
+                )}
+                {(nodesQ.data ?? [])
+                  .filter((n: any) => n.kind === "program")
+                  .map((n: any) => {
+                    const on = accessSet.has(`${p.id}:${n.id}`);
+                    return (
+                      <label key={n.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={(e) =>
+                            toggleAccess.mutate({ planId: p.id, nodeId: n.id, on: e.target.checked })
+                          }
+                        />
+                        <span className="truncate">{n.title}</span>
+                      </label>
+                    );
+                  })}
+              </div>
+              <Btn
+                variant="ghost"
+                className="mt-2"
+                disabled={sync.isPending}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "¿Desea agregar este nuevo contenido también a todos los usuarios que ya poseen esta membresía?",
+                    )
+                  ) {
+                    sync.mutate(p.id);
+                  }
+                }}
+              >
+                {sync.isPending && <Loader2 className="size-3.5 animate-spin" />} Sincronizar usuarios
+                existentes
+              </Btn>
+            </details>
+
             <details className="text-xs">
               <summary className="cursor-pointer font-bold text-muted-foreground uppercase tracking-widest text-[10px]">
                 Contenido incluido
