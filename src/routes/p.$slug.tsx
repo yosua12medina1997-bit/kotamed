@@ -71,8 +71,13 @@ function CmsPublicPage() {
         )}
       </main>
 
-      <footer className="border-t border-border/60 py-8 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} KotaMed · Formamos hoy, cuidamos el mañana.
+      <footer className="border-t border-border/60 py-10">
+        <div className="mx-auto max-w-7xl px-6">
+          <SiteFooterNav />
+          <div className="mt-8 border-t border-border/60 pt-5 text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} KotaMed · Formamos hoy, cuidamos el mañana.
+          </div>
+        </div>
       </footer>
     </div>
   );
