@@ -72,7 +72,7 @@ export function useIsEnrollmentAdmin(userId: string | undefined) {
         .from("user_roles")
         .select("role")
         .eq("user_id", userId!)
-        .in("role", ENROLLMENT_ADMIN_ROLES as unknown as string[]);
+        .in("role", ["super_admin", "academic_admin"]);
       if (error) throw error;
       return (data ?? []).length > 0;
     },
