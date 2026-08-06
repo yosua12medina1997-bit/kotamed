@@ -21,6 +21,7 @@ import { Route as AuthenticatedAdmisionRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminContenidoRouteImport } from './routes/_authenticated/admin.contenido'
 import { Route as AuthenticatedAdminCommandRouteImport } from './routes/_authenticated/admin.command'
+import { Route as AuthenticatedAdminCmsRouteImport } from './routes/_authenticated/admin.cms'
 import { Route as ProgramasResidentadoAreasIndexRouteImport } from './routes/programas.residentado.areas.index'
 import { Route as ProgramasInternadoAreasIndexRouteImport } from './routes/programas.internado.areas.index'
 import { Route as ProgramasSlugAreasIndexRouteImport } from './routes/programas.$slug_.areas.index'
@@ -89,6 +90,11 @@ const AuthenticatedAdminCommandRoute =
     path: '/command',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminCmsRoute = AuthenticatedAdminCmsRouteImport.update({
+  id: '/cms',
+  path: '/cms',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const ProgramasResidentadoAreasIndexRoute =
   ProgramasResidentadoAreasIndexRouteImport.update({
     id: '/programas/residentado/areas/',
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
+  '/admin/cms': typeof AuthenticatedAdminCmsRoute
   '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/$slug/areas/$area': typeof ProgramasSlugAreasAreaRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas': typeof ProgramasIndexRoute
+  '/admin/cms': typeof AuthenticatedAdminCmsRoute
   '/admin/command': typeof AuthenticatedAdminCommandRoute
   '/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/$slug/areas/$area': typeof ProgramasSlugAreasAreaRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/api/cms-image': typeof ApiCmsImageRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/': typeof ProgramasIndexRoute
+  '/_authenticated/admin/cms': typeof AuthenticatedAdminCmsRoute
   '/_authenticated/admin/command': typeof AuthenticatedAdminCommandRoute
   '/_authenticated/admin/contenido': typeof AuthenticatedAdminContenidoRoute
   '/programas/$slug_/areas/$area': typeof ProgramasSlugAreasAreaRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/api/cms-image'
     | '/programas/$slug'
     | '/programas/'
+    | '/admin/cms'
     | '/admin/command'
     | '/admin/contenido'
     | '/programas/$slug/areas/$area'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/api/cms-image'
     | '/programas/$slug'
     | '/programas'
+    | '/admin/cms'
     | '/admin/command'
     | '/admin/contenido'
     | '/programas/$slug/areas/$area'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/api/cms-image'
     | '/programas/$slug'
     | '/programas/'
+    | '/_authenticated/admin/cms'
     | '/_authenticated/admin/command'
     | '/_authenticated/admin/contenido'
     | '/programas/$slug_/areas/$area'
@@ -345,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCommandRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/cms': {
+      id: '/_authenticated/admin/cms'
+      path: '/cms'
+      fullPath: '/admin/cms'
+      preLoaderRoute: typeof AuthenticatedAdminCmsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/programas/residentado/areas/': {
       id: '/programas/residentado/areas/'
       path: '/programas/residentado/areas'
@@ -391,11 +410,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminCmsRoute: typeof AuthenticatedAdminCmsRoute
   AuthenticatedAdminCommandRoute: typeof AuthenticatedAdminCommandRoute
   AuthenticatedAdminContenidoRoute: typeof AuthenticatedAdminContenidoRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminCmsRoute: AuthenticatedAdminCmsRoute,
   AuthenticatedAdminCommandRoute: AuthenticatedAdminCommandRoute,
   AuthenticatedAdminContenidoRoute: AuthenticatedAdminContenidoRoute,
 }
