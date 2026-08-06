@@ -77,7 +77,7 @@ Reglas:
 ${data.instruction ? `\nIndicación del administrador: ${data.instruction}` : ""}
 ${data.current ? `\nContenido actual a mejorar:\n${data.current}` : ""}`,
       });
-      return { props: parseJson(text) as Record<string, unknown> };
+      return { json: JSON.stringify(parseJson(text)) };
     } catch (error) {
       friendly(error);
     }
@@ -115,7 +115,7 @@ Los iconos son nombres de lucide-react. No inventes cifras verificables.`,
         seo?: Record<string, unknown>;
         blocks?: { type: string; props: Record<string, unknown> }[];
       };
-      return { seo: parsed.seo ?? {}, blocks: parsed.blocks ?? [] };
+      return { json: JSON.stringify({ seo: parsed.seo ?? {}, blocks: parsed.blocks ?? [] }) };
     } catch (error) {
       friendly(error);
     }
