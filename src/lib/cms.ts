@@ -83,6 +83,8 @@ export type CmsBlockProps = {
   secondaryLabel?: string;
   secondaryHref?: string;
   items?: CmsItem[];
+  /** Colección reutilizable de la que se alimentan los elementos del bloque. */
+  collection?: string;
   html?: string;
 };
 
