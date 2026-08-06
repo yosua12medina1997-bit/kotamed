@@ -349,6 +349,42 @@ function CmsStudioPage() {
 
   const kindPages = pages.filter((p) => p.kind === kind);
 
+  /* Lista ordenable de bloques (se muestra en el panel o junto al inspector). */
+  const structure = (
+    <div className="border-t border-border/60 pt-2">
+      <div className="px-1 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        Estructura de la página
+      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        modifiers={[restrictToVerticalAxis]}
+        onDragEnd={onDragEnd}
+      >
+        <SortableContext items={draft.map((b) => b.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-1">
+            {draft.map((b) => (
+              <SortableRow
+                key={b.id}
+                block={b}
+                active={selected === b.id}
+                onSelect={() => setSelected(b.id)}
+                onToggle={() => patchBlock(b.id, { visible: !b.visible })}
+                onDuplicate={() => duplicateBlock(b)}
+                onDelete={() => deleteBlock(b)}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+      {draft.length === 0 && (
+        <div className="px-1 py-2 text-xs text-muted-foreground">
+          Añade bloques desde el selector superior o usa Studio AI.
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-muted/20 text-foreground">
       {/* -------- Barra superior -------- */}
