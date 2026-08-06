@@ -236,6 +236,28 @@ function CmsStudioPage() {
     setTab("contenido");
   };
 
+  /** Inserta una plantilla de sección completa (varios bloques). */
+  const addTemplate = (templateId: string) => {
+    const tpl = SECTION_TEMPLATES.find((t) => t.id === templateId);
+    if (!tpl) return;
+    const news: DraftBlock[] = tpl.blocks.map((b, i) => ({
+      id: `new-${crypto.randomUUID()}`,
+      page_id: pageId ?? "",
+      type: b.type,
+      name: null,
+      sort_order: draft.length + i,
+      visible: true,
+      props: b.props,
+      style: b.style,
+      _new: true,
+    }));
+    commitDraft([...draft, ...news]);
+    setSelected(news[0]?.id ?? null);
+    toast.success(`Plantilla "${tpl.label}" añadida (${news.length} bloques)`);
+  };
+
+
+
   const duplicateBlock = (b: DraftBlock) => {
     const copy: DraftBlock = {
       ...b,
