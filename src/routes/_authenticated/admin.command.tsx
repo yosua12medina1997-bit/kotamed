@@ -108,6 +108,7 @@ function CommandCenterPage() {
         {section === "analitica" && <AdminAnalytics />}
         {section === "matriculas" && <AdminAdmissions />}
         {section === "usuarios" && <AdminUsers />}
+        {section === "matriculacion" && <AdminEnrollments />}
         {section === "membresias" && <AdminPlans />}
         {section === "docentes" && <AdminTeachers />}
       </div>
