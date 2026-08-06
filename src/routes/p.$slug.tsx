@@ -35,20 +35,13 @@ function CmsPublicPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={kotaMedLogo} alt="KotaMed" className="size-8 rounded-lg object-contain" />
-            <span className="text-sm font-black tracking-tight">KotaMed</span>
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-3 lg:grid-cols-[auto_1fr_auto]">
+          <Link to="/" className="flex min-w-0 items-center gap-2">
+            <img src={kotaMedLogo} alt="KotaMed" className="size-8 shrink-0 rounded-lg object-contain" />
+            <span className="truncate text-sm font-black tracking-tight">KotaMed</span>
           </Link>
-          <Link
-            to="/programas"
-            className="ml-auto text-xs font-semibold text-muted-foreground hover:text-foreground"
-          >
-            Programas
-          </Link>
-          <Link to="/auth" className="text-xs font-semibold text-primary">
-            Ingresar
-          </Link>
+          <SiteNavLinks />
+          <SiteNavActions />
         </div>
       </header>
 
