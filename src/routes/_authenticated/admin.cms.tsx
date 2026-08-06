@@ -143,9 +143,23 @@ function CmsStudioPage() {
   const [showVersions, setShowVersions] = useState(false);
   const [showSeo, setShowSeo] = useState(false);
   const [pageDraft, setPageDraft] = useState<Partial<CmsPage>>({});
+  const [navOpen, setNavOpen] = useState(false);
+  const seedDefaults = useSeedCmsDefaults();
+  const seeded = useRef(false);
 
   const history = useRef<DraftBlock[][]>([]);
   const future = useRef<DraftBlock[][]>([]);
+
+  /* Primera vez: siembra automáticamente todo el contenido por defecto. */
+  useEffect(() => {
+    if (pagesLoading || seeded.current || pages.length > 0) return;
+    seeded.current = true;
+    seedDefaults.mutate(undefined, {
+      onSuccess: (n) => n && toast.success(`${n} páginas por defecto creadas en el CMS`),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagesLoading, pages.length]);
+
 
   useEffect(() => {
     if (!pageId) return;
