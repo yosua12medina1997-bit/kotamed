@@ -999,6 +999,33 @@ export type Database = {
         }
         Relationships: []
       }
+      neo_care_team: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          unit: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          unit?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          unit?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       neo_evolutions: {
         Row: {
           author: string | null
