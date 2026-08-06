@@ -758,6 +758,7 @@ function CmsStudioPage() {
           )}
         </aside>
       </div>
+      )}
     </div>
   );
 }
