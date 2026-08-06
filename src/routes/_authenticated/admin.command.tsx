@@ -17,6 +17,7 @@ import AdminPlans from "@/components/admin/AdminPlans";
 import AdminTeachers from "@/components/admin/AdminTeachers";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminAdmissions from "@/components/admin/AdminAdmissions";
+import AdminEnrollments from "@/components/admin/AdminEnrollments";
 
 export const Route = createFileRoute("/_authenticated/admin/command")({
   head: () => ({
@@ -32,6 +33,7 @@ const SECTIONS = [
   { key: "analitica", label: "Analítica", icon: BarChart3 },
   { key: "matriculas", label: "Matrículas", icon: ClipboardCheck },
   { key: "usuarios", label: "Usuarios", icon: Users },
+  { key: "matriculacion", label: "Matriculación manual", icon: GraduationCap },
   { key: "membresias", label: "Membresías y permisos", icon: Crown },
   { key: "docentes", label: "Docentes", icon: GraduationCap },
 ] as const;
