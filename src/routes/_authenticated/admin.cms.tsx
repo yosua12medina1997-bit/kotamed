@@ -531,8 +531,10 @@ function CmsStudioPage() {
             )}
           </div>
         </aside>
+        )}
 
         {/* -------- Biblioteca de bloques + orden -------- */}
+        {navOpen && (
         <aside className="space-y-3 rounded-2xl border border-border/60 bg-background p-2">
           <div>
             <div className="px-1 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -559,39 +561,10 @@ function CmsStudioPage() {
             ))}
           </div>
 
-          <div className="border-t border-border/60 pt-2">
-            <div className="px-1 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Estructura de la página
-            </div>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              modifiers={[restrictToVerticalAxis]}
-              onDragEnd={onDragEnd}
-            >
-              <SortableContext items={draft.map((b) => b.id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-1">
-                  {draft.map((b) => (
-                    <SortableRow
-                      key={b.id}
-                      block={b}
-                      active={selected === b.id}
-                      onSelect={() => setSelected(b.id)}
-                      onToggle={() => patchBlock(b.id, { visible: !b.visible })}
-                      onDuplicate={() => duplicateBlock(b)}
-                      onDelete={() => deleteBlock(b)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-            {draft.length === 0 && (
-              <div className="px-1 py-2 text-xs text-muted-foreground">
-                Añade bloques desde la biblioteca o usa Studio AI.
-              </div>
-            )}
-          </div>
+          {structure}
         </aside>
+        )}
+
 
         {/* -------- Lienzo -------- */}
         <main className="min-h-[70vh] rounded-2xl border border-border/60 bg-background p-3">
