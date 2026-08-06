@@ -717,6 +717,142 @@ export type Database = {
           },
         ]
       }
+      cms_blocks: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          page_id: string
+          props: Json
+          sort_order: number
+          style: Json
+          type: string
+          updated_at: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          page_id: string
+          props?: Json
+          sort_order?: number
+          style?: Json
+          type: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          page_id?: string
+          props?: Json
+          sort_order?: number
+          style?: Json
+          type?: string
+          updated_at?: string
+          visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_blocks_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cms_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cms_page_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          page_id: string
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          page_id: string
+          snapshot: Json
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          page_id?: string
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_page_versions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cms_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cms_pages: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          metadata: Json
+          published_at: string | null
+          seo: Json
+          slug: string
+          sort_order: number
+          status: string
+          subtitle: string | null
+          theme: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          metadata?: Json
+          published_at?: string | null
+          seo?: Json
+          slug: string
+          sort_order?: number
+          status?: string
+          subtitle?: string | null
+          theme?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          metadata?: Json
+          published_at?: string | null
+          seo?: Json
+          slug?: string
+          sort_order?: number
+          status?: string
+          subtitle?: string | null
+          theme?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       command_center: {
         Row: {
           area_slug: string
