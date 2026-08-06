@@ -101,7 +101,7 @@ export const checkProgramAccess = createServerFn({ method: "POST" })
         const { data: planAccess } = await supabase
           .from("plan_content_access")
           .select("plan_id")
-          .eq("node_id", node.id)
+          .in("node_id", scope)
           .in("plan_id", planIds);
         if ((planAccess ?? []).length > 0) return { allowed: true, reason: "membership" };
       }
