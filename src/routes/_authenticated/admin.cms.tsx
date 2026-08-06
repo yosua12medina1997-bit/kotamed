@@ -151,6 +151,7 @@ function CmsStudioPage() {
   const [showSeo, setShowSeo] = useState(false);
   const [pageDraft, setPageDraft] = useState<Partial<CmsPage>>({});
   const [navOpen, setNavOpen] = useState(false);
+  const [view, setView] = useState<StudioView>("paginas");
   const seedDefaults = useSeedCmsDefaults();
   const seeded = useRef(false);
 
