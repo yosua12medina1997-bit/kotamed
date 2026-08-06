@@ -214,6 +214,7 @@ function EnrolledView({
   isAdmin: boolean;
 }) {
   const { programs } = useProgramCatalog();
+  const manual = useMyProgramEnrollments(undefined);
   return (
 
 
