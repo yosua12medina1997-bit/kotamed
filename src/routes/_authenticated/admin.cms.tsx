@@ -25,6 +25,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowLeft,
+  ChevronDown,
+  ChevronUp,
   Copy,
   Eye,
   EyeOff,
@@ -32,6 +34,7 @@ import {
   GripVertical,
   History,
   Image as ImageIcon,
+  Layers,
   Loader2,
   Monitor,
   Plus,
