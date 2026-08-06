@@ -77,7 +77,8 @@ import { useSeedCmsDefaults } from "@/lib/cms-defaults";
 import { SECTION_TEMPLATES } from "@/lib/cms-templates";
 import { NavEditor } from "@/components/cms/NavEditor";
 import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
-import { COLLECTIONS } from "@/lib/cms-collections";
+import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
+import { useSeedNav } from "@/lib/cms-nav";
 
 type StudioView = "paginas" | "navegacion" | "colecciones";
 
