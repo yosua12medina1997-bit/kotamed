@@ -35,6 +35,13 @@ import {
 } from "@/lib/enam-modules";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { toast } from "sonner";
+import {
+  EMPTY_MENU_PREFS,
+  useMenuPrefs,
+  useSaveMenuPrefs,
+  type MenuPrefs,
+} from "@/lib/menu-prefs";
 import { CasosSection } from "@/components/academy/CasosSection";
 import { BancoSection } from "@/components/academy/BancoSection";
 import { FlashcardsSection } from "@/components/academy/FlashcardsSection";
