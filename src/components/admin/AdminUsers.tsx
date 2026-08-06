@@ -461,11 +461,20 @@ function MembershipTab({ userId, userLabel }: { userId: string; userLabel: strin
           onChange={(e) => setForm({ ...value, notes: e.target.value })}
         />
       </Field>
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Btn variant="ghost" onClick={() => setEnrollOpen(true)}>
+          Agregar programa manualmente
+        </Btn>
         <Btn onClick={() => save.mutate()} disabled={save.isPending}>
           {save.isPending && <Loader2 className="size-3.5 animate-spin" />} Guardar membresía
         </Btn>
       </div>
+      <EnrollmentModal
+        open={enrollOpen}
+        onClose={() => setEnrollOpen(false)}
+        userId={userId}
+        userLabel={userLabel}
+      />
     </div>
   );
 }
