@@ -18,6 +18,20 @@ import { GenericModule, ModuleTabs } from "@/components/hospital/modules/Generic
 import { CalculatorsModule } from "@/components/hospital/modules/CalculatorsModule";
 import { KotamedAiModule } from "@/components/hospital/modules/KotamedAiModule";
 import { AcademicCmsModule } from "@/components/hospital/modules/AcademicCmsModule";
+import {
+  PatientRegistrationMethodSelector,
+  type RegistrationMethod,
+} from "@/components/hospital/intake/PatientRegistrationMethodSelector";
+import { AIUploadWizard } from "@/components/hospital/intake/AIUploadWizard";
+import { RegistrationAftercare } from "@/components/hospital/intake/RegistrationAftercare";
+import {
+  classify,
+  clinicalReminders,
+  diffCorrections,
+  saveIntakeAudit,
+  uploadIntakeDocs,
+  type AiIntakeResult,
+} from "@/lib/neo-intake";
 
 import { DEFAULT_NEO_NAV, navIcon, useNeoNav, type NeoModule } from "@/lib/neonatal-nav";
 import {
