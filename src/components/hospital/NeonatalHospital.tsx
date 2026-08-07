@@ -18,6 +18,20 @@ import { GenericModule, ModuleTabs } from "@/components/hospital/modules/Generic
 import { CalculatorsModule } from "@/components/hospital/modules/CalculatorsModule";
 import { KotamedAiModule } from "@/components/hospital/modules/KotamedAiModule";
 import { AcademicCmsModule } from "@/components/hospital/modules/AcademicCmsModule";
+import {
+  PatientRegistrationMethodSelector,
+  type RegistrationMethod,
+} from "@/components/hospital/intake/PatientRegistrationMethodSelector";
+import { AIUploadWizard } from "@/components/hospital/intake/AIUploadWizard";
+import { RegistrationAftercare } from "@/components/hospital/intake/RegistrationAftercare";
+import {
+  classify,
+  clinicalReminders,
+  diffCorrections,
+  saveIntakeAudit,
+  uploadIntakeDocs,
+  type AiIntakeResult,
+} from "@/lib/neo-intake";
 
 import { DEFAULT_NEO_NAV, navIcon, useNeoNav, type NeoModule } from "@/lib/neonatal-nav";
 import {
@@ -120,6 +134,120 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
     },
     onError: (e: any) => toast.error(e?.message ?? "No se pudo registrar."),
   });
+
+  /* ---------------- Registro Inteligente con IA (aditivo) ---------------- */
+  const [regMethod, setRegMethod] = useState<RegistrationMethod>("manual");
+  const [aiIntake, setAiIntake] = useState<{
+    result: AiIntakeResult;
+    docs: File[];
+    warnings: string[];
+    values: Record<string, string>;
+  } | null>(null);
+  const [aftercare, setAftercare] = useState<{
+    id: string;
+    classification: string;
+    reminders: string[];
+  } | null>(null);
+
+  const createWithAi = useMutation({
+    mutationFn: async () => {
+      if (!aiIntake) throw new Error("Sin datos de IA.");
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: auth } = await supabase.auth.getUser();
+      const v = aiIntake.values;
+      const extra = {
+        tipo_parto: v["tipo_parto"] || null,
+        apgar: v["apgar"] || null,
+        procedencia: v["procedencia"] || null,
+        hospital: v["hospital"] || null,
+        servicio: v["servicio"] || null,
+        madre: v["madre"] || null,
+        dni: v["dni"] || null,
+        seguro: v["seguro"] || null,
+        cama: v["cama"] || null,
+        observaciones: v["observaciones"] || null,
+      };
+      const { data, error } = await hdb
+        .from("neo_patients")
+        .insert({
+          unit,
+          apellidos: form.apellidos,
+          nombres: form.nombres,
+          hc: form.hc || null,
+          sexo: form.sexo || null,
+          fecha_nacimiento: form.fecha_nacimiento || null,
+          hora_nacimiento: form.hora_nacimiento || null,
+          edad_gestacional: form.edad_gestacional ? Number(form.edad_gestacional) : null,
+          peso_nacimiento: form.peso_nacimiento ? Number(form.peso_nacimiento) : null,
+          diagnostico_ingreso: form.diagnostico_ingreso || null,
+          medico_responsable: form.medico_responsable || null,
+          status: form.status,
+          general: extra,
+          created_by: auth.user?.id ?? null,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      await logAudit({
+        patientId: data.id,
+        entity: "neo_patients",
+        entityId: data.id,
+        action: "insert",
+      });
+
+      const docPaths = await uploadIntakeDocs(aiIntake.docs).catch(() => [] as string[]);
+      const finalData = { ...form, ...extra };
+      await saveIntakeAudit({
+        patientId: data.id,
+        unit,
+        source: regMethod === "camera" ? "camera" : "upload",
+        docPaths,
+        result: aiIntake.result,
+        finalData,
+        corrections: diffCorrections(aiIntake.result.fields, finalData),
+        warnings: aiIntake.warnings,
+      });
+      return data.id as string;
+    },
+    onSuccess: (id) => {
+      qc.invalidateQueries({ queryKey: ["neo-patients"] });
+      const merged = { ...(aiIntake?.values ?? {}), ...form } as Record<string, string>;
+      setAftercare({
+        id,
+        classification: classify(merged, aiIntake?.result.clasificacion ?? ""),
+        reminders: clinicalReminders(merged, aiIntake?.result.recommendations ?? []),
+      });
+      setAiIntake(null);
+      toast.success("Paciente registrado con IA. Revisa las acciones disponibles.");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "No se pudo registrar."),
+  });
+
+  const applyAiValues = (payload: {
+    values: Record<string, string>;
+    result: AiIntakeResult;
+    docs: File[];
+    warnings: string[];
+  }) => {
+    const v = payload.values;
+    setForm((f) => ({
+      ...f,
+      apellidos: v["apellidos"] || f.apellidos,
+      nombres: v["nombres"] || f.nombres,
+      hc: v["hc"] || f.hc,
+      sexo: v["sexo"] || f.sexo,
+      fecha_nacimiento: v["fecha_nacimiento"] || f.fecha_nacimiento,
+      hora_nacimiento: v["hora_nacimiento"] || f.hora_nacimiento,
+      edad_gestacional: v["edad_gestacional"] || f.edad_gestacional,
+      peso_nacimiento: v["peso_nacimiento"] || f.peso_nacimiento,
+      diagnostico_ingreso: v["diagnostico_ingreso"] || f.diagnostico_ingreso,
+      medico_responsable: v["medico_responsable"] || f.medico_responsable,
+    }));
+    setAiIntake(payload);
+    toast.success("Formulario autocompletado. Revisa y confirma los datos.");
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
@@ -270,7 +398,53 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
               <ModuleTabs tabs={mod.tabs} active={activeTab} onSelect={setTab} accent={unitAccent} />
               {activeTab === "nuevo" || activeTab === "" ? (
                 <div className="mt-4">
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <PatientRegistrationMethodSelector
+                    active={regMethod}
+                    accent={unitAccent}
+                    onSelect={(m) => {
+                      setRegMethod(m);
+                      setAftercare(null);
+                      if (m === "manual") setAiIntake(null);
+                    }}
+                  />
+
+                  {regMethod !== "manual" && !aiIntake && !aftercare && (
+                    <AIUploadWizard
+                      mode={regMethod}
+                      unit={unitMeta.title}
+                      accent={unitAccent}
+                      onCancel={() => setRegMethod("manual")}
+                      onApply={applyAiValues}
+                    />
+                  )}
+
+                  {aftercare && (
+                    <RegistrationAftercare
+                      accent={unitAccent}
+                      classification={aftercare.classification}
+                      reminders={aftercare.reminders}
+                      onOpenChart={() => setPatientId(aftercare.id)}
+                      onHospitalize={() => setPatientId(aftercare.id)}
+                      onPrint={() => {
+                        if (typeof window !== "undefined") window.print();
+                      }}
+                      onBracelet={() => setPatientId(aftercare.id)}
+                      onDismiss={() => {
+                        setAftercare(null);
+                        setRegMethod("manual");
+                        setForm({
+                          ...form,
+                          apellidos: "",
+                          nombres: "",
+                          hc: "",
+                          diagnostico_ingreso: "",
+                        });
+                      }}
+                    />
+                  )}
+
+                  {(regMethod === "manual" || aiIntake) && !aftercare && (
+                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
                     <Field label="Unidad de ingreso">
                       <Select value={unit} onChange={(e) => setUnit(e.target.value)}>
                         {NEO_UNITS.map((u) => (
@@ -350,11 +524,30 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
                       </Select>
                     </Field>
                   </div>
-                  <div className="mt-4">
-                    <Btn variant="solid" accent={unitAccent} loading={create.isPending} onClick={() => create.mutate()}>
-                      <Plus className="size-3" /> Registrar ingreso
-                    </Btn>
+                  )}
+                  {(regMethod === "manual" || aiIntake) && !aftercare && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {aiIntake ? (
+                      <Btn
+                        variant="solid"
+                        accent={unitAccent}
+                        loading={createWithAi.isPending}
+                        onClick={() => createWithAi.mutate()}
+                      >
+                        <Plus className="size-3" /> Confirmar y registrar ingreso
+                      </Btn>
+                    ) : (
+                      <Btn variant="solid" accent={unitAccent} loading={create.isPending} onClick={() => create.mutate()}>
+                        <Plus className="size-3" /> Registrar ingreso
+                      </Btn>
+                    )}
+                    {aiIntake && (
+                      <Btn variant="ghost" onClick={() => setAiIntake(null)}>
+                        Descartar datos de IA
+                      </Btn>
+                    )}
                   </div>
+                  )}
                 </div>
               ) : activeTab === "estadisticas" ? (
                 <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
