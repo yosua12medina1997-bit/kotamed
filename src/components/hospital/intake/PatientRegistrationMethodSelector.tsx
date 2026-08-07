@@ -1,5 +1,4 @@
 /** Selector del método de registro de paciente (aditivo, no altera el formulario). */
-import { motion } from "framer-motion";
 import { Camera, FileText, PenLine } from "lucide-react";
 import { Btn } from "@/components/academy/ui";
 
@@ -47,16 +46,13 @@ export function PatientRegistrationMethodSelector({
         ¿Cómo desea registrar este paciente?
       </div>
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-        {CARDS.map((c, i) => {
+        {CARDS.map((c) => {
           const on = active === c.id;
           const Icon = c.icon;
           return (
-            <motion.button
+            <button
               key={c.id}
               type="button"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 }}
               onClick={() => onSelect(c.id)}
               className="group flex flex-col rounded-2xl border bg-background/60 p-4 text-left transition hover:bg-background/80"
               style={{
@@ -82,7 +78,7 @@ export function PatientRegistrationMethodSelector({
                   {c.cta}
                 </Btn>
               </span>
-            </motion.button>
+            </button>
           );
         })}
       </div>
