@@ -398,7 +398,53 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
               <ModuleTabs tabs={mod.tabs} active={activeTab} onSelect={setTab} accent={unitAccent} />
               {activeTab === "nuevo" || activeTab === "" ? (
                 <div className="mt-4">
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <PatientRegistrationMethodSelector
+                    active={regMethod}
+                    accent={unitAccent}
+                    onSelect={(m) => {
+                      setRegMethod(m);
+                      setAftercare(null);
+                      if (m === "manual") setAiIntake(null);
+                    }}
+                  />
+
+                  {regMethod !== "manual" && !aiIntake && !aftercare && (
+                    <AIUploadWizard
+                      mode={regMethod}
+                      unit={unitMeta.title}
+                      accent={unitAccent}
+                      onCancel={() => setRegMethod("manual")}
+                      onApply={applyAiValues}
+                    />
+                  )}
+
+                  {aftercare && (
+                    <RegistrationAftercare
+                      accent={unitAccent}
+                      classification={aftercare.classification}
+                      reminders={aftercare.reminders}
+                      onOpenChart={() => setPatientId(aftercare.id)}
+                      onHospitalize={() => setPatientId(aftercare.id)}
+                      onPrint={() => {
+                        if (typeof window !== "undefined") window.print();
+                      }}
+                      onBracelet={() => setPatientId(aftercare.id)}
+                      onDismiss={() => {
+                        setAftercare(null);
+                        setRegMethod("manual");
+                        setForm({
+                          ...form,
+                          apellidos: "",
+                          nombres: "",
+                          hc: "",
+                          diagnostico_ingreso: "",
+                        });
+                      }}
+                    />
+                  )}
+
+                  {(regMethod === "manual" || aiIntake) && !aftercare && (
+                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
                     <Field label="Unidad de ingreso">
                       <Select value={unit} onChange={(e) => setUnit(e.target.value)}>
                         {NEO_UNITS.map((u) => (
