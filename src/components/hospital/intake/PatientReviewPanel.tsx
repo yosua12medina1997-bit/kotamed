@@ -2,6 +2,7 @@
  * Panel de revisión: vista comparativa (documento original ↔ formulario
  * autocompletado) con indicadores de confianza y advertencias clínicas.
  */
+import { useState } from "react";
 import { AlertTriangle, Sparkles } from "lucide-react";
 import { Btn, Field, Input, Select, Textarea } from "@/components/academy/ui";
 import { AI_INTAKE_FIELDS, CONFIDENCE_THRESHOLD, type AiIntakeResult } from "@/lib/neo-intake";
@@ -27,8 +28,8 @@ export function PatientReviewPanel({
   onApply: () => void;
   onBack: () => void;
 }) {
-  const [docIndex, setDocIndex] = useReactState(0);
-  const [focused, setFocused] = useReactState<string | null>(null);
+  const [docIndex, setDocIndex] = useState(0);
+  const [focused, setFocused] = useState<string | null>(null);
   const focusedLabel =
     AI_INTAKE_FIELDS.find((f) => f.key === focused)?.label ?? null;
 
@@ -161,6 +162,3 @@ export function PatientReviewPanel({
     </div>
   );
 }
-
-/* Import local para mantener el archivo autocontenido. */
-import { useState as useReactState } from "react";
