@@ -1281,6 +1281,71 @@ export type Database = {
         }
         Relationships: []
       }
+      neo_ai_intakes: {
+        Row: {
+          ai_data: Json
+          confidence: Json
+          corrections: Json
+          created_at: string
+          created_by: string | null
+          doc_paths: Json
+          final_data: Json
+          id: string
+          model: string | null
+          ocr_text: string | null
+          overall_confidence: number | null
+          patient_id: string | null
+          source: string
+          unit: string | null
+          updated_at: string
+          warnings: Json
+        }
+        Insert: {
+          ai_data?: Json
+          confidence?: Json
+          corrections?: Json
+          created_at?: string
+          created_by?: string | null
+          doc_paths?: Json
+          final_data?: Json
+          id?: string
+          model?: string | null
+          ocr_text?: string | null
+          overall_confidence?: number | null
+          patient_id?: string | null
+          source?: string
+          unit?: string | null
+          updated_at?: string
+          warnings?: Json
+        }
+        Update: {
+          ai_data?: Json
+          confidence?: Json
+          corrections?: Json
+          created_at?: string
+          created_by?: string | null
+          doc_paths?: Json
+          final_data?: Json
+          id?: string
+          model?: string | null
+          ocr_text?: string | null
+          overall_confidence?: number | null
+          patient_id?: string | null
+          source?: string
+          unit?: string | null
+          updated_at?: string
+          warnings?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neo_ai_intakes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "neo_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neo_audit_log: {
         Row: {
           action: string
