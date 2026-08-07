@@ -524,11 +524,30 @@ export function NeonatalHospital({ isAdmin, accent }: { isAdmin: boolean; accent
                       </Select>
                     </Field>
                   </div>
-                  <div className="mt-4">
-                    <Btn variant="solid" accent={unitAccent} loading={create.isPending} onClick={() => create.mutate()}>
-                      <Plus className="size-3" /> Registrar ingreso
-                    </Btn>
+                  )}
+                  {(regMethod === "manual" || aiIntake) && !aftercare && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {aiIntake ? (
+                      <Btn
+                        variant="solid"
+                        accent={unitAccent}
+                        loading={createWithAi.isPending}
+                        onClick={() => createWithAi.mutate()}
+                      >
+                        <Plus className="size-3" /> Confirmar y registrar ingreso
+                      </Btn>
+                    ) : (
+                      <Btn variant="solid" accent={unitAccent} loading={create.isPending} onClick={() => create.mutate()}>
+                        <Plus className="size-3" /> Registrar ingreso
+                      </Btn>
+                    )}
+                    {aiIntake && (
+                      <Btn variant="ghost" onClick={() => setAiIntake(null)}>
+                        Descartar datos de IA
+                      </Btn>
+                    )}
                   </div>
+                  )}
                 </div>
               ) : activeTab === "estadisticas" ? (
                 <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
