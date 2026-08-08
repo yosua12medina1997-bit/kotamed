@@ -65,8 +65,20 @@ Al final añade una línea que comience con "NOTA:" con la advertencia de apoyo 
       return { text, disclaimer: cfg.disclaimer || AI_DISCLAIMER };
     } catch (error: any) {
       const msg = String(error?.message ?? error);
-      if (msg.includes("429")) throw new Error("Límite de solicitudes alcanzado. Intenta en unos minutos.");
-      if (msg.includes("402")) throw new Error("Créditos de IA agotados en el espacio de trabajo.");
+      const status =
+        Number(error?.statusCode ?? error?.status ?? error?.response?.status ?? 0) || 0;
+      const is = (code: number, ...words: string[]) =>
+        status === code || words.some((w) => msg.toLowerCase().includes(w));
+
+      if (is(429, "429", "rate limit", "too many requests")) {
+        throw new Error("Límite de solicitudes de IA alcanzado. Intenta nuevamente en unos minutos.");
+      }
+      if (is(402, "402", "payment required", "insufficient", "credit")) {
+        throw new Error(
+          "Créditos de IA agotados en el espacio de trabajo. Recarga créditos en Ajustes → Planes y créditos para volver a usar KotaMed AI.",
+        );
+      }
       throw new Error(`KotaMed AI no pudo responder: ${msg}`);
     }
+
   });
