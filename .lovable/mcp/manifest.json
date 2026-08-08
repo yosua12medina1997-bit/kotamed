@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://lirtdxmexkoozxqjxawi.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "kotaro-academy",
+      "version": "0.1.0",
+      "title": "KOTARO ACADEMY"
+    },
+    "tools": [
+      {
+        "name": "list_programs",
+        "title": "Listar programas académicos",
+        "description": "Lista los nodos del catálogo académico de KOTAMED (programas, áreas y módulos) visibles para el usuario autenticado.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "description": "Filtrar por tipo de nodo, p. ej. 'program', 'area', 'module'.",
+              "type": "string"
+            },
+            "parent_id": {
+              "description": "Listar solo los hijos de este nodo.",
+              "type": "string"
+            },
+            "search": {
+              "description": "Texto a buscar en el título.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Máximo de resultados (por defecto 50).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_enrollments",
+        "title": "Mis matrículas",
+        "description": "Lista las matrículas del usuario autenticado con el programa o módulo asociado, estado y vigencia.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_neonatal_patients",
+        "title": "Listar pacientes neonatales",
+        "description": "Lista el censo de pacientes del módulo de Hospitalización Neonatal accesibles para el usuario autenticado.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Filtrar por estado, p. ej. 'hospitalizado' o 'alta'.",
+              "type": "string"
+            },
+            "unit": {
+              "description": "Filtrar por unidad (UCIN, intermedios, etc.).",
+              "type": "string"
+            },
+            "search": {
+              "description": "Texto a buscar en apellidos o número de historia clínica.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Máximo de resultados (por defecto 50).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_neonatal_patient",
+        "title": "Expediente neonatal",
+        "description": "Devuelve el expediente clínico de un paciente neonatal: datos generales, evoluciones, laboratorios, medicación y procedimientos recientes.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "patient_id": {
+              "type": "string",
+              "description": "ID del paciente neonatal."
+            }
+          },
+          "required": [
+            "patient_id"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
