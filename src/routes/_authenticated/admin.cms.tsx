@@ -80,7 +80,7 @@ import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
 import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
 
-type StudioView = "paginas" | "navegacion" | "colecciones";
+type StudioView = "paginas" | "navegacion" | "colecciones" | "sitio";
 
 export const Route = createFileRoute("/_authenticated/admin/cms")({
   head: () => ({
