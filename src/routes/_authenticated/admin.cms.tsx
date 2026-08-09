@@ -79,6 +79,8 @@ import { NavEditor } from "@/components/cms/NavEditor";
 import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
 import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
+import { WebsiteStudio } from "@/components/cms/WebsiteStudio";
+
 
 type StudioView = "paginas" | "navegacion" | "colecciones" | "sitio";
 
