@@ -480,6 +480,8 @@ function CmsStudioPage() {
             <option value="paginas">🧱 Diseñador de páginas</option>
             <option value="navegacion">🧭 Navegación del sitio</option>
             <option value="colecciones">♻️ Colecciones reutilizables</option>
+            <option value="sitio">🌐 KOTAMED.APP (sitio web)</option>
+
           </Select>
           <Select
             value=""
