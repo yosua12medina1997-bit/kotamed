@@ -79,8 +79,10 @@ import { NavEditor } from "@/components/cms/NavEditor";
 import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
 import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
+import { WebsiteStudio } from "@/components/cms/WebsiteStudio";
 
-type StudioView = "paginas" | "navegacion" | "colecciones";
+
+type StudioView = "paginas" | "navegacion" | "colecciones" | "sitio";
 
 export const Route = createFileRoute("/_authenticated/admin/cms")({
   head: () => ({
@@ -478,6 +480,8 @@ function CmsStudioPage() {
             <option value="paginas">🧱 Diseñador de páginas</option>
             <option value="navegacion">🧭 Navegación del sitio</option>
             <option value="colecciones">♻️ Colecciones reutilizables</option>
+            <option value="sitio">🌐 KOTAMED.APP (sitio web)</option>
+
           </Select>
           <Select
             value=""
@@ -572,7 +576,12 @@ function CmsStudioPage() {
         </div>
       </header>
 
-      {view === "navegacion" ? (
+      {view === "sitio" ? (
+        <div className="p-3">
+          <WebsiteStudio />
+        </div>
+      ) : view === "navegacion" ? (
+
         <div className="p-3">
           <NavEditor />
         </div>
