@@ -136,7 +136,7 @@ export function WebsiteStudio() {
 
   if (!project.data) {
     return (
-      <Panel title="Sitio web no conectado">
+      <Panel accent="primary" title="Sitio web no conectado">
         <div className="flex items-start gap-3 text-sm">
           <AlertTriangle className="mt-0.5 size-4 text-amber-500" />
           <div>
@@ -253,7 +253,7 @@ export function WebsiteStudio() {
       </div>
 
       {tab === "resumen" && (
-        <Panel title="Permisos de la integración">
+        <Panel accent="primary" title="Permisos de la integración">
           <ul className="space-y-1.5 text-xs">
             <li className="flex items-center gap-2">
               <Chip accent="emerald">activo</Chip> <code>website.read</code> — inspección y representación del sitio.
@@ -277,7 +277,7 @@ export function WebsiteStudio() {
       )}
 
       {tab === "estructura" && (
-        <Panel title="Explorador del sitio">
+        <Panel accent="primary" title="Explorador del sitio">
           {!data ? (
             <p className="text-xs text-muted-foreground">Ejecuta «Analizar sitio» para detectar la estructura real.</p>
           ) : (
@@ -388,7 +388,7 @@ export function WebsiteStudio() {
 
       {tab === "contenido" && (
         <div className="grid gap-3 xl:grid-cols-2">
-          <Panel title="Fuentes de contenido detectadas">
+          <Panel accent="primary" title="Fuentes de contenido detectadas">
             {!data ? (
               <p className="text-xs text-muted-foreground">Sin análisis todavía.</p>
             ) : (
@@ -408,7 +408,7 @@ export function WebsiteStudio() {
               No se copia ni duplica contenido dinámico: solo se referencia su origen.
             </p>
           </Panel>
-          <Panel title="Elementos administrables potenciales">
+          <Panel accent="primary" title="Elementos administrables potenciales">
             {!data ? (
               <p className="text-xs text-muted-foreground">Sin análisis todavía.</p>
             ) : (
@@ -432,7 +432,7 @@ export function WebsiteStudio() {
       )}
 
       {tab === "configuracion" && (
-        <Panel title="Configuración del sitio (informativa)">
+        <Panel accent="primary" title="Configuración del sitio (informativa)">
           <dl className="grid gap-2 text-xs sm:grid-cols-2">
             {[
               ["Dominio", "www.kotamed.app · kotamed.app"],
@@ -465,7 +465,7 @@ export function WebsiteStudio() {
       )}
 
       {tab === "repositorio" && (
-        <Panel title="Repositorio">
+        <Panel accent="primary" title="Repositorio">
           <div className="flex items-start gap-3 text-xs">
             <GitBranch className="mt-0.5 size-4 text-muted-foreground" />
             <div>
@@ -485,7 +485,7 @@ export function WebsiteStudio() {
       )}
 
       {tab === "actividad" && (
-        <Panel title="Actividad de la integración">
+        <Panel accent="primary" title="Actividad de la integración">
           {activity.isLoading ? (
             <Loader2 className="size-4 animate-spin text-muted-foreground" />
           ) : !activity.data?.length ? (
