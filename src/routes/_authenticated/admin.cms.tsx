@@ -576,7 +576,12 @@ function CmsStudioPage() {
         </div>
       </header>
 
-      {view === "navegacion" ? (
+      {view === "sitio" ? (
+        <div className="p-3">
+          <WebsiteStudio />
+        </div>
+      ) : view === "navegacion" ? (
+
         <div className="p-3">
           <NavEditor />
         </div>
