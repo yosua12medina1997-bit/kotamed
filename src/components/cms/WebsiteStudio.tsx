@@ -287,7 +287,7 @@ export function WebsiteStudio() {
       )}
 
       {tab === "paginas" && (
-        <Panel title={`Mapa de páginas${data ? ` (${data.pages.length})` : ""}`}>
+        <Panel accent="primary" title={`Mapa de páginas${data ? ` (${data.pages.length})` : ""}`}>
           {!data ? (
             <p className="text-xs text-muted-foreground">Sin análisis todavía.</p>
           ) : (
@@ -324,7 +324,7 @@ export function WebsiteStudio() {
       )}
 
       {tab === "componentes" && (
-        <Panel title={`Componentes${data ? ` (${data.components.length})` : ""}`}>
+        <Panel accent="primary" title={`Componentes${data ? ` (${data.components.length})` : ""}`}>
           {!data ? (
             <p className="text-xs text-muted-foreground">Sin análisis todavía.</p>
           ) : (
@@ -359,7 +359,7 @@ export function WebsiteStudio() {
       )}
 
       {tab === "assets" && (
-        <Panel title={`Assets${data ? ` (${data.assets.length})` : ""}`}>
+        <Panel accent="primary" title={`Assets${data ? ` (${data.assets.length})` : ""}`}>
           {!data ? (
             <p className="text-xs text-muted-foreground">Sin análisis todavía.</p>
           ) : (
