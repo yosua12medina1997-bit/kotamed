@@ -76,23 +76,21 @@ const PUBLIC_TITLES: Record<string, string> = {
 };
 
 function fileToRoutePath(file: string): string {
-  let rel = file.replace("/src/routes/", "").replace(/\.(tsx|ts)$/, "");
+  const rel = file
+    .replace("/src/routes/", "")
+    .replace(/\.(tsx|ts)$/, "")
+    .replace(/\[\.([^\]]+)\]/g, ".$1");
   if (rel === "__root") return "/";
-  rel = rel.replace(/\[\.([^\]]+)\]/g, ".$1");
-  const segments = rel
+  const parts = rel
     .split("/")
     .flatMap((part) => part.split("."))
-    .filter((part) => part && part !== "_authenticated" && !part.startsWith("_") === false ? part !== "" : true);
-  const clean = rel
-    .split("/")
-    .flatMap((part) => (part.includes(".") ? part.split(".") : [part]))
     .filter((part) => part.length > 0)
     .filter((part) => part !== "_authenticated")
     .map((part) => part.replace(/_$/, ""))
-    .filter((part) => part !== "index" || segments.length === 0);
-  const path = "/" + clean.filter((p) => p !== "index").join("/");
-  return path === "/" ? "/" : path.replace(/\/+$/, "");
+    .filter((part) => part !== "index" && part !== "route");
+  return parts.length ? `/${parts.join("/")}` : "/";
 }
+
 
 function humanize(value: string): string {
   const last = value.split("/").filter(Boolean).pop() ?? "Inicio";
