@@ -2276,6 +2276,107 @@ export type Database = {
         }
         Relationships: []
       }
+      website_projects: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          environment: string
+          framework: string | null
+          id: string
+          integration_mode: string
+          last_scan_at: string | null
+          last_scan_summary: Json
+          name: string
+          notes: string | null
+          repository: string | null
+          slug: string
+          status: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          environment?: string
+          framework?: string | null
+          id?: string
+          integration_mode?: string
+          last_scan_at?: string | null
+          last_scan_summary?: Json
+          name: string
+          notes?: string | null
+          repository?: string | null
+          slug: string
+          status?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          environment?: string
+          framework?: string | null
+          id?: string
+          integration_mode?: string
+          last_scan_at?: string | null
+          last_scan_summary?: Json
+          name?: string
+          notes?: string | null
+          repository?: string | null
+          slug?: string
+          status?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      website_scan_events: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          detail: Json
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          project_id: string
+          status: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          project_id: string
+          status?: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          project_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_scan_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "website_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
