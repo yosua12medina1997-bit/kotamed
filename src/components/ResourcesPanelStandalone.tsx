@@ -69,10 +69,14 @@ function ResourceIcon({ kind, className }: { kind: ResourceKind; className?: str
 export function ResourcesPanelStandalone({
   nodeId,
   nodeTitle,
+  readOnly = false,
 }: {
   nodeId: string;
   nodeTitle: string;
+  /** Vista de estudiante: sólo consulta, sin formularios ni acciones. */
+  readOnly?: boolean;
 }) {
+
   const user = useSupabaseUser();
   const qc = useQueryClient();
   const [tab, setTab] = useState<"file" | "video" | "link" | "text">("file");
@@ -154,51 +158,55 @@ export function ResourcesPanelStandalone({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1 mb-3">
-        {(["file", "video", "link", "text"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition ${
-              tab === t
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background/60 text-muted-foreground border-border hover:text-foreground"
-            }`}
-          >
-            <ResourceIcon kind={t} className="size-3.5" />
-            {t === "file"
-              ? "Subir archivo"
-              : t === "video"
-                ? "Subir video"
-                : t === "link"
-                  ? "Insertar video / enlace"
-                  : "Nota / texto"}
-          </button>
-        ))}
-      </div>
+      {!readOnly && (
+        <>
+          <div className="flex flex-wrap items-center gap-1 mb-3">
+            {(["file", "video", "link", "text"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition ${
+                  tab === t
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background/60 text-muted-foreground border-border hover:text-foreground"
+                }`}
+              >
+                <ResourceIcon kind={t} className="size-3.5" />
+                {t === "file"
+                  ? "Subir archivo"
+                  : t === "video"
+                    ? "Subir video"
+                    : t === "link"
+                      ? "Insertar video / enlace"
+                      : "Nota / texto"}
+              </button>
+            ))}
+          </div>
 
-      <div className="mb-4">
-        {tab === "file" && (
-          <UploadForm
-            nodeId={nodeId}
-            accept="*/*"
-            kindHint="file"
-            onDone={(payload) => createMut.mutateAsync(payload)}
-            onError={(m) => setError(m)}
-          />
-        )}
-        {tab === "video" && (
-          <UploadForm
-            nodeId={nodeId}
-            accept="video/*"
-            kindHint="video"
-            onDone={(payload) => createMut.mutateAsync(payload)}
-            onError={(m) => setError(m)}
-          />
-        )}
-        {tab === "link" && <LinkForm onCreate={(p) => createMut.mutateAsync(p)} />}
-        {tab === "text" && <TextForm onCreate={(p) => createMut.mutateAsync(p)} />}
-      </div>
+          <div className="mb-4">
+            {tab === "file" && (
+              <UploadForm
+                nodeId={nodeId}
+                accept="*/*"
+                kindHint="file"
+                onDone={(payload) => createMut.mutateAsync(payload)}
+                onError={(m) => setError(m)}
+              />
+            )}
+            {tab === "video" && (
+              <UploadForm
+                nodeId={nodeId}
+                accept="video/*"
+                kindHint="video"
+                onDone={(payload) => createMut.mutateAsync(payload)}
+                onError={(m) => setError(m)}
+              />
+            )}
+            {tab === "link" && <LinkForm onCreate={(p) => createMut.mutateAsync(p)} />}
+            {tab === "text" && <TextForm onCreate={(p) => createMut.mutateAsync(p)} />}
+          </div>
+        </>
+      )}
 
       {error && (
         <div className="mb-3 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-[11px] font-semibold text-destructive">
@@ -210,7 +218,9 @@ export function ResourcesPanelStandalone({
         <Loader2 className="size-4 animate-spin text-muted-foreground" />
       ) : (q.data?.length ?? 0) === 0 ? (
         <p className="text-[12px] text-muted-foreground italic">
-          Aún no hay recursos. Sube archivos, videos o pega un enlace de YouTube.
+          {readOnly
+            ? "Este tema aún no tiene recursos publicados."
+            : "Aún no hay recursos. Sube archivos, videos o pega un enlace de YouTube."}
         </p>
       ) : (
         <ul className="space-y-2">
@@ -218,12 +228,14 @@ export function ResourcesPanelStandalone({
             <ResourceRow
               key={r.id}
               r={r}
+              readOnly={readOnly}
               onUpdate={(patch) => updateMut.mutateAsync({ id: r.id, patch })}
               onDelete={() => deleteMut.mutateAsync(r)}
             />
           ))}
         </ul>
       )}
+
     </div>
   );
 }
@@ -440,11 +452,14 @@ function ResourceRow({
   r,
   onUpdate,
   onDelete,
+  readOnly = false,
 }: {
   r: ContentResource;
   onUpdate: (patch: Partial<ContentResource>) => Promise<unknown>;
   onDelete: () => Promise<unknown>;
+  readOnly?: boolean;
 }) {
+
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(r.title);
   const [url, setUrl] = useState(r.url ?? "");
@@ -586,38 +601,43 @@ function ResourceRow({
               <Maximize2 className="size-3.5" />
             </button>
           )}
-          <button
-            onClick={() => onUpdate({ is_published: !r.is_published })}
-            title={r.is_published ? "Ocultar" : "Publicar"}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
-          >
-            {r.is_published ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-          </button>
-          <button
-            onClick={() => setEditing((v) => !v)}
-            title="Editar"
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
-          >
-            <Pencil className="size-3.5" />
-          </button>
-          <button
-            onClick={async () => {
-              if (!confirm(`¿Eliminar "${r.title}"?`)) return;
-              setBusy(true);
-              try {
-                await onDelete();
-              } finally {
-                setBusy(false);
-              }
-            }}
-            title="Eliminar"
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50"
-            disabled={busy}
-          >
-            <Trash2 className="size-3.5" />
-          </button>
+          {!readOnly && (
+            <>
+              <button
+                onClick={() => onUpdate({ is_published: !r.is_published })}
+                title={r.is_published ? "Ocultar" : "Publicar"}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
+              >
+                {r.is_published ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+              </button>
+              <button
+                onClick={() => setEditing((v) => !v)}
+                title="Editar"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
+              >
+                <Pencil className="size-3.5" />
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm(`¿Eliminar "${r.title}"?`)) return;
+                  setBusy(true);
+                  try {
+                    await onDelete();
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                title="Eliminar"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50"
+                disabled={busy}
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </>
+          )}
         </div>
       </div>
+
 
       {editing && (
         <div className="mt-3 grid gap-2">
