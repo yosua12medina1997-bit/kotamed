@@ -69,10 +69,14 @@ function ResourceIcon({ kind, className }: { kind: ResourceKind; className?: str
 export function ResourcesPanelStandalone({
   nodeId,
   nodeTitle,
+  readOnly = false,
 }: {
   nodeId: string;
   nodeTitle: string;
+  /** Vista de estudiante: sólo consulta, sin formularios ni acciones. */
+  readOnly?: boolean;
 }) {
+
   const user = useSupabaseUser();
   const qc = useQueryClient();
   const [tab, setTab] = useState<"file" | "video" | "link" | "text">("file");
