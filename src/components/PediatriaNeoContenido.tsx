@@ -1,16 +1,22 @@
 /**
- * Vista de contenido exclusiva para el módulo Pediatría & Neonatología.
- * Muestra dos bloques (Neonatología / Pediatría) con categorías y temas.
- * Como admin: permite editar el título del tema, subir archivos, insertar
- * videos y enlaces, y publicar/ocultar recursos por tema.
+ * Vista de contenido académico 100% CMS (persistente y editable).
+ *
+ * Toda la jerarquía —bloques, categorías, subcategorías, temas, secciones,
+ * contenido y recursos— vive en base de datos (`content_nodes` /
+ * `content_resources`). El blueprint estático se usa únicamente como semilla
+ * inicial la primera vez que un admin abre el módulo.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Baby,
   BookMarked,
   Calculator,
+  ChevronDown,
   ChevronRight,
+  Copy,
+  Eye,
+  EyeOff,
   FileText,
   GraduationCap,
   ListChecks,
@@ -18,149 +24,56 @@ import {
   Pencil,
   Play,
   Plus,
-  Trash2,
-
   Save,
   Search,
   Shield,
   Sparkles,
   Stethoscope,
+  Trash2,
   X,
 } from "lucide-react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import {
   PEDIATRIA_NEONATOLOGIA_BLUEPRINT,
-  TOPIC_STANDARD_FORMAT,
   type BlueprintBlock,
-  type BlueprintCategory,
-  type BlueprintTopic,
 } from "@/lib/pediatria-neonatologia-blueprint";
 import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
 import { TopicPresenter } from "@/components/topic/TopicPresenter";
 import { TopicEditor } from "@/components/topic/TopicEditor";
 import { PharmaWorkspace } from "@/components/pharma/PharmaWorkspace";
-
+import {
+  KIND_LABEL,
+  countTopics,
+  filterTree,
+  slugify,
+  useCmsMutations,
+  useCmsTree,
+  useTreeStats,
+  type CmsNode,
+  type CmsScope,
+} from "@/lib/pednn-cms";
 import type { Topic } from "@/lib/topic-schema";
 
-type BlockKey = string;
-
-const ROOT_SLUG = "biblioteca-pediatria-neo";
-const ROOT_TITLE = "Biblioteca · Pediatría & Neonatología";
-
-const OVERRIDES_SLUG = "pednn-blueprint-overrides";
-
-/** Espacio de almacenamiento del contenido (permite reutilizar la vista en otros programas). */
+/** Espacio de almacenamiento del contenido (permite reutilizar la vista). */
 export interface ContenidoScope {
-  /** Slug del nodo raíz en `content_nodes`. */
   rootSlug: string;
-  /** Título del nodo raíz. */
   rootTitle: string;
-  /** Slug del nodo donde se guardan los temas agregados/quitados por el admin. */
-  overridesSlug: string;
-  /** Prefijo de las query keys de React Query. */
+  /** Compatibilidad histórica (ya no se usan overrides JSON). */
+  overridesSlug?: string;
   namespace: string;
 }
 
 const PEDNN_SCOPE: ContenidoScope = {
-  rootSlug: ROOT_SLUG,
-  rootTitle: ROOT_TITLE,
-  overridesSlug: OVERRIDES_SLUG,
+  rootSlug: "biblioteca-pediatria-neo",
+  rootTitle: "Biblioteca · Pediatría & Neonatología",
   namespace: "pednn",
 };
 
-type BlueprintOverrides = {
-  added: Record<string, string[]>;
-  removed: Record<string, string[]>;
-};
-
-const EMPTY_OVERRIDES: BlueprintOverrides = { added: {}, removed: {} };
-
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "")
-    .slice(0, 60);
-}
-
-/** Overrides de temas (agregados/quitados por admin) guardados globalmente. */
-function useBlueprintOverrides(scope: ContenidoScope) {
-  const qc = useQueryClient();
-  const user = useSupabaseUser();
-
-  const q = useQuery({
-    queryKey: [scope.namespace, "blueprint-overrides", scope.overridesSlug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_nodes")
-        .select("id, metadata")
-        .eq("slug", scope.overridesSlug)
-        .limit(1);
-      if (error) throw error;
-      return data && data.length > 0 ? data[0] : null;
-    },
-    staleTime: 30_000,
-  });
-
-  const overrides: BlueprintOverrides = useMemo(() => {
-    const raw = (q.data?.metadata as any)?.blueprint as Partial<BlueprintOverrides> | undefined;
-    return { added: raw?.added ?? {}, removed: raw?.removed ?? {} };
-  }, [q.data]);
-
-  const save = useMutation({
-    mutationFn: async (next: BlueprintOverrides) => {
-      const existing = q.data;
-      if (!existing) {
-        const { error } = await supabase.from("content_nodes").insert({
-          parent_id: null,
-          kind: "course",
-          title: `Overrides · ${scope.rootTitle}`,
-          slug: scope.overridesSlug,
-          sort_order: 999,
-          created_by: user?.id ?? null,
-          metadata: { blueprint: next } as never,
-        });
-        if (error) throw error;
-        return;
-      }
-      const md = ((existing.metadata ?? {}) as Record<string, unknown>) || {};
-      const { error } = await supabase
-        .from("content_nodes")
-        .update({ metadata: { ...md, blueprint: next } as never })
-        .eq("id", existing.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: [scope.namespace, "blueprint-overrides", scope.overridesSlug] });
-    },
-    onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar el cambio"),
-  });
-
-  return { overrides, save };
-}
-
-/** Aplica los overrides sobre un bloque del blueprint. */
-function applyOverrides(block: BlueprintBlock, ov: BlueprintOverrides): BlueprintBlock {
-  return {
-    ...block,
-    categories: block.categories.map((cat) => {
-      const key = `${block.key}::${cat.key}`;
-      const removed = new Set(ov.removed[key] ?? []);
-      const added = (ov.added[key] ?? []).map((title) => ({ title }) as BlueprintTopic);
-      return {
-        ...cat,
-        topics: [...cat.topics, ...added].filter((t) => !removed.has(t.title)),
-      };
-    }),
-  };
-}
-
+const DEFAULT_ACCENT = "hsl(var(--primary))";
 
 export function PediatriaNeoContenido({
   meta,
@@ -171,75 +84,70 @@ export function PediatriaNeoContenido({
   showPharma = true,
 }: {
   meta: EnamAreaMeta;
-  /** Estructura académica a mostrar. Por defecto, el blueprint de Pediatría & Neonatología. */
+  /** Blueprint usado sólo como semilla inicial del CMS. */
   blueprint?: BlueprintBlock[];
-  /** Namespace de persistencia (root, overrides y query keys). */
   scope?: ContenidoScope;
   heading?: string;
   intro?: string;
   showPharma?: boolean;
 }) {
-  const [active, setActive] = useState<BlockKey>(blueprint[0]?.key ?? "");
-  const [query, setQuery] = useState("");
-  const [openCat, setOpenCat] = useState<string | null>(null);
-  const [openTopic, setOpenTopic] = useState<string | null>(null);
-  const [pharmaOpen, setPharmaOpen] = useState(false);
-  const [newTopic, setNewTopic] = useState<Record<string, string>>({});
-
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
-  const { overrides, save: saveOverrides } = useBlueprintOverrides(scope);
 
-  const blocks = useMemo(
-    () => blueprint.map((b) => applyOverrides(b, overrides)),
-    [blueprint, overrides],
-  );
-  const block = useMemo(() => blocks.find((b) => b.key === active) ?? blocks[0]!, [blocks, active]);
-  const filtered = useMemo(() => filterBlock(block, query), [block, query]);
-  const totalTopics = useMemo(
-    () => blocks.reduce((acc, b) => acc + b.categories.reduce((a, c) => a + c.topics.length, 0), 0),
-    [blocks],
+  const cmsScope: CmsScope = useMemo(
+    () => ({
+      rootSlug: scope.rootSlug,
+      rootTitle: scope.rootTitle,
+      namespace: scope.namespace,
+      seed: blueprint,
+    }),
+    [scope.rootSlug, scope.rootTitle, scope.namespace, blueprint],
   );
 
-  function addTopic(catKey: string, title: string) {
-    const key = `${block.key}::${catKey}`;
-    const clean = title.trim();
-    if (!clean) return;
-    const exists = block.categories
-      .find((c) => c.key === catKey)
-      ?.topics.some((t) => t.title.toLowerCase() === clean.toLowerCase());
-    if (exists) {
-      toast.error("Ese tema ya existe en la categoría");
-      return;
+  const tree = useCmsTree(cmsScope, !!isAdmin);
+  const mut = useCmsMutations(cmsScope);
+
+  const blocks = tree.data?.blocks ?? [];
+  const visibleBlocks = useMemo(
+    () => (isAdmin ? blocks : blocks.filter((b) => b.is_published)),
+    [blocks, isAdmin],
+  );
+
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [pharmaOpen, setPharmaOpen] = useState(false);
+  const [newBlock, setNewBlock] = useState("");
+
+  useEffect(() => {
+    if (!activeId || !visibleBlocks.some((b) => b.id === activeId)) {
+      setActiveId(visibleBlocks[0]?.id ?? null);
     }
-    const removed = (overrides.removed[key] ?? []).filter((t) => t !== clean);
-    const added = [...(overrides.added[key] ?? [])];
-    if (!added.includes(clean)) added.push(clean);
-    saveOverrides.mutate(
-      {
-        added: { ...overrides.added, [key]: added },
-        removed: { ...overrides.removed, [key]: removed },
-      },
-      { onSuccess: () => toast.success(`Tema "${clean}" agregado`) },
+  }, [visibleBlocks, activeId]);
+
+  const block = visibleBlocks.find((b) => b.id === activeId) ?? visibleBlocks[0] ?? null;
+  const accent = (block?.metadata?.accent as string) || meta.accent || DEFAULT_ACCENT;
+  const stats = useTreeStats(visibleBlocks);
+
+  const children = useMemo(
+    () => (block ? filterTree(childrenOf(block, isAdmin), query) : []),
+    [block, query, isAdmin],
+  );
+
+  if (tree.isLoading) {
+    return (
+      <section className="glass rounded-3xl p-8 flex items-center gap-3 text-sm text-muted-foreground">
+        <Loader2 className="size-4 animate-spin" /> Cargando contenido…
+      </section>
     );
-    setNewTopic((p) => ({ ...p, [catKey]: "" }));
   }
 
-  function removeTopic(catKey: string, title: string) {
-    const key = `${block.key}::${catKey}`;
-    const added = (overrides.added[key] ?? []).filter((t) => t !== title);
-    const removed = [...(overrides.removed[key] ?? [])];
-    if (!removed.includes(title)) removed.push(title);
-    saveOverrides.mutate(
-      {
-        added: { ...overrides.added, [key]: added },
-        removed: { ...overrides.removed, [key]: removed },
-      },
-      { onSuccess: () => toast.success(`Tema "${title}" quitado`) },
+  if (tree.error) {
+    return (
+      <section className="glass rounded-3xl p-8 text-sm font-semibold text-destructive">
+        {tree.error instanceof Error ? tree.error.message : "No se pudo cargar el contenido."}
+      </section>
     );
-    setOpenTopic(null);
   }
-
 
   return (
     <section className="glass rounded-3xl p-6 md:p-8 animate-slide-up">
@@ -248,7 +156,7 @@ export function PediatriaNeoContenido({
           <div className="flex items-center gap-2">
             <BookMarked className="size-4" strokeWidth={2.25} style={{ color: meta.accent }} />
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Biblioteca clínica · plan maestro
+              Biblioteca clínica · CMS editable
             </span>
             {isAdmin && (
               <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 rounded-full px-1.5 py-0.5">
@@ -261,255 +169,190 @@ export function PediatriaNeoContenido({
           </h2>
           <p className="mt-1 text-sm text-muted-foreground max-w-2xl">
             {intro ??
-              "Dividido en bloques independientes. Cada tema se despliega con la misma estructura estándar (resumen, guías, casos, flashcards, banco de preguntas)."}
-            {isAdmin && " Como admin, puedes editar cada tema, subir archivos e insertar videos."}
+              "Estructura jerárquica editable: bloques, categorías, subcategorías, temas, secciones y recursos. Todo se guarda en base de datos."}
+            {isAdmin && " Como admin puedes crear, renombrar, ordenar, duplicar, publicar y eliminar en cualquier nivel."}
           </p>
         </div>
         <div className="flex flex-col items-end gap-3">
           <div className="flex items-center gap-3">
-            <Stat label="Bloques" value={blocks.length} accent={meta.accent} />
-            <Stat
-              label="Categorías"
-              value={blocks.reduce((a, b) => a + b.categories.length, 0)}
-              accent={meta.accent}
-            />
-            <Stat label="Temas" value={totalTopics} accent={meta.accent} />
+            <Stat label="Bloques" value={stats.blocks} accent={meta.accent} />
+            <Stat label="Categorías" value={stats.categories} accent={meta.accent} />
+            <Stat label="Temas" value={stats.topics} accent={meta.accent} />
           </div>
           {showPharma && (
-          <button
-            onClick={() => setPharmaOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
-          >
-            <Calculator className="size-3.5" style={{ color: meta.accent }} />
-            Calculadora farmacológica
-          </button>
+            <button
+              onClick={() => setPharmaOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
+            >
+              <Calculator className="size-3.5" style={{ color: meta.accent }} />
+              Calculadora farmacológica
+            </button>
           )}
         </div>
-
       </div>
 
+      {/* Bloques */}
       <div className="mt-6 flex flex-wrap gap-2">
-        {blocks.map((b) => {
-          const isActive = active === b.key;
-          const Icon = b.key === "neonatologia" ? Baby : b.icon ?? Stethoscope;
+        {visibleBlocks.map((b) => {
+          const isActive = block?.id === b.id;
+          const Icon = (b.metadata?.iconKey as string) === "neonatologia" ? Baby : Stethoscope;
           return (
             <button
-              key={b.key}
-              onClick={() => {
-                setActive(b.key);
-                setOpenCat(null);
-                setOpenTopic(null);
-              }}
+              key={b.id}
+              onClick={() => setActiveId(b.id)}
               className={`group inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition ${
                 isActive
                   ? "border-transparent text-white shadow-sm"
                   : "border-border/50 bg-background/40 hover:border-border text-foreground"
               }`}
-              style={isActive ? { background: b.accent } : undefined}
+              style={isActive ? { background: (b.metadata?.accent as string) || accent } : undefined}
             >
               <Icon className="size-4" strokeWidth={2.25} />
               <span>{b.title}</span>
+              {!b.is_published && <EyeOff className="size-3.5 opacity-70" />}
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                   isActive ? "bg-white/25 text-white" : "bg-foreground/5 text-muted-foreground"
                 }`}
               >
-                {b.categories.reduce((a, c) => a + c.topics.length, 0)}
+                {countTopics(b)}
               </span>
             </button>
           );
         })}
+        {isAdmin && (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const title = newBlock.trim();
+              if (!title || !tree.data?.root) return;
+              mut.create.mutate(
+                {
+                  parentId: tree.data.root.id,
+                  kind: "program",
+                  title,
+                  siblings: blocks.length,
+                  metadata: { accent: meta.accent, iconKey: slugify(title) },
+                },
+                {
+                  onSuccess: () => {
+                    toast.success("Bloque creado");
+                    setNewBlock("");
+                  },
+                  onError: (err: any) => toast.error(err?.message ?? "No se pudo crear"),
+                },
+              );
+            }}
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-dashed border-border/70 bg-background/40 px-3 py-1.5"
+          >
+            <input
+              value={newBlock}
+              onChange={(e) => setNewBlock(e.target.value)}
+              placeholder="Nuevo bloque…"
+              className="w-36 bg-transparent text-xs outline-none"
+            />
+            <button
+              type="submit"
+              disabled={mut.create.isPending}
+              className="rounded-lg p-1 text-primary hover:bg-primary/10 disabled:opacity-50"
+              aria-label="Agregar bloque"
+            >
+              <Plus className="size-3.5" />
+            </button>
+          </form>
+        )}
       </div>
+
+      {block && isAdmin && (
+        <div className="mt-3">
+          <NodeToolbar
+            node={block}
+            siblings={blocks}
+            scope={cmsScope}
+            accent={accent}
+            onAfterDelete={() => setActiveId(null)}
+          />
+        </div>
+      )}
 
       <div className="mt-5 relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={`Buscar en ${block.title}… (ej. sepsis, TORCH, RCP)`}
+          placeholder={`Buscar en ${block?.title ?? "el módulo"}… (ej. sepsis, TORCH, RCP)`}
           className="w-full rounded-xl border border-border/60 bg-background/60 pl-9 pr-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
         />
       </div>
 
-      <p className="mt-3 text-xs text-muted-foreground">{block.tagline}</p>
-
-      {showPharma && (
-      <button
-        onClick={() => setPharmaOpen(true)}
-        className="mt-4 w-full group flex items-center gap-3 rounded-2xl border border-border/60 bg-background/50 px-4 py-3 text-left backdrop-blur transition hover:border-primary/40 hover:bg-background/70"
-      >
-        <span
-          className="inline-flex size-9 items-center justify-center rounded-xl text-white shrink-0"
-          style={{ background: block.accent }}
-        >
-          <Calculator className="size-4.5" strokeWidth={2.4} />
-        </span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-sm font-bold tracking-tight">
-            Calculadora farmacológica pediátrica
-          </span>
-          <span className="block text-[11px] text-muted-foreground">
-            Acceso rápido desde el índice · dosis por peso, catálogo editable y cálculos clínicos
-          </span>
-        </span>
-        <ChevronRight className="size-4 text-muted-foreground transition group-hover:translate-x-0.5" />
-      </button>
+      {block?.description && (
+        <p className="mt-3 text-xs text-muted-foreground">{block.description}</p>
       )}
 
+      {showPharma && (
+        <button
+          onClick={() => setPharmaOpen(true)}
+          className="mt-4 w-full group flex items-center gap-3 rounded-2xl border border-border/60 bg-background/50 px-4 py-3 text-left backdrop-blur transition hover:border-primary/40 hover:bg-background/70"
+        >
+          <span
+            className="inline-flex size-9 items-center justify-center rounded-xl text-white shrink-0"
+            style={{ background: accent }}
+          >
+            <Calculator className="size-4.5" strokeWidth={2.4} />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-sm font-bold tracking-tight">
+              Calculadora farmacológica pediátrica
+            </span>
+            <span className="block text-[11px] text-muted-foreground">
+              Acceso rápido desde el índice · dosis por peso, catálogo editable y cálculos clínicos
+            </span>
+          </span>
+          <ChevronRight className="size-4 text-muted-foreground transition group-hover:translate-x-0.5" />
+        </button>
+      )}
 
+      {/* Categorías / subcategorías / temas */}
       <div className="mt-6 space-y-3">
-        {filtered.categories.map((cat) => {
-          const isOpen = openCat === cat.key || query.trim().length > 0;
-          return (
-            <div
-              key={cat.key}
-              className="rounded-2xl border border-border/50 bg-background/40 backdrop-blur overflow-hidden"
-            >
-              <div className="flex items-center">
-                <button
-                  onClick={() => setOpenCat((prev) => (prev === cat.key ? null : cat.key))}
-                  className="flex-1 flex items-center gap-3 px-4 py-3.5 text-left hover:bg-background/60 transition"
-                >
-                  <span
-                    className="inline-flex size-8 items-center justify-center rounded-lg text-[11px] font-extrabold text-white shrink-0"
-                    style={{ background: block.accent }}
-                  >
-                    <ListChecks className="size-4" strokeWidth={2.5} />
-                  </span>
-                  <span className="flex-1 text-sm md:text-base font-bold tracking-tight">
-                    {cat.title}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    {cat.topics.length} temas
-                  </span>
-                  <ChevronRight
-                    className={`size-4 text-muted-foreground transition ${isOpen ? "rotate-90" : ""}`}
-                  />
-                </button>
-                {cat.key === "farmacologia" && (
-                  <button
-                    onClick={() => setPharmaOpen(true)}
-                    className="mr-3 shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
-                  >
-                    <Calculator className="size-3.5" style={{ color: block.accent }} />
-                    Abrir calculadora
-                  </button>
-                )}
-              </div>
-
-
-
-              {isOpen && (
-                <ul className="divide-y divide-border/40 border-t border-border/40">
-                  {cat.topics.map((topic) => {
-                    const topicKey = `${block.key}::${cat.key}::${topic.title}`;
-                    const topicOpen = openTopic === topicKey;
-                    return (
-                      <li key={topicKey} className="bg-background/20">
-                        <div className="flex items-center">
-                          <button
-                            onClick={() =>
-                              setOpenTopic((prev) => (prev === topicKey ? null : topicKey))
-                            }
-                            className="flex-1 min-w-0 flex items-center gap-3 px-4 py-2.5 text-left hover:bg-background/40 transition"
-                          >
-                            <span
-                              className="size-1.5 rounded-full shrink-0"
-                              style={{ background: block.accent }}
-                            />
-                            <span className="flex-1 text-sm font-semibold">{topic.title}</span>
-                            {topic.items && (
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                                {topic.items.length} subtemas
-                              </span>
-                            )}
-                            <ChevronRight
-                              className={`size-3.5 text-muted-foreground transition ${topicOpen ? "rotate-90" : ""}`}
-                            />
-                          </button>
-                          {isAdmin && (
-                            <button
-                              onClick={() => {
-                                if (confirm(`¿Quitar el tema "${topic.title}"?`)) {
-                                  removeTopic(cat.key, topic.title);
-                                }
-                              }}
-                              disabled={saveOverrides.isPending}
-                              className="mr-3 shrink-0 rounded-lg p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50"
-                              aria-label={`Quitar ${topic.title}`}
-                              title="Quitar tema"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </button>
-                          )}
-                        </div>
-                        {topicOpen && (
-                          <TopicDetail
-                            block={block}
-                            category={cat}
-                            topic={topic}
-                            accent={block.accent}
-                            isAdmin={!!isAdmin}
-                            scope={scope}
-                          />
-                        )}
-                      </li>
-                    );
-                  })}
-                  {isAdmin && (
-                    <li className="bg-background/30 px-4 py-2.5">
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          addTopic(cat.key, newTopic[cat.key] ?? "");
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <input
-                          value={newTopic[cat.key] ?? ""}
-                          onChange={(e) =>
-                            setNewTopic((p) => ({ ...p, [cat.key]: e.target.value }))
-                          }
-                          placeholder="Nuevo tema en esta categoría…"
-                          className="flex-1 rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/30"
-                        />
-                        <button
-                          type="submit"
-                          disabled={saveOverrides.isPending}
-                          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
-                          style={{ background: block.accent }}
-                        >
-                          {saveOverrides.isPending ? (
-                            <Loader2 className="size-3.5 animate-spin" />
-                          ) : (
-                            <Plus className="size-3.5" />
-                          )}
-                          Agregar
-                        </button>
-                      </form>
-                    </li>
-                  )}
-                </ul>
-              )}
-
-            </div>
-          );
-        })}
-        {filtered.categories.length === 0 && (
+        {children.map((cat) => (
+          <BranchCard
+            key={cat.id}
+            node={cat}
+            siblings={children}
+            accent={accent}
+            isAdmin={!!isAdmin}
+            scope={cmsScope}
+            forceOpen={query.trim().length > 0}
+            onOpenPharma={() => setPharmaOpen(true)}
+          />
+        ))}
+        {children.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border/60 bg-background/40 p-8 text-center text-sm text-muted-foreground">
-            Sin coincidencias para "{query}".
+            {query.trim()
+              ? `Sin coincidencias para "${query}".`
+              : isAdmin
+                ? "Este bloque aún no tiene categorías. Crea la primera abajo."
+                : "Contenido en preparación."}
           </div>
+        )}
+        {isAdmin && block && (
+          <AddChildForm
+            parent={block}
+            siblings={block.children.length}
+            scope={cmsScope}
+            accent={accent}
+          />
         )}
       </div>
 
       <div className="mt-8 rounded-2xl border border-border/50 bg-background/40 p-4 text-xs text-muted-foreground leading-relaxed">
         <div className="flex items-center gap-2 mb-1">
           <GraduationCap className="size-4" strokeWidth={2.25} style={{ color: meta.accent }} />
-          <span className="font-bold text-foreground">Formato estándar</span>
+          <span className="font-bold text-foreground">Formato de cada tema</span>
         </div>
-        Cada tema seguirá siempre la misma secuencia — resumen ejecutivo, fisiopatología,
-        algoritmo, tratamiento basado en guías (MINSA / AAP / ESPGHAN / WHO), caso clínico
-        interactivo, flashcards y banco de preguntas.
+        Cada tema define sus propias secciones editables (resumen, fisiopatología, algoritmo,
+        tratamiento por guías, caso clínico, flashcards, banco de preguntas…) y sus recursos —
+        archivos, videos, enlaces y notas — guardados en base de datos.
       </div>
 
       {pharmaOpen && (
@@ -540,75 +383,233 @@ export function PediatriaNeoContenido({
         </div>
       )}
     </section>
-
   );
 }
 
-function TopicDetail({
-  block,
-  category,
-  topic,
+function childrenOf(node: CmsNode, isAdmin?: boolean | null) {
+  return isAdmin ? node.children : node.children.filter((c) => c.is_published);
+}
+
+/** Categoría o subcategoría: agrupa subcategorías y temas. */
+function BranchCard({
+  node,
+  siblings,
+  accent,
+  isAdmin,
+  scope,
+  forceOpen,
+  onOpenPharma,
+  depth = 0,
+}: {
+  node: CmsNode;
+  siblings: CmsNode[];
+  accent: string;
+  isAdmin: boolean;
+  scope: CmsScope;
+  forceOpen: boolean;
+  onOpenPharma: () => void;
+  depth?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const isOpen = open || forceOpen;
+  const kids = childrenOf(node, isAdmin);
+  const topics = kids.filter((k) => k.kind === "chapter" || k.kind === "lesson");
+  const branches = kids.filter((k) => k.kind === "area" || k.kind === "subarea");
+
+  return (
+    <div
+      className={`rounded-2xl border border-border/50 bg-background/40 backdrop-blur overflow-hidden ${
+        depth > 0 ? "ml-3" : ""
+      }`}
+    >
+      <div className="flex items-center">
+        <button
+          onClick={() => setOpen((p) => !p)}
+          className="flex-1 flex items-center gap-3 px-4 py-3.5 text-left hover:bg-background/60 transition"
+        >
+          <span
+            className="inline-flex size-8 items-center justify-center rounded-lg text-[11px] font-extrabold text-white shrink-0"
+            style={{ background: accent }}
+          >
+            <ListChecks className="size-4" strokeWidth={2.5} />
+          </span>
+          <span className="flex-1 min-w-0">
+            <span className="block text-sm md:text-base font-bold tracking-tight truncate">
+              {node.title}
+            </span>
+            {node.description && (
+              <span className="block text-[11px] text-muted-foreground truncate">
+                {node.description}
+              </span>
+            )}
+          </span>
+          {!node.is_published && (
+            <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+              <EyeOff className="size-3" /> oculto
+            </span>
+          )}
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            {countTopics(node)} temas
+          </span>
+          <ChevronRight
+            className={`size-4 text-muted-foreground transition ${isOpen ? "rotate-90" : ""}`}
+          />
+        </button>
+        {slugify(node.title).includes("farmacolog") && (
+          <button
+            onClick={onOpenPharma}
+            className="mr-3 shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
+          >
+            <Calculator className="size-3.5" style={{ color: accent }} />
+            Abrir calculadora
+          </button>
+        )}
+      </div>
+
+      {isAdmin && isOpen && (
+        <div className="border-t border-border/40 bg-background/30 px-4 py-2">
+          <NodeToolbar node={node} siblings={siblings} scope={scope} accent={accent} />
+        </div>
+      )}
+
+      {isOpen && (
+        <div className="border-t border-border/40">
+          {branches.length > 0 && (
+            <div className="space-y-2 p-3">
+              {branches.map((b) => (
+                <BranchCard
+                  key={b.id}
+                  node={b}
+                  siblings={branches}
+                  accent={accent}
+                  isAdmin={isAdmin}
+                  scope={scope}
+                  forceOpen={forceOpen}
+                  onOpenPharma={onOpenPharma}
+                  depth={depth + 1}
+                />
+              ))}
+            </div>
+          )}
+          <ul className="divide-y divide-border/40">
+            {topics.map((topic) => (
+              <TopicRow
+                key={topic.id}
+                node={topic}
+                siblings={topics}
+                accent={accent}
+                isAdmin={isAdmin}
+                scope={scope}
+              />
+            ))}
+            {isAdmin && (
+              <li className="bg-background/30 px-4 py-2.5">
+                <AddChildForm
+                  parent={node}
+                  siblings={node.children.length}
+                  scope={scope}
+                  accent={accent}
+                />
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TopicRow({
+  node,
+  siblings,
   accent,
   isAdmin,
   scope,
 }: {
-  block: BlueprintBlock;
-  category: BlueprintCategory;
-  topic: BlueprintTopic;
+  node: CmsNode;
+  siblings: CmsNode[];
   accent: string;
   isAdmin: boolean;
-  scope: ContenidoScope;
+  scope: CmsScope;
 }) {
-  const [tab, setTab] = useState<"plantilla" | "recursos">(
-    isAdmin ? "recursos" : "plantilla",
+  const [open, setOpen] = useState(false);
+  const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
+
+  return (
+    <li className="bg-background/20">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className="w-full min-w-0 flex items-center gap-3 px-4 py-2.5 text-left hover:bg-background/40 transition"
+      >
+        <span className="size-1.5 rounded-full shrink-0" style={{ background: accent }} />
+        <span className="flex-1 min-w-0 truncate text-sm font-semibold">{node.title}</span>
+        {!node.is_published && <EyeOff className="size-3.5 text-muted-foreground" />}
+        {items.length > 0 && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            {items.length} subtemas
+          </span>
+        )}
+        <ChevronRight
+          className={`size-3.5 text-muted-foreground transition ${open ? "rotate-90" : ""}`}
+        />
+      </button>
+      {open && (
+        <TopicDetail
+          node={node}
+          siblings={siblings}
+          accent={accent}
+          isAdmin={isAdmin}
+          scope={scope}
+        />
+      )}
+    </li>
   );
+}
 
-  const nodeQ = useTopicNode(block, category, topic, { create: isAdmin, scope });
-
-  const [editing, setEditing] = useState(false);
-  const [newTitle, setNewTitle] = useState(topic.title);
+function TopicDetail({
+  node,
+  siblings,
+  accent,
+  isAdmin,
+  scope,
+}: {
+  node: CmsNode;
+  siblings: CmsNode[];
+  accent: string;
+  isAdmin: boolean;
+  scope: CmsScope;
+}) {
+  const [tab, setTab] = useState<"secciones" | "recursos">("recursos");
   const [presenterOpen, setPresenterOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const qc = useQueryClient();
+  const mut = useCmsMutations(scope);
 
-  const storedTopic: Topic | null = useMemo(() => {
-    const md = nodeQ.data?.metadata as { topic?: Topic } | null | undefined;
-    return md?.topic ?? null;
-  }, [nodeQ.data]);
-
-  const renameMut = useMutation({
-    mutationFn: async (title: string) => {
-      if (!nodeQ.data) throw new Error("Nodo aún no listo");
-      const { error } = await supabase
-        .from("content_nodes")
-        .update({ title, slug: slugify(title) })
-        .eq("id", nodeQ.data.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: [scope.namespace, "topic-node"] });
-      setEditing(false);
-    },
-  });
+  const storedTopic: Topic | null = (node.metadata?.topic as Topic | undefined) ?? null;
+  const sections: string[] = Array.isArray(node.metadata?.sections) ? node.metadata.sections : [];
+  const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
 
   const saveTopicMut = useMutation({
     mutationFn: async (t: Topic) => {
-      if (!nodeQ.data) throw new Error("Nodo aún no listo");
-      const currentMd = (nodeQ.data.metadata ?? {}) as Record<string, unknown>;
-      const nextMd = { ...currentMd, topic: t };
       const { error } = await supabase
         .from("content_nodes")
-        .update({ metadata: nextMd })
-        .eq("id", nodeQ.data.id);
+        .update({ metadata: { ...node.metadata, topic: t } as never })
+        .eq("id", node.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: [scope.namespace, "topic-node"] });
+      qc.invalidateQueries({ queryKey: [scope.namespace, "cms-tree"] });
       toast.success("Tema guardado");
       setEditorOpen(false);
     },
     onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar"),
   });
+
+  const setSections = (next: string[]) =>
+    mut.update.mutate(
+      { id: node.id, patch: { metadata: { ...node.metadata, sections: next } } },
+      { onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar") },
+    );
 
   const openPresenter = () => {
     if (!storedTopic) {
@@ -635,83 +636,31 @@ function TopicDetail({
         {isAdmin && (
           <button
             onClick={() => setEditorOpen(true)}
-            disabled={!nodeQ.data}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/[0.06] px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/[0.06] px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10"
           >
             <Sparkles className="size-3" /> Editar con IA
           </button>
         )}
-        {isAdmin && (
-          <>
-            <button
-              onClick={() => setTab("recursos")}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-                tab === "recursos"
-                  ? "bg-foreground text-background border-foreground"
-                  : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Recursos
-            </button>
-            <button
-              onClick={() => setTab("plantilla")}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-                tab === "plantilla"
-                  ? "bg-foreground text-background border-foreground"
-                  : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Plantilla
-            </button>
-          </>
-        )}
-
-
-
-        <div className="flex-1" />
-        {isAdmin && editing ? (
-          <div className="flex items-center gap-1">
-            <input
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              className="bg-background border border-border rounded-lg px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-ring"
-            />
-            <button
-              onClick={() => renameMut.mutate(newTitle.trim() || topic.title)}
-              disabled={renameMut.isPending}
-              className="p-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold disabled:opacity-50"
-              title="Guardar título"
-            >
-              {renameMut.isPending ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Save className="size-3.5" />
-              )}
-            </button>
-            <button
-              onClick={() => {
-                setNewTitle(topic.title);
-                setEditing(false);
-              }}
-              className="p-1.5 rounded-lg text-muted-foreground hover:bg-foreground/[0.05]"
-            >
-              <X className="size-3.5" />
-            </button>
-          </div>
-        ) : isAdmin ? (
+        {(["recursos", "secciones"] as const).map((t) => (
           <button
-            onClick={() => {
-              setNewTitle(nodeQ.data?.title ?? topic.title);
-              setEditing(true);
-            }}
-            disabled={!nodeQ.data}
-            title="Renombrar sección"
-            className="inline-flex items-center gap-1 rounded-lg border border-border bg-background/60 px-2 py-1 text-[11px] font-bold text-muted-foreground hover:text-foreground disabled:opacity-40"
+            key={t}
+            onClick={() => setTab(t)}
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
+              tab === t
+                ? "bg-foreground text-background border-foreground"
+                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+            }`}
           >
-            <Pencil className="size-3" /> Renombrar
+            {t === "recursos" ? "Recursos" : "Secciones"}
           </button>
-        ) : null}
+        ))}
       </div>
+
+      {isAdmin && (
+        <div className="mb-3">
+          <NodeToolbar node={node} siblings={siblings} scope={scope} accent={accent} />
+        </div>
+      )}
 
       {storedTopic && (
         <div className="mb-3 rounded-xl border border-border/50 bg-background/40 px-3 py-2 text-[11px] text-muted-foreground">
@@ -723,69 +672,38 @@ function TopicDetail({
         </div>
       )}
 
-      {tab === "recursos" && isAdmin ? (
-
-
+      {tab === "recursos" ? (
         <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3">
-          {nodeQ.isLoading || !nodeQ.data ? (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" /> Preparando editor del tema…
-            </div>
-          ) : nodeQ.error ? (
-            <div className="text-xs text-destructive font-semibold">
-              {nodeQ.error instanceof Error ? nodeQ.error.message : "No se pudo abrir el editor."}
-            </div>
-          ) : (
-            <ResourcesPanelStandalone
-              nodeId={nodeQ.data.id}
-              nodeTitle={nodeQ.data.title}
-            />
-          )}
+          <ResourcesPanelStandalone
+            nodeId={node.id}
+            nodeTitle={node.title}
+            readOnly={!isAdmin}
+          />
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {topic.items && topic.items.length > 0 && (
-            <div className="rounded-xl border border-border/50 bg-background/50 p-3">
-              <div className="flex items-center gap-1.5 mb-2">
-                <span className="size-1.5 rounded-full" style={{ background: accent }} />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Subtemas
-                </span>
-              </div>
-              <ul className="grid grid-cols-2 gap-1.5">
-                {topic.items.map((it) => (
-                  <li
-                    key={it}
-                    className="text-xs font-medium text-foreground/80 flex items-center gap-1.5"
-                  >
-                    <ChevronRight className="size-3 shrink-0" style={{ color: accent }} />
-                    {it}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <div className="rounded-xl border border-border/50 bg-background/50 p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <FileText className="size-3.5" strokeWidth={2.5} style={{ color: accent }} />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Plantilla del tema
-              </span>
-            </div>
-            <ol className="space-y-1 text-xs text-foreground/80 leading-relaxed">
-              {TOPIC_STANDARD_FORMAT.map((s, i) => (
-                <li key={s} className="flex items-start gap-1.5">
-                  <span
-                    className="mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded text-[9px] font-bold text-white"
-                    style={{ background: accent }}
-                  >
-                    {i + 1}
-                  </span>
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
+          <ListEditor
+            title="Subtemas"
+            values={items}
+            accent={accent}
+            isAdmin={isAdmin}
+            icon={<ChevronRight className="size-3.5" style={{ color: accent }} />}
+            onChange={(next) =>
+              mut.update.mutate({
+                id: node.id,
+                patch: { metadata: { ...node.metadata, items: next } },
+              })
+            }
+          />
+          <ListEditor
+            title="Secciones del tema"
+            values={sections}
+            accent={accent}
+            isAdmin={isAdmin}
+            numbered
+            icon={<FileText className="size-3.5" style={{ color: accent }} />}
+            onChange={setSections}
+          />
         </div>
       )}
 
@@ -799,104 +717,383 @@ function TopicDetail({
       {editorOpen && isAdmin && (
         <TopicEditor
           initialTopic={storedTopic}
-          fallbackTitle={topic.title}
+          fallbackTitle={node.title}
           accent={accent}
-          nodeId={nodeQ.data?.id ?? null}
-          nodeTitle={nodeQ.data?.title ?? topic.title}
+          nodeId={node.id}
+          nodeTitle={node.title}
           onClose={() => setEditorOpen(false)}
           onSave={(t) => saveTopicMut.mutateAsync(t)}
           saving={saveTopicMut.isPending}
         />
       )}
-
     </div>
   );
 }
 
-/**
- * Asegura la ruta root → block → category → topic en `content_nodes` y
- * devuelve el nodo del tema con su metadata.
- * - Admin (`create: true`): crea nodos faltantes.
- * - Estudiante (`create: false`): sólo lookup; devuelve null si falta algún nivel.
- */
-function useTopicNode(
-  block: BlueprintBlock,
-  category: BlueprintCategory,
-  topic: BlueprintTopic,
-  opts: { create: boolean; scope: ContenidoScope },
-) {
-  const user = useSupabaseUser();
-  const scope = opts.scope;
-  return useQuery({
-    queryKey: [
-      scope.namespace,
-      "topic-node",
-      block.key,
-      category.key,
-      slugify(topic.title),
-      opts.create,
-    ],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const uid = user!.id;
-      const step = async (
-        parent_id: string | null,
-        kind: "course" | "program" | "area" | "chapter",
-        title: string,
-        slug: string,
-      ) => {
-        const existing = await selectNode(parent_id, slug);
-        if (existing) return existing;
-        if (!opts.create) return null;
-        return await insertNode({ parent_id, kind, title, slug, userId: uid });
-      };
-      const root = await step(null, "course", scope.rootTitle, scope.rootSlug);
-      if (!root) return null;
-      const blockNode = await step(root.id, "program", block.title, block.key);
-      if (!blockNode) return null;
-      const catNode = await step(blockNode.id, "area", category.title, category.key);
-      if (!catNode) return null;
-      const topicNode = await step(catNode.id, "chapter", topic.title, slugify(topic.title));
-      return topicNode;
-    },
-    staleTime: 60_000,
-  });
-}
-
-async function selectNode(parent_id: string | null, slug: string) {
-  let query = supabase
-    .from("content_nodes")
-    .select("id,parent_id,kind,title,slug,is_published,metadata")
-    .eq("slug", slug)
-    .limit(1);
-  if (parent_id === null) query = query.is("parent_id", null);
-  else query = query.eq("parent_id", parent_id);
-  const { data, error } = await query;
-  if (error) throw error;
-  return data && data.length > 0 ? data[0] : null;
-}
-
-async function insertNode(input: {
-  parent_id: string | null;
-  kind: "course" | "program" | "area" | "subarea" | "chapter" | "lesson";
+/** Lista editable y persistente (subtemas / secciones). */
+function ListEditor({
+  title,
+  values,
+  accent,
+  isAdmin,
+  numbered,
+  icon,
+  onChange,
+}: {
   title: string;
-  slug: string;
-  userId: string;
+  values: string[];
+  accent: string;
+  isAdmin: boolean;
+  numbered?: boolean;
+  icon: React.ReactNode;
+  onChange: (next: string[]) => void;
 }) {
-  const { data, error } = await supabase
-    .from("content_nodes")
-    .insert({
-      parent_id: input.parent_id,
-      kind: input.kind,
-      title: input.title,
-      slug: input.slug,
-      sort_order: 0,
-      created_by: input.userId,
-    })
-    .select("id,parent_id,kind,title,slug,is_published,metadata")
-    .single();
-  if (error) throw error;
-  return data!;
+  const [draft, setDraft] = useState("");
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-background/50 p-3">
+      <div className="flex items-center gap-1.5 mb-2">
+        {icon}
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {title}
+        </span>
+      </div>
+      {values.length === 0 ? (
+        <p className="text-[11px] italic text-muted-foreground">
+          {isAdmin ? "Aún no hay elementos. Agrega el primero." : "Sin elementos."}
+        </p>
+      ) : (
+        <ol className="space-y-1 text-xs text-foreground/80 leading-relaxed">
+          {values.map((v, i) => (
+            <li key={`${v}-${i}`} className="flex items-start gap-1.5">
+              {numbered ? (
+                <span
+                  className="mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded text-[9px] font-bold text-white"
+                  style={{ background: accent }}
+                >
+                  {i + 1}
+                </span>
+              ) : (
+                <ChevronRight className="mt-0.5 size-3 shrink-0" style={{ color: accent }} />
+              )}
+              <span className="flex-1">{v}</span>
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={() => onChange(swap(values, i, i - 1))}
+                    disabled={i === 0}
+                    className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                    aria-label="Subir"
+                  >
+                    <ChevronDown className="size-3 rotate-180" />
+                  </button>
+                  <button
+                    onClick={() => onChange(swap(values, i, i + 1))}
+                    disabled={i === values.length - 1}
+                    className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                    aria-label="Bajar"
+                  >
+                    <ChevronDown className="size-3" />
+                  </button>
+                  <button
+                    onClick={() => onChange(values.filter((_, k) => k !== i))}
+                    className="rounded p-0.5 text-muted-foreground hover:text-destructive"
+                    aria-label="Eliminar"
+                  >
+                    <X className="size-3" />
+                  </button>
+                </>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
+      {isAdmin && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const clean = draft.trim();
+            if (!clean) return;
+            onChange([...values, clean]);
+            setDraft("");
+          }}
+          className="mt-2 flex items-center gap-1.5"
+        >
+          <input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Agregar…"
+            className="flex-1 rounded-lg border border-border/60 bg-background/60 px-2 py-1 text-[11px] outline-none focus:ring-2 focus:ring-primary/30"
+          />
+          <button
+            type="submit"
+            className="rounded-lg p-1 text-primary hover:bg-primary/10"
+            aria-label="Agregar"
+          >
+            <Plus className="size-3.5" />
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function swap(list: string[], i: number, j: number) {
+  if (j < 0 || j >= list.length) return list;
+  const next = [...list];
+  const tmp = next[i]!;
+  next[i] = next[j]!;
+  next[j] = tmp;
+  return next;
+}
+
+/** Barra de acciones admin de un nodo: renombrar, describir, ordenar, publicar, duplicar, eliminar. */
+function NodeToolbar({
+  node,
+  siblings,
+  scope,
+  accent,
+  onAfterDelete,
+}: {
+  node: CmsNode;
+  siblings: CmsNode[];
+  scope: CmsScope;
+  accent: string;
+  onAfterDelete?: () => void;
+}) {
+  const mut = useCmsMutations(scope);
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(node.title);
+  const [description, setDescription] = useState(node.description ?? "");
+
+  const busy = mut.update.isPending || mut.move.isPending || mut.remove.isPending || mut.duplicate.isPending;
+
+  if (editing) {
+    return (
+      <div className="flex flex-wrap items-center gap-1.5">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="min-w-[180px] flex-1 rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-ring"
+          placeholder="Título"
+        />
+        <input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          className="min-w-[180px] flex-1 rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-ring"
+          placeholder="Descripción (opcional)"
+        />
+        <button
+          onClick={() =>
+            mut.update.mutate(
+              {
+                id: node.id,
+                patch: {
+                  title: title.trim() || node.title,
+                  description: description.trim() || null,
+                },
+              },
+              {
+                onSuccess: () => {
+                  toast.success("Guardado");
+                  setEditing(false);
+                },
+                onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar"),
+              },
+            )
+          }
+          disabled={busy}
+          className="rounded-lg bg-primary p-1.5 text-primary-foreground disabled:opacity-50"
+          aria-label="Guardar"
+        >
+          {mut.update.isPending ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Save className="size-3.5" />
+          )}
+        </button>
+        <button
+          onClick={() => {
+            setTitle(node.title);
+            setDescription(node.description ?? "");
+            setEditing(false);
+          }}
+          className="rounded-lg p-1.5 text-muted-foreground hover:bg-foreground/[0.05]"
+          aria-label="Cancelar"
+        >
+          <X className="size-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  const btn =
+    "inline-flex items-center gap-1 rounded-lg border border-border bg-background/60 px-2 py-1 text-[10px] font-bold text-muted-foreground hover:text-foreground disabled:opacity-40";
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span
+        className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white"
+        style={{ background: accent }}
+      >
+        {KIND_LABEL[node.kind]}
+      </span>
+      <button className={btn} onClick={() => setEditing(true)} disabled={busy}>
+        <Pencil className="size-3" /> Editar
+      </button>
+      <button
+        className={btn}
+        disabled={busy}
+        onClick={() => mut.move.mutate({ node, siblings, dir: -1 })}
+      >
+        <ChevronDown className="size-3 rotate-180" /> Subir
+      </button>
+      <button
+        className={btn}
+        disabled={busy}
+        onClick={() => mut.move.mutate({ node, siblings, dir: 1 })}
+      >
+        <ChevronDown className="size-3" /> Bajar
+      </button>
+      <button
+        className={btn}
+        disabled={busy}
+        onClick={() =>
+          mut.update.mutate(
+            { id: node.id, patch: { is_published: !node.is_published } },
+            {
+              onSuccess: () =>
+                toast.success(node.is_published ? "Oculto para estudiantes" : "Publicado"),
+              onError: (e: any) => toast.error(e?.message ?? "No se pudo cambiar"),
+            },
+          )
+        }
+      >
+        {node.is_published ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+        {node.is_published ? "Ocultar" : "Publicar"}
+      </button>
+      <button
+        className={btn}
+        disabled={busy}
+        onClick={() =>
+          mut.duplicate.mutate(
+            { node, siblings: siblings.length },
+            {
+              onSuccess: () => toast.success("Duplicado"),
+              onError: (e: any) => toast.error(e?.message ?? "No se pudo duplicar"),
+            },
+          )
+        }
+      >
+        <Copy className="size-3" /> Duplicar
+      </button>
+      <button
+        className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 bg-destructive/[0.06] px-2 py-1 text-[10px] font-bold text-destructive hover:bg-destructive/10 disabled:opacity-40"
+        disabled={busy}
+        onClick={() => {
+          if (!confirm(`¿Eliminar "${node.title}" y todo su contenido?`)) return;
+          mut.remove.mutate(node.id, {
+            onSuccess: () => {
+              toast.success("Eliminado");
+              onAfterDelete?.();
+            },
+            onError: (e: any) => toast.error(e?.message ?? "No se pudo eliminar"),
+          });
+        }}
+      >
+        <Trash2 className="size-3" /> Eliminar
+      </button>
+    </div>
+  );
+}
+
+/** Formulario para crear hijos (categoría / subcategoría / tema). */
+function AddChildForm({
+  parent,
+  siblings,
+  scope,
+  accent,
+}: {
+  parent: CmsNode;
+  siblings: number;
+  scope: CmsScope;
+  accent: string;
+}) {
+  const mut = useCmsMutations(scope);
+  const options = childKindOptions(parent.kind);
+  const [kind, setKind] = useState(options[0] ?? "chapter");
+  const [title, setTitle] = useState("");
+
+  if (options.length === 0) return null;
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const clean = title.trim();
+        if (!clean) return;
+        mut.create.mutate(
+          {
+            parentId: parent.id,
+            kind,
+            title: clean,
+            siblings,
+            metadata: kind === "chapter" ? { items: [], sections: [] } : {},
+          },
+          {
+            onSuccess: () => {
+              toast.success(`${KIND_LABEL[kind]} creada`);
+              setTitle("");
+            },
+            onError: (err: any) => toast.error(err?.message ?? "No se pudo crear"),
+          },
+        );
+      }}
+      className="flex items-center gap-2"
+    >
+      {options.length > 1 && (
+        <select
+          value={kind}
+          onChange={(e) => setKind(e.target.value as typeof kind)}
+          className="rounded-lg border border-border/60 bg-background/60 px-2 py-1.5 text-[11px] font-bold outline-none"
+        >
+          {options.map((o) => (
+            <option key={o} value={o}>
+              {KIND_LABEL[o]}
+            </option>
+          ))}
+        </select>
+      )}
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder={`Nueva ${KIND_LABEL[kind].toLowerCase()} en "${parent.title}"…`}
+        className="flex-1 rounded-lg border border-border/60 bg-background/60 px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-primary/30"
+      />
+      <button
+        type="submit"
+        disabled={mut.create.isPending}
+        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+        style={{ background: accent }}
+      >
+        {mut.create.isPending ? (
+          <Loader2 className="size-3.5 animate-spin" />
+        ) : (
+          <Plus className="size-3.5" />
+        )}
+        Agregar
+      </button>
+    </form>
+  );
+}
+
+function childKindOptions(kind: CmsNode["kind"]): CmsNode["kind"][] {
+  if (kind === "course") return ["program"];
+  if (kind === "program") return ["area"];
+  if (kind === "area") return ["chapter", "subarea"];
+  if (kind === "subarea") return ["chapter"];
+  if (kind === "chapter") return ["lesson"];
+  return [];
 }
 
 function Stat({
@@ -921,22 +1118,4 @@ function Stat({
       </div>
     </div>
   );
-}
-
-function filterBlock(block: BlueprintBlock, q: string): BlueprintBlock {
-  const query = q.trim().toLowerCase();
-  if (!query) return block;
-  const categories: BlueprintCategory[] = [];
-  for (const cat of block.categories) {
-    const catMatch = cat.title.toLowerCase().includes(query);
-    const topics = cat.topics.filter(
-      (t) =>
-        t.title.toLowerCase().includes(query) ||
-        t.items?.some((i) => i.toLowerCase().includes(query)),
-    );
-    if (catMatch || topics.length > 0) {
-      categories.push({ ...cat, topics: catMatch ? cat.topics : topics });
-    }
-  }
-  return { ...block, categories };
 }
