@@ -601,38 +601,43 @@ function ResourceRow({
               <Maximize2 className="size-3.5" />
             </button>
           )}
-          <button
-            onClick={() => onUpdate({ is_published: !r.is_published })}
-            title={r.is_published ? "Ocultar" : "Publicar"}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
-          >
-            {r.is_published ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-          </button>
-          <button
-            onClick={() => setEditing((v) => !v)}
-            title="Editar"
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
-          >
-            <Pencil className="size-3.5" />
-          </button>
-          <button
-            onClick={async () => {
-              if (!confirm(`¿Eliminar "${r.title}"?`)) return;
-              setBusy(true);
-              try {
-                await onDelete();
-              } finally {
-                setBusy(false);
-              }
-            }}
-            title="Eliminar"
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50"
-            disabled={busy}
-          >
-            <Trash2 className="size-3.5" />
-          </button>
+          {!readOnly && (
+            <>
+              <button
+                onClick={() => onUpdate({ is_published: !r.is_published })}
+                title={r.is_published ? "Ocultar" : "Publicar"}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
+              >
+                {r.is_published ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+              </button>
+              <button
+                onClick={() => setEditing((v) => !v)}
+                title="Editar"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]"
+              >
+                <Pencil className="size-3.5" />
+              </button>
+              <button
+                onClick={async () => {
+                  if (!confirm(`¿Eliminar "${r.title}"?`)) return;
+                  setBusy(true);
+                  try {
+                    await onDelete();
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+                title="Eliminar"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50"
+                disabled={busy}
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </>
+          )}
         </div>
       </div>
+
 
       {editing && (
         <div className="mt-3 grid gap-2">
