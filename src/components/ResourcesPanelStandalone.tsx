@@ -452,11 +452,14 @@ function ResourceRow({
   r,
   onUpdate,
   onDelete,
+  readOnly = false,
 }: {
   r: ContentResource;
   onUpdate: (patch: Partial<ContentResource>) => Promise<unknown>;
   onDelete: () => Promise<unknown>;
+  readOnly?: boolean;
 }) {
+
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(r.title);
   const [url, setUrl] = useState(r.url ?? "");
