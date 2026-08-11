@@ -81,7 +81,9 @@ import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
 import { WebsiteStudio } from "@/components/cms/WebsiteStudio";
 import {
+  logCmsAudit,
   useCmsSettings,
+
   usePublishPage,
   usePublishStatus,
   useUnpublishPage,
