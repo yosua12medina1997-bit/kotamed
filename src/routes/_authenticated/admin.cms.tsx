@@ -336,17 +336,32 @@ function CmsStudioPage() {
     }
   };
 
+  /** Publica el borrador actual a producción (snapshot versionado y validado). */
   const publish = async () => {
     if (!pageId || !page) return;
-    const next = page.status === "published" ? "draft" : "published";
-    await savePage.mutateAsync({
-      id: pageId,
-      status: next as CmsPage["status"],
-      published_at: next === "published" ? new Date().toISOString() : null,
-    });
-    setPageDraft((d) => ({ ...d, status: next as CmsPage["status"] }));
-    toast.success(next === "published" ? "Página publicada" : "Página en borrador");
+    if (dirty && !window.confirm("Tienes cambios sin guardar. ¿Publicar el último borrador guardado?")) return;
+    if (!window.confirm(`Publicar «${page.title}» en KOTAMED.APP?`)) return;
+    try {
+      const r = await publishPage.mutateAsync({ pageId });
+      toast.success(`Publicado · Versión ${r.version} · ${new Date(r.publishedAt).toLocaleString("es-PE")}`);
+      setPageDraft((d) => ({ ...d, status: "published" }));
+    } catch (e) {
+      toast.error(String((e as { message?: string })?.message ?? e));
+    }
   };
+
+  const unpublish = async () => {
+    if (!pageId || !page) return;
+    if (!window.confirm("¿Retirar la página de producción? El borrador se conserva.")) return;
+    try {
+      await unpublishPage.mutateAsync(pageId);
+      setPageDraft((d) => ({ ...d, status: "draft" }));
+      toast.success("Página retirada de producción");
+    } catch (e) {
+      toast.error(String((e as { message?: string })?.message ?? e));
+    }
+  };
+
 
   const createPage = async () => {
     const title = window.prompt("Nombre de la página / landing");
