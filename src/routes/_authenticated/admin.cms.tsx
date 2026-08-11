@@ -464,7 +464,16 @@ function CmsStudioPage() {
             <ArrowLeft className="size-3.5" /> Admin
           </Link>
           <span className="text-sm font-black tracking-tight">CMS Studio</span>
-          {page && <Chip>{page.status === "published" ? "Publicado" : "Borrador"}</Chip>}
+          <Chip accent="#f59e0b">Borrador</Chip>
+          <span className="hidden text-[11px] font-bold text-muted-foreground sm:inline">KOTAMED.APP</span>
+          {page && (
+            <Chip accent={page.status === "published" ? "#10b981" : "#64748b"}>
+              {page.status === "published" ? "● Producción" : "● Sin publicar"}
+            </Chip>
+          )}
+          {pendingCount > 0 && <Chip accent="#f59e0b">Cambios sin publicar · {pendingCount}</Chip>}
+          {cmsSettings?.safe_mode && <Chip accent="#ef4444">Modo seguro</Chip>}
+
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <div className="mr-1 flex rounded-lg border border-border/60 p-0.5">
