@@ -717,6 +717,96 @@ export type Database = {
           },
         ]
       }
+      cms_assets: {
+        Row: {
+          alt: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          height: number | null
+          id: string
+          mime_type: string | null
+          name: string
+          size_bytes: number | null
+          storage_path: string | null
+          tags: string[]
+          type: string
+          updated_at: string
+          url: string
+          width: number | null
+        }
+        Insert: {
+          alt?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          name: string
+          size_bytes?: number | null
+          storage_path?: string | null
+          tags?: string[]
+          type?: string
+          updated_at?: string
+          url: string
+          width?: number | null
+        }
+        Update: {
+          alt?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          name?: string
+          size_bytes?: number | null
+          storage_path?: string | null
+          tags?: string[]
+          type?: string
+          updated_at?: string
+          url?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
+      cms_audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          detail: Json
+          entity: string
+          entity_id: string | null
+          entity_label: string | null
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          entity: string
+          entity_id?: string | null
+          entity_label?: string | null
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          entity?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       cms_blocks: {
         Row: {
           created_at: string
@@ -899,28 +989,34 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          created_by_email: string | null
           id: string
           note: string | null
           page_id: string
           snapshot: Json
+          status: string
           version: number
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          created_by_email?: string | null
           id?: string
           note?: string | null
           page_id: string
           snapshot: Json
+          status?: string
           version?: number
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          created_by_email?: string | null
           id?: string
           note?: string | null
           page_id?: string
           snapshot?: Json
+          status?: string
           version?: number
         }
         Relationships: [
@@ -984,6 +1080,92 @@ export type Database = {
           theme?: Json
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      cms_published: {
+        Row: {
+          blocks: Json
+          created_at: string
+          kind: string
+          metadata: Json
+          page_id: string
+          published_at: string
+          published_by: string | null
+          seo: Json
+          slug: string
+          sort_order: number
+          subtitle: string | null
+          theme: Json
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          blocks?: Json
+          created_at?: string
+          kind?: string
+          metadata?: Json
+          page_id: string
+          published_at?: string
+          published_by?: string | null
+          seo?: Json
+          slug: string
+          sort_order?: number
+          subtitle?: string | null
+          theme?: Json
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          kind?: string
+          metadata?: Json
+          page_id?: string
+          published_at?: string
+          published_by?: string | null
+          seo?: Json
+          slug?: string
+          sort_order?: number
+          subtitle?: string | null
+          theme?: Json
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_published_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: true
+            referencedRelation: "cms_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cms_settings: {
+        Row: {
+          created_at: string
+          id: string
+          safe_mode: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          safe_mode?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          safe_mode?: boolean
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
