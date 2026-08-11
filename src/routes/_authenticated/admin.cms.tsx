@@ -80,6 +80,15 @@ import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
 import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
 import { WebsiteStudio } from "@/components/cms/WebsiteStudio";
+import {
+  logCmsAudit,
+  useCmsSettings,
+
+  usePublishPage,
+  usePublishStatus,
+  useUnpublishPage,
+} from "@/lib/cms-publish";
+
 
 
 type StudioView = "paginas" | "navegacion" | "colecciones" | "sitio";
@@ -135,6 +144,12 @@ function CmsStudioPage() {
   const { data: pages = [], isLoading: pagesLoading } = useCmsPages();
   const savePage = useSaveCmsPage();
   const deletePage = useDeleteCmsPage();
+  const publishPage = usePublishPage();
+  const unpublishPage = useUnpublishPage();
+  const { data: cmsSettings } = useCmsSettings();
+  const { data: publishStatus } = usePublishStatus();
+  const pendingCount = (publishStatus?.rows ?? []).filter((r) => r.pending).length;
+
 
   const [kind, setKind] = useState<CmsPageKind>("page");
   const [pageId, setPageId] = useState<string | null>(null);
@@ -327,8 +342,16 @@ function CmsStudioPage() {
       setRemoved([]);
       setDirty(false);
       qc.invalidateQueries({ queryKey: ["cms-blocks", pageId] });
-      qc.invalidateQueries({ queryKey: ["cms-public"] });
-      toast.success("Cambios guardados");
+      qc.invalidateQueries({ queryKey: ["cms-publish-status"] });
+      await logCmsAudit({
+        entity: "page",
+        entityId: pageId,
+        entityLabel: page?.title ?? null,
+        action: "guardó el borrador",
+        detail: { bloques: draft.length },
+      });
+      toast.success("Borrador guardado (no afecta a producción)");
+
     } catch (e) {
       toast.error(String((e as { message?: string })?.message ?? e));
     } finally {
@@ -336,17 +359,32 @@ function CmsStudioPage() {
     }
   };
 
+  /** Publica el borrador actual a producción (snapshot versionado y validado). */
   const publish = async () => {
     if (!pageId || !page) return;
-    const next = page.status === "published" ? "draft" : "published";
-    await savePage.mutateAsync({
-      id: pageId,
-      status: next as CmsPage["status"],
-      published_at: next === "published" ? new Date().toISOString() : null,
-    });
-    setPageDraft((d) => ({ ...d, status: next as CmsPage["status"] }));
-    toast.success(next === "published" ? "Página publicada" : "Página en borrador");
+    if (dirty && !window.confirm("Tienes cambios sin guardar. ¿Publicar el último borrador guardado?")) return;
+    if (!window.confirm(`Publicar «${page.title}» en KOTAMED.APP?`)) return;
+    try {
+      const r = await publishPage.mutateAsync({ pageId });
+      toast.success(`Publicado · Versión ${r.version} · ${new Date(r.publishedAt).toLocaleString("es-PE")}`);
+      setPageDraft((d) => ({ ...d, status: "published" }));
+    } catch (e) {
+      toast.error(String((e as { message?: string })?.message ?? e));
+    }
   };
+
+  const unpublish = async () => {
+    if (!pageId || !page) return;
+    if (!window.confirm("¿Retirar la página de producción? El borrador se conserva.")) return;
+    try {
+      await unpublishPage.mutateAsync(pageId);
+      setPageDraft((d) => ({ ...d, status: "draft" }));
+      toast.success("Página retirada de producción");
+    } catch (e) {
+      toast.error(String((e as { message?: string })?.message ?? e));
+    }
+  };
+
 
   const createPage = async () => {
     const title = window.prompt("Nombre de la página / landing");
@@ -436,7 +474,16 @@ function CmsStudioPage() {
             <ArrowLeft className="size-3.5" /> Admin
           </Link>
           <span className="text-sm font-black tracking-tight">CMS Studio</span>
-          {page && <Chip>{page.status === "published" ? "Publicado" : "Borrador"}</Chip>}
+          <Chip accent="#f59e0b">Borrador</Chip>
+          <span className="hidden text-[11px] font-bold text-muted-foreground sm:inline">KOTAMED.APP</span>
+          {page && (
+            <Chip accent={page.status === "published" ? "#10b981" : "#64748b"}>
+              {page.status === "published" ? "● Producción" : "● Sin publicar"}
+            </Chip>
+          )}
+          {pendingCount > 0 && <Chip accent="#f59e0b">Cambios sin publicar · {pendingCount}</Chip>}
+          {cmsSettings?.safe_mode && <Chip accent="#ef4444">Modo seguro</Chip>}
+
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <div className="mr-1 flex rounded-lg border border-border/60 p-0.5">
@@ -464,10 +511,29 @@ function CmsStudioPage() {
               SEO
             </Btn>
             {page && (
-              <Btn variant="outline" onClick={publish}>
-                <Rocket className="size-3.5" /> {page.status === "published" ? "Despublicar" : "Publicar"}
+              <a href={`/p/${page.slug}?preview=draft`} target="_blank" rel="noreferrer">
+                <Btn variant="ghost">
+                  <Eye className="size-3.5" /> Vista previa
+                </Btn>
+              </a>
+            )}
+            {page && (
+              <Btn
+                variant="outline"
+                loading={publishPage.isPending}
+                disabled={cmsSettings?.safe_mode}
+                onClick={publish}
+              >
+                <Rocket className="size-3.5" />{" "}
+                {page.status === "published" ? "Publicar cambios" : "Publicar"}
               </Btn>
             )}
+            {page?.status === "published" && (
+              <Btn variant="ghost" loading={unpublishPage.isPending} onClick={unpublish}>
+                Despublicar
+              </Btn>
+            )}
+
             <Btn variant="solid" onClick={save} loading={saving} disabled={!pageId}>
               <Save className="size-3.5" /> Guardar cambios{dirty ? " •" : ""}
             </Btn>
