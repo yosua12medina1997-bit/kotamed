@@ -501,10 +501,29 @@ function CmsStudioPage() {
               SEO
             </Btn>
             {page && (
-              <Btn variant="outline" onClick={publish}>
-                <Rocket className="size-3.5" /> {page.status === "published" ? "Despublicar" : "Publicar"}
+              <a href={`/p/${page.slug}?preview=draft`} target="_blank" rel="noreferrer">
+                <Btn variant="ghost">
+                  <Eye className="size-3.5" /> Vista previa
+                </Btn>
+              </a>
+            )}
+            {page && (
+              <Btn
+                variant="outline"
+                loading={publishPage.isPending}
+                disabled={cmsSettings?.safe_mode}
+                onClick={publish}
+              >
+                <Rocket className="size-3.5" />{" "}
+                {page.status === "published" ? "Publicar cambios" : "Publicar"}
               </Btn>
             )}
+            {page?.status === "published" && (
+              <Btn variant="ghost" loading={unpublishPage.isPending} onClick={unpublish}>
+                Despublicar
+              </Btn>
+            )}
+
             <Btn variant="solid" onClick={save} loading={saving} disabled={!pageId}>
               <Save className="size-3.5" /> Guardar cambios{dirty ? " •" : ""}
             </Btn>
