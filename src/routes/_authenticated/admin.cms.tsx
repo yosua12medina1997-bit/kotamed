@@ -135,6 +135,12 @@ function CmsStudioPage() {
   const { data: pages = [], isLoading: pagesLoading } = useCmsPages();
   const savePage = useSaveCmsPage();
   const deletePage = useDeleteCmsPage();
+  const publishPage = usePublishPage();
+  const unpublishPage = useUnpublishPage();
+  const { data: cmsSettings } = useCmsSettings();
+  const { data: publishStatus } = usePublishStatus();
+  const pendingCount = (publishStatus?.rows ?? []).filter((r) => r.pending).length;
+
 
   const [kind, setKind] = useState<CmsPageKind>("page");
   const [pageId, setPageId] = useState<string | null>(null);
