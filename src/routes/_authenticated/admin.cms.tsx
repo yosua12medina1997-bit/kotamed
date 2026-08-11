@@ -340,8 +340,16 @@ function CmsStudioPage() {
       setRemoved([]);
       setDirty(false);
       qc.invalidateQueries({ queryKey: ["cms-blocks", pageId] });
-      qc.invalidateQueries({ queryKey: ["cms-public"] });
-      toast.success("Cambios guardados");
+      qc.invalidateQueries({ queryKey: ["cms-publish-status"] });
+      await logCmsAudit({
+        entity: "page",
+        entityId: pageId,
+        entityLabel: page?.title ?? null,
+        action: "guardó el borrador",
+        detail: { bloques: draft.length },
+      });
+      toast.success("Borrador guardado (no afecta a producción)");
+
     } catch (e) {
       toast.error(String((e as { message?: string })?.message ?? e));
     } finally {
