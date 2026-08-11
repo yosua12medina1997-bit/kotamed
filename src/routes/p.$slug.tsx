@@ -52,6 +52,15 @@ function CmsPublicPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      {isDraft && (
+        <div className="flex flex-wrap items-center justify-center gap-2 bg-amber-100 px-4 py-1.5 text-[11px] font-bold text-amber-900">
+          <Eye className="size-3.5" /> Vista previa de cambios (borrador) — no visible para el público
+          <Link to="/admin/cms" className="underline">
+            ← Volver al CMS
+          </Link>
+        </div>
+      )}
+
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-3 lg:grid-cols-[auto_1fr_auto]">
           <Link to="/" className="flex min-w-0 items-center gap-2">
