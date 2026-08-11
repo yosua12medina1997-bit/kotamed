@@ -323,22 +323,60 @@ export function useCmsBlocks(pageId: string | null) {
   });
 }
 
-/** Página pública + bloques visibles, en una sola consulta. */
+/* ---------------------- Lecturas públicas (PRODUCCIÓN) --------------
+ * El sitio público lee exclusivamente `cms_published`, el snapshot que se
+ * genera al pulsar «Publicar». Editar en CMS Studio no altera producción.
+ * ------------------------------------------------------------------- */
+
+const PUBLISHED_COLS =
+  "page_id, slug, kind, title, subtitle, seo, theme, metadata, sort_order, blocks, version, published_at";
+
+type PublishedRow = {
+  page_id: string;
+  slug: string;
+  kind: CmsPageKind;
+  title: string;
+  subtitle: string | null;
+  seo: CmsSeo;
+  theme: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  sort_order: number;
+  blocks: CmsBlock[];
+  version: number;
+  published_at: string;
+};
+
+function rowToPage(r: PublishedRow): CmsPage {
+  return {
+    id: r.page_id,
+    kind: r.kind,
+    slug: r.slug,
+    title: r.title,
+    subtitle: r.subtitle,
+    status: "published",
+    seo: r.seo ?? {},
+    theme: r.theme ?? {},
+    metadata: r.metadata ?? {},
+    sort_order: r.sort_order,
+    published_at: r.published_at,
+    updated_at: r.published_at,
+  };
+}
+
 /** Páginas informativas publicadas (para enlazarlas desde la web pública). */
 export function usePublicCmsPages() {
   return useQuery({
     queryKey: ["cms-public-list"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("cms_pages")
-        .select(PAGE_COLS)
-        .eq("status", "published")
+        .from("cms_published")
+        .select(PUBLISHED_COLS)
         .neq("slug", "home")
         .order("kind")
         .order("sort_order")
         .order("title");
       if (error) throw error;
-      return (data ?? []) as unknown as CmsPage[];
+      return ((data ?? []) as unknown as PublishedRow[]).map(rowToPage);
     },
   });
 }
@@ -347,28 +385,22 @@ export function usePublicCmsPage(slug: string) {
   return useQuery({
     queryKey: ["cms-public", slug],
     queryFn: async () => {
-      const { data: page, error } = await supabase
-        .from("cms_pages")
-        .select(PAGE_COLS)
+      const { data, error } = await supabase
+        .from("cms_published")
+        .select(PUBLISHED_COLS)
         .eq("slug", slug)
-        .eq("status", "published")
         .maybeSingle();
       if (error) throw error;
-      if (!page) return null;
-      const { data: blocks, error: e2 } = await supabase
-        .from("cms_blocks")
-        .select(BLOCK_COLS)
-        .eq("page_id", (page as { id: string }).id)
-        .eq("visible", true)
-        .order("sort_order");
-      if (e2) throw e2;
-      return {
-        page: page as unknown as CmsPage,
-        blocks: (blocks ?? []) as unknown as CmsBlock[],
-      };
+      if (!data) return null;
+      const row = data as unknown as PublishedRow;
+      const blocks = (Array.isArray(row.blocks) ? row.blocks : [])
+        .filter((b) => b.visible !== false)
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      return { page: rowToPage(row), blocks };
     },
   });
 }
+
 
 /* ------------------------------ Mutaciones ------------------------- */
 
