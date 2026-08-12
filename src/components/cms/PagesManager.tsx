@@ -67,7 +67,7 @@ export function PagesManager({
   const unpublish = useUnpublishPage();
   const { data: status } = usePublishStatus();
   const pending = useMemo(
-    () => new Set((status?.rows ?? []).filter((r) => r.pending).map((r) => r.pageId)),
+    () => new Set((status?.rows ?? []).filter((r) => r.pending).map((r) => r.page.id)),
     [status],
   );
 

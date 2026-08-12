@@ -48,6 +48,7 @@ export function Btn({
   loading,
   type = "button",
   className = "",
+  title,
 }: {
   children: ReactNode;
   onClick?: () => void;
@@ -57,6 +58,7 @@ export function Btn({
   loading?: boolean;
   type?: "button" | "submit";
   className?: string;
+  title?: string;
 }) {
   const base =
     "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold transition disabled:opacity-40 disabled:pointer-events-none";
@@ -69,6 +71,7 @@ export function Btn({
   return (
     <button
       type={type}
+      title={title}
       onClick={onClick}
       disabled={disabled || loading}
       className={`${base} ${styles} ${className}`}
