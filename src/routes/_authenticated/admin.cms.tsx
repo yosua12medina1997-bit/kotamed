@@ -387,6 +387,16 @@ function CmsStudioPage() {
     }
   };
 
+  /* Autoguardado del borrador (protección contra pérdida de datos). */
+  useEffect(() => {
+    if (!dirty || !pageId || saving || view !== "editor") return;
+    const t = setTimeout(() => {
+      void save();
+    }, 4000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, pageId, saving, view, draft]);
+
   /** Publica el borrador actual a producción (snapshot versionado y validado). */
   const publish = async () => {
     if (!pageId || !page) return;
@@ -540,7 +550,11 @@ function CmsStudioPage() {
               SEO
             </Btn>
             {page && (
-              <a href={`/p/${page.slug}?preview=draft`} target="_blank" rel="noreferrer">
+              <a
+                href={`${pagePath(page.slug, homePageId === page.id)}?preview=draft`}
+                target="_blank"
+                rel="noreferrer"
+              >
                 <Btn variant="ghost">
                   <Eye className="size-3.5" /> Vista previa
                 </Btn>
