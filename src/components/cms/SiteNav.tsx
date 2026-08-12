@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 import * as Icons from "lucide-react";
 import { ArrowRight, ChevronDown, Menu, X } from "lucide-react";
 import { DEFAULT_HEADER, DEFAULT_FOOTER, useSiteNav, type CmsNavNode } from "@/lib/cms-nav";
+import { useRouteMap } from "@/lib/cms-routes";
 
 function Icon({ name, className }: { name?: string | null; className?: string }) {
   if (!name) return null;
