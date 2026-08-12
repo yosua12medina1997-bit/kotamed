@@ -589,7 +589,7 @@ function CmsStudioPage() {
         <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
           <Select
             value=""
-            disabled={!pageId || view !== "paginas"}
+            disabled={!pageId || view !== "editor"}
             onChange={(e) => {
               if (e.target.value) addTemplate(e.target.value);
             }}
