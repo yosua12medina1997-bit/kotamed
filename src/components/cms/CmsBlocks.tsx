@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import * as Icons from "lucide-react";
 import { ArrowRight } from "lucide-react";
 import { embedVideoUrl, type CmsBlock, type CmsBlockStyle, type CmsItem } from "@/lib/cms";
+import { useRouteMap } from "@/lib/cms-routes";
 import {
   collectionToItems,
   useCollectionItems,
@@ -92,15 +93,24 @@ function Anchor({
   className?: string;
   children: React.ReactNode;
 }) {
-  if (href.startsWith("/")) {
+  const { resolve } = useRouteMap();
+  const target = resolve(href);
+  if (target.startsWith("/")) {
     return (
-      <Link to={href} className={className}>
+      <Link to={target} className={className}>
         {children}
       </Link>
     );
   }
+  if (/^https?:\/\//i.test(target)) {
+    return (
+      <a href={target} target="_blank" rel="noopener noreferrer" className={className}>
+        {children}
+      </a>
+    );
+  }
   return (
-    <a href={href} className={className}>
+    <a href={target} className={className}>
       {children}
     </a>
   );
