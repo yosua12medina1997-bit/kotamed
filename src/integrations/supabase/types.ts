@@ -936,6 +936,8 @@ export type Database = {
           is_cta: boolean
           label: string
           location: string
+          new_tab: boolean
+          page_id: string | null
           parent_id: string | null
           sort_order: number
           updated_at: string
@@ -953,6 +955,8 @@ export type Database = {
           is_cta?: boolean
           label: string
           location?: string
+          new_tab?: boolean
+          page_id?: string | null
           parent_id?: string | null
           sort_order?: number
           updated_at?: string
@@ -970,12 +974,21 @@ export type Database = {
           is_cta?: boolean
           label?: string
           location?: string
+          new_tab?: boolean
+          page_id?: string | null
           parent_id?: string | null
           sort_order?: number
           updated_at?: string
           visible?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "cms_nav_items_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "cms_pages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cms_nav_items_parent_id_fkey"
             columns: ["parent_id"]
@@ -1145,9 +1158,46 @@ export type Database = {
           },
         ]
       }
+      cms_redirects: {
+        Row: {
+          code: number
+          created_at: string
+          created_by: string | null
+          from_path: string
+          id: string
+          is_active: boolean
+          note: string | null
+          to_path: string
+          updated_at: string
+        }
+        Insert: {
+          code?: number
+          created_at?: string
+          created_by?: string | null
+          from_path: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          to_path: string
+          updated_at?: string
+        }
+        Update: {
+          code?: number
+          created_at?: string
+          created_by?: string | null
+          from_path?: string
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          to_path?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cms_settings: {
         Row: {
           created_at: string
+          home_page_id: string | null
           id: string
           safe_mode: boolean
           updated_at: string
@@ -1155,6 +1205,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          home_page_id?: string | null
           id?: string
           safe_mode?: boolean
           updated_at?: string
@@ -1162,12 +1213,21 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          home_page_id?: string | null
           id?: string
           safe_mode?: boolean
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cms_settings_home_page_id_fkey"
+            columns: ["home_page_id"]
+            isOneToOne: false
+            referencedRelation: "cms_pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       command_center: {
         Row: {

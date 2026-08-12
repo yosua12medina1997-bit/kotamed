@@ -11,7 +11,7 @@ import { useCmsBlocks, useCmsPage, usePublicCmsPage } from "@/lib/cms";
 import kotaMedLogo from "@/assets/kotaro-logo.png";
 
 export const Route = createFileRoute("/p/$slug")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { preview?: "draft" } => ({
     preview: search.preview === "draft" ? ("draft" as const) : undefined,
   }),
   head: ({ params }) => ({
