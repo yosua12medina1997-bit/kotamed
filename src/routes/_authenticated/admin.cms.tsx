@@ -48,6 +48,12 @@ import {
   Undo2,
   Upload,
   Wand2,
+  Compass,
+  Files,
+  Globe,
+  LayoutDashboard,
+  Recycle,
+  Route as RouteIcon,
 } from "lucide-react";
 import { Btn, Chip, Field, Input, Panel, Select, Textarea } from "@/components/academy/ui";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
@@ -80,6 +86,10 @@ import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
 import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
 import { WebsiteStudio } from "@/components/cms/WebsiteStudio";
+import { PagesManager } from "@/components/cms/PagesManager";
+import { RoutesManager } from "@/components/cms/RoutesManager";
+import { LinkPicker } from "@/components/cms/LinkPicker";
+import { pagePath, useHomePageId } from "@/lib/cms-routes";
 import {
   logCmsAudit,
   useCmsSettings,
@@ -91,7 +101,24 @@ import {
 
 
 
-type StudioView = "paginas" | "navegacion" | "colecciones" | "sitio";
+type StudioView =
+  | "dashboard"
+  | "gestor"
+  | "editor"
+  | "rutas"
+  | "navegacion"
+  | "colecciones"
+  | "sitio";
+
+const MODULES: { id: StudioView; label: string; hint: string; icon: React.ElementType }[] = [
+  { id: "dashboard", label: "Dashboard", hint: "Estado, auditoría y medios", icon: LayoutDashboard },
+  { id: "gestor", label: "Páginas", hint: "Listado, rutas y publicación", icon: Files },
+  { id: "editor", label: "Constructor visual", hint: "Bloques, diseño y contenido", icon: Layers },
+  { id: "rutas", label: "Rutas y enlaces", hint: "Home, redirecciones y validador", icon: RouteIcon },
+  { id: "navegacion", label: "Navegación", hint: "Menú superior y pie", icon: Compass },
+  { id: "colecciones", label: "Colecciones", hint: "Contenido reutilizable", icon: Recycle },
+  { id: "sitio", label: "KOTAMED.APP", hint: "Sitio en producción", icon: Globe },
+];
 
 export const Route = createFileRoute("/_authenticated/admin/cms")({
   head: () => ({
@@ -169,7 +196,8 @@ function CmsStudioPage() {
   const [showSeo, setShowSeo] = useState(false);
   const [pageDraft, setPageDraft] = useState<Partial<CmsPage>>({});
   const [navOpen, setNavOpen] = useState(false);
-  const [view, setView] = useState<StudioView>("paginas");
+  const [view, setView] = useState<StudioView>("dashboard");
+  const { data: homePageId } = useHomePageId();
   const seedDefaults = useSeedCmsDefaults();
   const seedNav = useSeedNav();
   const seedCollections = useSeedCollections();
@@ -485,6 +513,7 @@ function CmsStudioPage() {
           {cmsSettings?.safe_mode && <Chip accent="#ef4444">Modo seguro</Chip>}
 
 
+          {view === "editor" && (
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <div className="mr-1 flex rounded-lg border border-border/60 p-0.5">
               {DEVICES.map((d) => (
@@ -538,17 +567,12 @@ function CmsStudioPage() {
               <Save className="size-3.5" /> Guardar cambios{dirty ? " •" : ""}
             </Btn>
           </div>
+          )}
         </div>
 
         {/* -------- Selector desplegable superior (compacto) -------- */}
+        {view === "editor" && (
         <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-          <Select value={view} onChange={(e) => setView(e.target.value as StudioView)}>
-            <option value="paginas">🧱 Diseñador de páginas</option>
-            <option value="navegacion">🧭 Navegación del sitio</option>
-            <option value="colecciones">♻️ Colecciones reutilizables</option>
-            <option value="sitio">🌐 KOTAMED.APP (sitio web)</option>
-
-          </Select>
           <Select
             value=""
             disabled={!pageId || view !== "paginas"}
@@ -640,11 +664,32 @@ function CmsStudioPage() {
             </Btn>
           </div>
         </div>
+        )}
       </header>
 
-      {view === "sitio" ? (
+      <div className="flex items-start">
+      <StudioNav view={view} setView={setView} pending={pendingCount} />
+      <div className="min-w-0 flex-1">
+      {view === "dashboard" || view === "sitio" ? (
         <div className="p-3">
           <WebsiteStudio />
+        </div>
+      ) : view === "gestor" ? (
+        <div className="p-3">
+          <PagesManager
+            safeMode={cmsSettings?.safe_mode}
+            onEdit={(id) => {
+              const p = pages.find((x) => x.id === id);
+              if (p) setKind(p.kind);
+              setPageId(id);
+              setSelected(null);
+              setView("editor");
+            }}
+          />
+        </div>
+      ) : view === "rutas" ? (
+        <div className="p-3">
+          <RoutesManager />
         </div>
       ) : view === "navegacion" ? (
 
@@ -843,7 +888,63 @@ function CmsStudioPage() {
         </aside>
       </div>
       )}
+      </div>
+      </div>
     </div>
+  );
+}
+
+/* ------------------------- Sidebar del CMS Studio ------------------- */
+
+function StudioNav({
+  view,
+  setView,
+  pending,
+}: {
+  view: StudioView;
+  setView: (v: StudioView) => void;
+  pending: number;
+}) {
+  const [open, setOpen] = useState(true);
+  return (
+    <aside
+      className={`sticky top-[52px] hidden shrink-0 border-r border-border/60 bg-background/70 p-2 lg:block ${
+        open ? "w-[228px]" : "w-[62px]"
+      }`}
+    >
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="mb-2 flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-muted/50"
+      >
+        {open ? "Módulos del CMS" : "≡"}
+        {open && <ChevronDown className="size-3" />}
+      </button>
+      <div className="space-y-1">
+        {MODULES.map((m) => (
+          <button
+            key={m.id}
+            onClick={() => setView(m.id)}
+            title={m.hint}
+            className={`flex w-full items-start gap-2 rounded-xl px-2 py-2 text-left transition ${
+              view === m.id ? "bg-primary/10 text-primary" : "hover:bg-muted/50"
+            }`}
+          >
+            <m.icon className="mt-0.5 size-4 shrink-0" />
+            {open && (
+              <span className="min-w-0">
+                <span className="block truncate text-xs font-bold">{m.label}</span>
+                <span className="block truncate text-[10px] text-muted-foreground">{m.hint}</span>
+              </span>
+            )}
+            {open && m.id === "gestor" && pending > 0 && (
+              <span className="ml-auto rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-600">
+                {pending}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    </aside>
   );
 }
 
@@ -1121,18 +1222,24 @@ function Inspector({
         <Field label="Botón principal">
           <Input value={props.primaryLabel ?? ""} onChange={(e) => setProps({ primaryLabel: e.target.value })} />
         </Field>
-        <Field label="Enlace">
-          <Input value={props.primaryHref ?? ""} onChange={(e) => setProps({ primaryHref: e.target.value })} />
-        </Field>
         <Field label="Botón secundario">
           <Input
             value={props.secondaryLabel ?? ""}
             onChange={(e) => setProps({ secondaryLabel: e.target.value })}
           />
         </Field>
-        <Field label="Enlace">
-          <Input value={props.secondaryHref ?? ""} onChange={(e) => setProps({ secondaryHref: e.target.value })} />
-        </Field>
+        <div className="col-span-2 space-y-2">
+          <LinkPicker
+            label="Destino del botón principal"
+            value={props.primaryHref ?? ""}
+            onChange={(v) => setProps({ primaryHref: v })}
+          />
+          <LinkPicker
+            label="Destino del botón secundario"
+            value={props.secondaryHref ?? ""}
+            onChange={(v) => setProps({ secondaryHref: v })}
+          />
+        </div>
       </div>
 
       <Field label="Imagen del bloque">
@@ -1207,11 +1314,6 @@ function Inspector({
                   placeholder="Icono (lucide)"
                 />
                 <Input
-                  value={it.href ?? ""}
-                  onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, href: e.target.value } : x)))}
-                  placeholder="Enlace"
-                />
-                <Input
                   value={it.price ?? ""}
                   onChange={(e) => setItems(items.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))}
                   placeholder="Precio"
@@ -1222,6 +1324,11 @@ function Inspector({
                   placeholder="Insignia"
                 />
               </div>
+              <LinkPicker
+                label="Destino del elemento"
+                value={it.href ?? ""}
+                onChange={(v) => setItems(items.map((x, j) => (j === i ? { ...x, href: v } : x)))}
+              />
               <div className="flex items-center gap-1.5">
                 {it.image && <img src={it.image} alt="" className="size-10 rounded object-cover" />}
                 <Btn variant="ghost" onClick={() => genImage(i)}>
