@@ -25,15 +25,24 @@ function Anchor({
   children: React.ReactNode;
   onClick?: () => void;
 }) {
-  if (href.startsWith("/")) {
+  const { resolve } = useRouteMap();
+  const target = resolve(href);
+  if (target.startsWith("/")) {
     return (
-      <Link to={href} className={className} onClick={onClick}>
+      <Link to={target} className={className} onClick={onClick}>
         {children}
       </Link>
     );
   }
+  if (/^https?:\/\//i.test(target)) {
+    return (
+      <a href={target} target="_blank" rel="noopener noreferrer" className={className} onClick={onClick}>
+        {children}
+      </a>
+    );
+  }
   return (
-    <a href={href} className={className} onClick={onClick}>
+    <a href={target} className={className} onClick={onClick}>
       {children}
     </a>
   );
