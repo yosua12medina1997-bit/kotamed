@@ -172,7 +172,11 @@ export function usePublishStatus() {
       const rows: PageStatusRow[] = pages.map((p) => {
         const published = pub.get(p.id) ?? null;
         const lastDraftEdit = [p.updated_at, lastBlockEdit.get(p.id) ?? ""].sort().reverse()[0] ?? p.updated_at;
-        const pending = published ? lastDraftEdit > published.published_at : true;
+        // Tolerancia: al publicar, los triggers de `updated_at` corren después del
+        // sello de publicación, así que unos segundos de diferencia no son cambios reales.
+        const pending = published
+          ? new Date(lastDraftEdit).getTime() - new Date(published.published_at).getTime() > 10_000
+          : p.status !== "published";
         return { page: p, published, pending, lastDraftEdit };
       });
 
