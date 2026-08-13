@@ -72,7 +72,7 @@ function Landing() {
       <GlobalEnvironment />
       <Nav />
       {/* Scrim translúcido: mantiene la legibilidad sin ocultar el laboratorio */}
-      <main className="relative bg-background/15 backdrop-blur-[2px]">
+      <main className="relative z-10 bg-background/15 backdrop-blur-[2px]">
         {cmsBlocks.length > 0 ? (
           <>
             {cmsBlocks.map((b) => <CmsBlockView key={b.id} block={b} />)}
@@ -765,7 +765,7 @@ function FinalCta() {
 
 function Footer() {
   return (
-    <footer className="relative border-t border-border/60 bg-white/50 backdrop-blur-sm">
+    <footer className="relative z-10 border-t border-border/60 bg-white/50 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-6 lg:px-10 py-14">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
