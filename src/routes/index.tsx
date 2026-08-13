@@ -169,7 +169,7 @@ function Nav() {
         className={`mx-auto max-w-7xl rounded-2xl transition-all duration-500 ${
           scrolled
             ? "glass shadow-[0_18px_50px_-24px_oklch(0.24_0.04_258_/_0.35)] bg-white/70"
-            : "border border-transparent"
+            : "glass border border-white/30 bg-white/45"
         }`}
       >
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 sm:px-6 h-16 lg:grid-cols-[auto_1fr_auto]">
