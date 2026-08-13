@@ -27,6 +27,11 @@ import { useProgramCatalog } from "@/lib/content-catalog";
 import { usePublicCmsPage, usePublicCmsPages } from "@/lib/cms";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
 import { DynamicLabHero } from "@/components/hero/DynamicLabHero";
+import {
+  DynamicEnvironmentProvider,
+  EnvironmentSwitcher,
+  GlobalEnvironment,
+} from "@/components/hero/DynamicEnvironment";
 import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import audEstudiantes from "@/assets/aud-estudiantes.jpg";
@@ -62,10 +67,12 @@ function Landing() {
   const cmsBlocks = cms?.blocks ?? [];
 
   return (
-    <div id="top" className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
-      <Ambience />
+    <DynamicEnvironmentProvider>
+    <div id="top" className="min-h-screen text-foreground relative overflow-x-hidden">
+      <GlobalEnvironment />
       <Nav />
-      <main className="relative">
+      {/* Scrim translúcido: mantiene la legibilidad sin ocultar el laboratorio */}
+      <main className="relative z-10 bg-background/10">
         {cmsBlocks.length > 0 ? (
           <>
             {cmsBlocks.map((b) => <CmsBlockView key={b.id} block={b} />)}
@@ -85,7 +92,11 @@ function Landing() {
         )}
       </main>
       <Footer />
+      <div className="pointer-events-auto fixed bottom-4 right-4 z-40">
+        <EnvironmentSwitcher />
+      </div>
     </div>
+    </DynamicEnvironmentProvider>
   );
 }
 
@@ -139,32 +150,6 @@ function CmsPagesRail() {
 
 
 
-/* ------------------------------------------------------------------ */
-
-function Ambience() {
-  return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div
-        className="absolute -top-[20%] right-[-15%] w-[70%] h-[70%] rounded-full blur-[150px] animate-aurora"
-        style={{ background: "color-mix(in oklab, var(--primary) 16%, transparent)" }}
-      />
-      <div
-        className="absolute top-[35%] -left-[15%] w-[50%] h-[55%] rounded-full blur-[150px] animate-aurora"
-        style={{
-          background: "color-mix(in oklab, oklch(0.72 0.13 245) 12%, transparent)",
-          animationDelay: "-8s",
-        }}
-      />
-      <div
-        className="absolute bottom-[-15%] left-[25%] w-[55%] h-[45%] rounded-full blur-[160px] animate-aurora"
-        style={{
-          background: "color-mix(in oklab, oklch(0.75 0.11 300) 9%, transparent)",
-          animationDelay: "-15s",
-        }}
-      />
-    </div>
-  );
-}
 
 /* ------------------------------- Header --------------------------- */
 
@@ -184,7 +169,7 @@ function Nav() {
         className={`mx-auto max-w-7xl rounded-2xl transition-all duration-500 ${
           scrolled
             ? "glass shadow-[0_18px_50px_-24px_oklch(0.24_0.04_258_/_0.35)] bg-white/70"
-            : "border border-transparent"
+            : "glass border border-white/30 bg-white/45"
         }`}
       >
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 sm:px-6 h-16 lg:grid-cols-[auto_1fr_auto]">
@@ -780,7 +765,7 @@ function FinalCta() {
 
 function Footer() {
   return (
-    <footer className="relative border-t border-border/60 bg-white/50 backdrop-blur-sm">
+    <footer className="relative z-10 border-t border-border/60 bg-white/50 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-6 lg:px-10 py-14">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>

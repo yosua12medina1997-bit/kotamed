@@ -19,29 +19,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import labScene from "@/assets/kotamed-lab-hero.png.asset.json";
-import {
-  DEFAULT_HERO_CONFIG,
-  ENV_BY_KEY,
-  ENV_STATES,
-  envForHour,
-  useHeroConfig,
-  useLocalClock,
-  useLowPerfMode,
-  usePrefersReducedMotion,
-  type EnvKey,
-} from "@/lib/hero-env";
+import { ENV_STATES } from "@/lib/hero-env";
+import { useEnvironment } from "@/components/hero/DynamicEnvironment";
 
 export function DynamicLabHero() {
-  const { data } = useHeroConfig();
-  const cfg = data ?? DEFAULT_HERO_CONFIG;
-  const clock = useLocalClock();
-  const reduced = usePrefersReducedMotion();
-  const lowPerf = useLowPerfMode();
-
-  const [manual, setManual] = useState<EnvKey | null>(null);
+  const { cfg, active, auto, clock, reduced, lowPerf, setManual } = useEnvironment();
   const [openPicker, setOpenPicker] = useState(false);
-  const auto = manual === null && cfg.autoMode;
-  const active = auto ? envForHour(clock.hour) : ENV_BY_KEY[manual ?? "noche"];
 
   const sceneRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });

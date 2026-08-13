@@ -1,3 +1,7 @@
+import {
+  EnvironmentSwitcher,
+  GlobalEnvironment,
+} from "@/components/hero/DynamicEnvironment";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowUpRight, GraduationCap, Stethoscope } from "lucide-react";
 import { ACCENT_CLASSES } from "@/lib/pediatria-programs";
@@ -31,7 +35,11 @@ function ProgramsIndex() {
   const { programs } = useProgramCatalog();
   return (
 
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+    <div className="min-h-screen text-foreground relative overflow-hidden">
+      <GlobalEnvironment />
+      <div className="pointer-events-auto fixed bottom-4 right-4 z-40">
+        <EnvironmentSwitcher />
+      </div>
       <div
         aria-hidden
         className="pointer-events-none absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-aurora"
@@ -46,7 +54,7 @@ function ProgramsIndex() {
         }}
       />
 
-      <main className="max-w-7xl mx-auto px-6 md:px-10 py-14 relative">
+      <main className="relative z-10 bg-background/35 max-w-7xl mx-auto px-6 md:px-10 py-14 relative">
         <div className="flex items-center gap-3 mb-4">
           <Link
             to="/"

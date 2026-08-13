@@ -193,6 +193,24 @@ export type HeroConfig = {
   autoMode: boolean;
   organInteraction: boolean;
   accent: string;
+  /* ---- KotaMed Dynamic Environment (ambiente global de la página) ---- */
+  /** Activa el entorno de laboratorio detrás de toda la página. */
+  envEnabled: boolean;
+  /** Parallax al hacer scroll. */
+  envParallax: boolean;
+  /** Modo automático según hora local para el ambiente global. */
+  envAuto: boolean;
+  /** Imagen de extensión del escenario (skyline / arquitectura). */
+  envImage: string | null;
+  /** Blur ambiental de las capas de fondo, en px. */
+  envBlur: number;
+  /** Opacidad global del entorno (0–1). */
+  envOpacity: number;
+  /** Oscurecimiento del overlay de legibilidad (0–1). */
+  envOverlay: number;
+  /** Profundidad del parallax (0–2). */
+  envDepth: number;
+
 };
 
 export const DEFAULT_HERO_CONFIG: HeroConfig = {
@@ -214,6 +232,15 @@ export const DEFAULT_HERO_CONFIG: HeroConfig = {
   autoMode: true,
   organInteraction: true,
   accent: "#00D8D0",
+  envEnabled: true,
+  envParallax: true,
+  envAuto: true,
+  envImage: null,
+  envBlur: 6,
+  envOpacity: 0.85,
+  envOverlay: 0.72,
+  envDepth: 1,
+
 };
 
 const HERO_SCOPE = "hero-home";
