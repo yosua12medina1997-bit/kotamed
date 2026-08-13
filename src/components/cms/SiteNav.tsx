@@ -243,7 +243,7 @@ export function SiteNavActions() {
       {login && (
         <Anchor
           href={login.href}
-          className="hidden sm:inline-flex items-center rounded-xl border border-border bg-white/70 px-4 py-2 text-[13px] font-bold transition-all hover:-translate-y-0.5 hover:shadow-md"
+          className="hidden sm:inline-flex items-center rounded-xl border border-border bg-background/60 px-4 py-2 text-[13px] font-bold transition-all hover:-translate-y-0.5 hover:shadow-md"
         >
           {login.label}
         </Anchor>

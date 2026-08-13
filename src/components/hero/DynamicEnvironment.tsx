@@ -312,29 +312,21 @@ export function GlobalEnvironment() {
         </div>
       )}
 
-      {/* 6 · ELEMENTOS DECORATIVOS: rejilla holográfica de piso + escaneo */}
+      {/* 6 · ELEMENTOS DECORATIVOS: rejilla holográfica de piso.
+          La línea de escaneo vertical vive únicamente dentro del Hero. */}
       {!lowPerf && !reduced && (
-        <>
-          <div
-            className="absolute inset-x-0 bottom-0 h-[34%] opacity-[0.18]"
-            style={{
-              backgroundImage: `linear-gradient(90deg, ${accent}55 1px, transparent 1px), linear-gradient(180deg, ${accent}44 1px, transparent 1px)`,
-              backgroundSize: "8% 14%",
-              maskImage: "linear-gradient(0deg, black, transparent)",
-              transform: "perspective(600px) rotateX(58deg)",
-              transformOrigin: "bottom",
-            }}
-          />
-          <div className="absolute inset-y-0 right-[8%] w-[36%] overflow-hidden">
-            <span
-              className="absolute inset-x-0 h-28 kotaro-spark"
-              style={{
-                background: `linear-gradient(180deg, transparent, color-mix(in oklab, ${accent} 16%, transparent), transparent)`,
-              }}
-            />
-          </div>
-        </>
+        <div
+          className="absolute inset-x-0 bottom-0 h-[34%] opacity-[0.18]"
+          style={{
+            backgroundImage: `linear-gradient(90deg, ${accent}55 1px, transparent 1px), linear-gradient(180deg, ${accent}44 1px, transparent 1px)`,
+            backgroundSize: "8% 14%",
+            maskImage: "linear-gradient(0deg, black, transparent)",
+            transform: "perspective(600px) rotateX(58deg)",
+            transformOrigin: "bottom",
+          }}
+        />
       )}
+
 
       {/* Escena principal, apenas insinuada como profundidad lateral */}
       {!lowPerf && (
@@ -358,18 +350,18 @@ export function GlobalEnvironment() {
         </div>
       )}
 
-      {/* 7 · OVERLAY DE LEGIBILIDAD — velo de cristal esmerilado.
-          Se aclara/oscurece según el ambiente activo, pero nunca oculta el
-          laboratorio: el escenario sigue siendo perceptible detrás. */}
+      {/* 7 · OVERLAY DE LEGIBILIDAD — velo profundo (interfaz oscura).
+          El laboratorio sigue percibiéndose detrás, pero el contenido se lee
+          siempre con contraste alto sobre el ambiente activo. */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(180deg, oklch(0.99 0.012 ${230 +
-            (1 - active.ambient) * 30} / ${(0.22 + (1 - active.ambient) * 0.16) *
-            (overlay / 0.72)}) 0%, oklch(0.98 0.014 ${230 +
-            (1 - active.ambient) * 30} / ${(0.30 + (1 - active.ambient) * 0.18) *
-            (overlay / 0.72)}) 55%, oklch(0.99 0.010 235 / ${(0.28 +
+          background: `linear-gradient(180deg, oklch(0.15 0.04 262 / ${(0.5 +
+            (1 - active.ambient) * 0.2) *
+            (overlay / 0.72)}) 0%, oklch(0.13 0.04 262 / ${(0.66 +
             (1 - active.ambient) * 0.18) *
+            (overlay / 0.72)}) 55%, oklch(0.12 0.035 262 / ${(0.78 +
+            (1 - active.ambient) * 0.12) *
             (overlay / 0.72)}) 100%)`,
           transition: `background ${transition}`,
         }}
@@ -378,9 +370,10 @@ export function GlobalEnvironment() {
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(120% 100% at 50% 0%, transparent 45%, oklch(0.55 0.05 250 / 0.18) 100%)",
+            "radial-gradient(120% 100% at 50% 0%, transparent 45%, oklch(0.10 0.03 262 / 0.55) 100%)",
         }}
       />
+
     </div>
   );
 }

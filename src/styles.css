@@ -80,6 +80,41 @@
   --ring: oklch(0.62 0.11 185 / 0.35);
 }
 
+/* Interfaz oscura (sitio público KotaMed). Se activa envolviendo la sección
+   con la clase `dark`. */
+.dark {
+  --background: oklch(0.14 0.04 262);
+  --foreground: oklch(0.97 0.008 240);
+
+  --surface: oklch(0.2 0.04 262 / 0.6);
+
+  --card: oklch(0.18 0.042 262);
+  --card-foreground: oklch(0.97 0.008 240);
+  --popover: oklch(0.17 0.042 262);
+  --popover-foreground: oklch(0.97 0.008 240);
+
+  --primary: oklch(0.72 0.12 185);
+  --primary-foreground: oklch(0.16 0.04 262);
+  --primary-soft: oklch(0.28 0.06 200);
+
+  --secondary: oklch(0.22 0.04 262);
+  --secondary-foreground: oklch(0.97 0.008 240);
+
+  --muted: oklch(0.22 0.035 262);
+  --muted-foreground: oklch(0.74 0.02 245);
+
+  --accent: oklch(0.24 0.04 262);
+  --accent-foreground: oklch(0.97 0.008 240);
+
+  --destructive: oklch(0.62 0.22 20);
+  --destructive-foreground: oklch(0.99 0.005 180);
+
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.14);
+  --ring: oklch(0.72 0.12 185 / 0.4);
+}
+
+
 @keyframes aurora {
   0% {
     transform: translate(0, 0) scale(1);
