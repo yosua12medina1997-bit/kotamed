@@ -150,32 +150,6 @@ function CmsPagesRail() {
 
 
 
-/* ------------------------------------------------------------------ */
-
-function Ambience() {
-  return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <div
-        className="absolute -top-[20%] right-[-15%] w-[70%] h-[70%] rounded-full blur-[150px] animate-aurora"
-        style={{ background: "color-mix(in oklab, var(--primary) 16%, transparent)" }}
-      />
-      <div
-        className="absolute top-[35%] -left-[15%] w-[50%] h-[55%] rounded-full blur-[150px] animate-aurora"
-        style={{
-          background: "color-mix(in oklab, oklch(0.72 0.13 245) 12%, transparent)",
-          animationDelay: "-8s",
-        }}
-      />
-      <div
-        className="absolute bottom-[-15%] left-[25%] w-[55%] h-[45%] rounded-full blur-[160px] animate-aurora"
-        style={{
-          background: "color-mix(in oklab, oklch(0.75 0.11 300) 9%, transparent)",
-          animationDelay: "-15s",
-        }}
-      />
-    </div>
-  );
-}
 
 /* ------------------------------- Header --------------------------- */
 
