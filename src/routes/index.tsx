@@ -70,9 +70,9 @@ function Landing() {
     <DynamicEnvironmentProvider>
     <div id="top" className="min-h-screen text-foreground relative overflow-x-hidden">
       <GlobalEnvironment />
-      <Ambience />
       <Nav />
-      <main className="relative">
+      {/* Scrim translúcido: mantiene la legibilidad sin ocultar el laboratorio */}
+      <main className="relative bg-background/55 backdrop-blur-[3px]">
         {cmsBlocks.length > 0 ? (
           <>
             {cmsBlocks.map((b) => <CmsBlockView key={b.id} block={b} />)}
