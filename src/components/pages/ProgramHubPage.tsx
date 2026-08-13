@@ -476,7 +476,12 @@ function Features({ cfg }: { cfg: HubConfig }) {
       <p className="mt-10 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[oklch(0.24_0.04_258_/_0.45)]">
         Los planes definen cómo accedes a cada programa
         <ChevronRight className="size-3" />
-        <Link to="/p/planes" className="underline decoration-dotted" style={{ color: TEAL }}>
+        <Link
+          to="/p/$slug"
+          params={{ slug: "planes" }}
+          className="underline decoration-dotted"
+          style={{ color: TEAL }}
+        >
           Ver planes
         </Link>
       </p>
