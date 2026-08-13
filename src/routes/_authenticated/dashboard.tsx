@@ -80,6 +80,22 @@ function DashboardPage() {
     if (user === null) navigate({ to: "/auth", replace: true });
   }, [user, navigate]);
 
+  /* Bienvenida post-matrícula: se muestra una sola vez tras confirmarse el acceso. */
+  const justEnrolled =
+    !!user &&
+    ((enrollmentsQ.data ?? []).some(isActive) || (manualQ.data ?? []).length > 0);
+  useEffect(() => {
+    if (!user || !justEnrolled) return;
+    let seen = true;
+    try {
+      seen = window.localStorage.getItem(`kotamed:welcome-seen:${user.id}`) === "1";
+    } catch {
+      seen = true;
+    }
+    if (!seen) navigate({ to: "/bienvenida", replace: true });
+  }, [user, justEnrolled, navigate]);
+
+
   const signOut = async () => {
     await qc.cancelQueries();
     qc.clear();
