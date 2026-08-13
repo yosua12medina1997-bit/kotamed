@@ -3,9 +3,9 @@
  *
  * Escena de laboratorio médico futurista que evoluciona según la hora local del
  * usuario (7 estados ambientales con transiciones suaves), con control manual de
- * ambiente, indicador de hora, paneles holográficos, hotspots de especialidades
- * sobre el cuerpo humano y efectos premium (parallax, glow, partículas, ECG).
+ * ambiente, indicador de hora y efectos premium (parallax, glow, partículas).
  */
+
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
