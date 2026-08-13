@@ -45,7 +45,6 @@ export function DynamicLabHero() {
 
   const sceneRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hot, setHot] = useState<string | null>(null);
 
   useEffect(() => {
     if (reduced || lowPerf) return;
