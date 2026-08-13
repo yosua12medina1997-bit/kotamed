@@ -42,6 +42,12 @@ function CmsPublicPage() {
   const { preview } = Route.useSearch();
   const isDraft = preview === "draft";
 
+  if (slug === "ciencias-basicas") return <CienciasBasicasPage />;
+
+  return <CmsBlocksPage slug={slug} isDraft={isDraft} />;
+}
+
+function CmsBlocksPage({ slug, isDraft }: { slug: string; isDraft: boolean }) {
   const published = usePublicCmsPage(slug);
   const draftPage = useCmsPage(isDraft ? slug : null);
   const draftBlocks = useCmsBlocks(isDraft ? (draftPage.data?.id ?? null) : null);
