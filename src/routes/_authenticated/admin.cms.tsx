@@ -82,6 +82,7 @@ import {
 import { useSeedCmsDefaults } from "@/lib/cms-defaults";
 import { SECTION_TEMPLATES } from "@/lib/cms-templates";
 import { NavEditor } from "@/components/cms/NavEditor";
+import { HeroEnvEditor } from "@/components/cms/HeroEnvEditor";
 import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
 import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
@@ -108,6 +109,7 @@ type StudioView =
   | "rutas"
   | "navegacion"
   | "colecciones"
+  | "hero"
   | "sitio";
 
 const MODULES: { id: StudioView; label: string; hint: string; icon: React.ElementType }[] = [
@@ -116,6 +118,7 @@ const MODULES: { id: StudioView; label: string; hint: string; icon: React.Elemen
   { id: "editor", label: "Constructor visual", hint: "Bloques, diseño y contenido", icon: Layers },
   { id: "rutas", label: "Rutas y enlaces", hint: "Home, redirecciones y validador", icon: RouteIcon },
   { id: "navegacion", label: "Navegación", hint: "Menú superior y pie", icon: Compass },
+  { id: "hero", label: "Hero dinámico", hint: "Ambientes, textos y órganos", icon: Sparkles },
   { id: "colecciones", label: "Colecciones", hint: "Contenido reutilizable", icon: Recycle },
   { id: "sitio", label: "KOTAMED.APP", hint: "Sitio en producción", icon: Globe },
 ];
@@ -709,6 +712,10 @@ function CmsStudioPage() {
 
         <div className="p-3">
           <NavEditor />
+        </div>
+      ) : view === "hero" ? (
+        <div className="p-3">
+          <HeroEnvEditor />
         </div>
       ) : view === "colecciones" ? (
         <div className="p-3">
