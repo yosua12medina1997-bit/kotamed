@@ -83,6 +83,8 @@ import { useSeedCmsDefaults } from "@/lib/cms-defaults";
 import { SECTION_TEMPLATES } from "@/lib/cms-templates";
 import { NavEditor } from "@/components/cms/NavEditor";
 import { HeroEnvEditor } from "@/components/cms/HeroEnvEditor";
+import { WelcomeEditor } from "@/components/cms/WelcomeEditor";
+
 import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
 import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
