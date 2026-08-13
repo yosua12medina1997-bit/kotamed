@@ -1,3 +1,8 @@
+import {
+  DynamicEnvironmentProvider,
+  EnvironmentSwitcher,
+  GlobalEnvironment,
+} from "@/components/hero/DynamicEnvironment";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -228,7 +233,8 @@ function ProgramDetailInner() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+    <div className="min-h-screen text-foreground relative overflow-hidden">
+      <GlobalEnvironment />
       <div
         aria-hidden
         className="pointer-events-none absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-aurora"
@@ -243,7 +249,7 @@ function ProgramDetailInner() {
         }}
       />
 
-      <main className="max-w-7xl mx-auto px-6 md:px-10 py-12 relative">
+      <main className="relative z-10 bg-background/10 max-w-7xl mx-auto px-6 md:px-10 py-12 relative">
         <div className="flex items-center gap-3 mb-6">
           <Link
             to="/programas"

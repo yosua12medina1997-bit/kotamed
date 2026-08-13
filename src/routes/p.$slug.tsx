@@ -3,6 +3,11 @@
  * URL: /p/<slug>            → snapshot PUBLICADO (producción)
  * URL: /p/<slug>?preview=draft → borrador (solo con permisos de administración)
  */
+import {
+  DynamicEnvironmentProvider,
+  EnvironmentSwitcher,
+  GlobalEnvironment,
+} from "@/components/hero/DynamicEnvironment";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Eye, Loader2 } from "lucide-react";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
@@ -51,7 +56,8 @@ function CmsPublicPage() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground">
+      <GlobalEnvironment />
       {isDraft && (
         <div className="flex flex-wrap items-center justify-center gap-2 bg-amber-100 px-4 py-1.5 text-[11px] font-bold text-amber-900">
           <Eye className="size-3.5" /> Vista previa de cambios (borrador) — no visible para el público
@@ -72,7 +78,7 @@ function CmsPublicPage() {
         </div>
       </header>
 
-      <main>
+      <main className="relative z-10 bg-background/10">
         {isLoading ? (
           <div className="grid h-[60vh] place-items-center">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
