@@ -316,6 +316,19 @@ export function usePublishPage() {
 
       const { data: auth } = await supabase.auth.getUser();
 
+      // 1) Marcar la página como publicada primero: así el trigger de `updated_at`
+      //    del borrador queda ANTES del sello de producción y no se reporta como
+      //    "cambios sin publicar" recién después de publicar.
+      const { data: statusRows, error: statusErr } = await supabase
+        .from("cms_pages")
+        .update({ status: "published", published_at: new Date().toISOString() } as never)
+        .eq("id", pageId)
+        .select("id");
+      if (statusErr) throw statusErr;
+      if (!statusRows || statusRows.length === 0) {
+        throw new Error("No se pudo publicar: tu cuenta no tiene permisos de administración del CMS.");
+      }
+
       const { error: upErr } = await supabase.from("cms_published").upsert(
         {
           page_id: pageId,
