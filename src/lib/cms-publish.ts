@@ -172,7 +172,11 @@ export function usePublishStatus() {
       const rows: PageStatusRow[] = pages.map((p) => {
         const published = pub.get(p.id) ?? null;
         const lastDraftEdit = [p.updated_at, lastBlockEdit.get(p.id) ?? ""].sort().reverse()[0] ?? p.updated_at;
-        const pending = published ? lastDraftEdit > published.published_at : true;
+        // Tolerancia: al publicar, los triggers de `updated_at` corren después del
+        // sello de publicación, así que unos segundos de diferencia no son cambios reales.
+        const pending = published
+          ? new Date(lastDraftEdit).getTime() - new Date(published.published_at).getTime() > 10_000
+          : p.status !== "published";
         return { page: p, published, pending, lastDraftEdit };
       });
 
@@ -312,6 +316,19 @@ export function usePublishPage() {
 
       const { data: auth } = await supabase.auth.getUser();
 
+      // 1) Marcar la página como publicada primero: así el trigger de `updated_at`
+      //    del borrador queda ANTES del sello de producción y no se reporta como
+      //    "cambios sin publicar" recién después de publicar.
+      const { data: statusRows, error: statusErr } = await supabase
+        .from("cms_pages")
+        .update({ status: "published", published_at: new Date().toISOString() } as never)
+        .eq("id", pageId)
+        .select("id");
+      if (statusErr) throw statusErr;
+      if (!statusRows || statusRows.length === 0) {
+        throw new Error("No se pudo publicar: tu cuenta no tiene permisos de administración del CMS.");
+      }
+
       const { error: upErr } = await supabase.from("cms_published").upsert(
         {
           page_id: pageId,
@@ -343,11 +360,6 @@ export function usePublishPage() {
       } as never);
       if (verErr) throw verErr;
 
-      const { error: statusErr } = await supabase
-        .from("cms_pages")
-        .update({ status: "published", published_at: new Date().toISOString() } as never)
-        .eq("id", pageId);
-      if (statusErr) throw statusErr;
 
       await logCmsAudit({
         entity: "page",
