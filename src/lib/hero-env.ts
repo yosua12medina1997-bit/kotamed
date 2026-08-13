@@ -275,10 +275,15 @@ export function useSaveHeroConfig() {
   });
 }
 
-/** Hora local en formato HH:MM y zona detectada, refrescada cada 30 s. */
+/** Hora local en formato HH:MM y zona detectada, refrescada cada 30 s.
+ *  Inicializa con una fecha estable para evitar saltos de hidratación SSR/cliente.
+ */
 export function useLocalClock() {
-  const [now, setNow] = useState(() => new Date());
+  const [hydrated, setHydrated] = useState(false);
+  const [now, setNow] = useState(() => new Date(0)); // 1970-01-01T00:00:00Z — estable para SSR
   useEffect(() => {
+    setHydrated(true);
+    setNow(new Date());
     const id = window.setInterval(() => setNow(new Date()), 30_000);
     return () => window.clearInterval(id);
   }, []);
@@ -286,12 +291,13 @@ export function useLocalClock() {
   return useMemo(() => {
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     const city = zone.split("/").pop()?.replace(/_/g, " ") ?? "";
+    const displayNow = hydrated ? now : new Date(0);
     return {
-      hour: now.getHours() + now.getMinutes() / 60,
-      time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
-      city,
+      hour: displayNow.getHours() + displayNow.getMinutes() / 60,
+      time: displayNow.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
+      city: hydrated ? city : "",
     };
-  }, [now]);
+  }, [now, hydrated]);
 }
 
 /** Detecta preferencia de movimiento reducido. */
