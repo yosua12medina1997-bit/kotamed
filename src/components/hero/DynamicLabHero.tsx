@@ -193,7 +193,7 @@ export function DynamicLabHero() {
             ))}
 
           {/* ---- Paneles holográficos flotantes ---- */}
-          <div className="pointer-events-none absolute inset-y-16 right-6 hidden xl:flex xl:flex-col xl:justify-between">
+          <div className="pointer-events-none absolute right-6 top-14 bottom-24 hidden gap-3 xl:flex xl:flex-col xl:justify-between">
             {cfg.panels.slice(0, 6).map((p, i) => (
               <HoloPanel key={p} label={p} accent={cfg.accent} delay={i * 0.6} animate={!reduced} />
             ))}
