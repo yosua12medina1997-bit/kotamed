@@ -22,9 +22,10 @@ import labScene from "@/assets/kotamed-lab-hero.png.asset.json";
 import { ENV_STATES } from "@/lib/hero-env";
 import { useEnvironment } from "@/components/hero/DynamicEnvironment";
 
-export function DynamicLabHero() {
+export function DynamicLabHero({ showEnvControls = false }: { showEnvControls?: boolean }) {
   const { cfg, active, auto, clock, reduced, lowPerf, setManual } = useEnvironment();
   const [openPicker, setOpenPicker] = useState(false);
+
 
   const sceneRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
