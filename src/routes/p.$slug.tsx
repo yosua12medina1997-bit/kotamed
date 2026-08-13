@@ -12,6 +12,7 @@ import { ArrowLeft, Eye, Loader2 } from "lucide-react";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
 import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import { useCmsBlocks, useCmsPage, usePublicCmsPage } from "@/lib/cms";
+import { CienciasBasicasPage } from "@/components/pages/CienciasBasicasPage";
 import kotaMedLogo from "@/assets/kotaro-logo.png";
 
 export const Route = createFileRoute("/p/$slug")({
