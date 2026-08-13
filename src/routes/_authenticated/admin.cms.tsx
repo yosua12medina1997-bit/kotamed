@@ -720,6 +720,11 @@ function CmsStudioPage() {
         <div className="p-3">
           <HeroEnvEditor />
         </div>
+      ) : view === "bienvenida" ? (
+        <div className="p-3">
+          <WelcomeEditor />
+        </div>
+
       ) : view === "colecciones" ? (
         <div className="p-3">
           <CollectionsEditor />
