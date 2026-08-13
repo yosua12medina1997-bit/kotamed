@@ -232,6 +232,15 @@ export const DEFAULT_HERO_CONFIG: HeroConfig = {
   autoMode: true,
   organInteraction: true,
   accent: "#00D8D0",
+  envEnabled: true,
+  envParallax: true,
+  envAuto: true,
+  envImage: null,
+  envBlur: 6,
+  envOpacity: 0.85,
+  envOverlay: 0.72,
+  envDepth: 1,
+
 };
 
 const HERO_SCOPE = "hero-home";
