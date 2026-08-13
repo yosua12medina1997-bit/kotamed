@@ -72,7 +72,7 @@ function Landing() {
       <GlobalEnvironment />
       <Nav />
       {/* Scrim translúcido: mantiene la legibilidad sin ocultar el laboratorio */}
-      <main className="relative bg-background/55 backdrop-blur-[3px]">
+      <main className="relative bg-background/15 backdrop-blur-[2px]">
         {cmsBlocks.length > 0 ? (
           <>
             {cmsBlocks.map((b) => <CmsBlockView key={b.id} block={b} />)}
