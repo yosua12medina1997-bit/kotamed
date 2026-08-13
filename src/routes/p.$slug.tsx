@@ -12,6 +12,7 @@ import { ArrowLeft, Eye, Loader2 } from "lucide-react";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
 import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import { useCmsBlocks, useCmsPage, usePublicCmsPage } from "@/lib/cms";
+import { CienciasBasicasPage } from "@/components/pages/CienciasBasicasPage";
 import kotaMedLogo from "@/assets/kotaro-logo.png";
 
 export const Route = createFileRoute("/p/$slug")({
@@ -42,6 +43,12 @@ function CmsPublicPage() {
   const { preview } = Route.useSearch();
   const isDraft = preview === "draft";
 
+  if (slug === "ciencias-basicas") return <CienciasBasicasPage />;
+
+  return <CmsBlocksPage slug={slug} isDraft={isDraft} />;
+}
+
+function CmsBlocksPage({ slug, isDraft }: { slug: string; isDraft: boolean }) {
   const published = usePublicCmsPage(slug);
   const draftPage = useCmsPage(isDraft ? slug : null);
   const draftBlocks = useCmsBlocks(isDraft ? (draftPage.data?.id ?? null) : null);
