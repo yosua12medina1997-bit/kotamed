@@ -360,11 +360,6 @@ export function usePublishPage() {
       } as never);
       if (verErr) throw verErr;
 
-      const { error: statusErr } = await supabase
-        .from("cms_pages")
-        .update({ status: "published", published_at: new Date().toISOString() } as never)
-        .eq("id", pageId);
-      if (statusErr) throw statusErr;
 
       await logCmsAudit({
         entity: "page",
