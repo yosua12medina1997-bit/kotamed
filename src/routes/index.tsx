@@ -27,6 +27,11 @@ import { useProgramCatalog } from "@/lib/content-catalog";
 import { usePublicCmsPage, usePublicCmsPages } from "@/lib/cms";
 import { CmsBlockView } from "@/components/cms/CmsBlocks";
 import { DynamicLabHero } from "@/components/hero/DynamicLabHero";
+import {
+  DynamicEnvironmentProvider,
+  EnvironmentSwitcher,
+  GlobalEnvironment,
+} from "@/components/hero/DynamicEnvironment";
 import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import audEstudiantes from "@/assets/aud-estudiantes.jpg";
@@ -62,7 +67,9 @@ function Landing() {
   const cmsBlocks = cms?.blocks ?? [];
 
   return (
-    <div id="top" className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
+    <DynamicEnvironmentProvider>
+    <div id="top" className="min-h-screen text-foreground relative overflow-x-hidden">
+      <GlobalEnvironment />
       <Ambience />
       <Nav />
       <main className="relative">
@@ -85,7 +92,11 @@ function Landing() {
         )}
       </main>
       <Footer />
+      <div className="pointer-events-auto fixed bottom-4 right-4 z-40">
+        <EnvironmentSwitcher />
+      </div>
     </div>
+    </DynamicEnvironmentProvider>
   );
 }
 
