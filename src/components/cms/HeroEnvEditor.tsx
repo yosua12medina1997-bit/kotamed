@@ -213,6 +213,81 @@ export function HeroEnvEditor() {
       </section>
 
       <section className="glass rounded-3xl bg-white/70 p-6">
+        <h3 className="text-[13px] font-extrabold">Dynamic Environment (ambiente global)</h3>
+        <p className="text-[12px] text-muted-foreground">
+          El laboratorio futurista se extiende por capas detrás de toda la página
+          (skyline, ventanales, arquitectura, luz, hologramas) con parallax sutil.
+        </p>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <div className={label}>Imagen de extensión del escenario (URL)</div>
+            <input
+              className={input}
+              placeholder="Predeterminada de KotaMed"
+              value={cfg.envImage ?? ""}
+              onChange={(e) => set("envImage", e.target.value.trim() || null)}
+            />
+          </div>
+          <div>
+            <div className={label}>Imagen principal del laboratorio (URL)</div>
+            <input
+              className={input}
+              placeholder="Predeterminada de KotaMed"
+              value={cfg.image ?? ""}
+              onChange={(e) => set("image", e.target.value.trim() || null)}
+            />
+          </div>
+        </div>
+        <div className="mt-5 grid gap-5 md:grid-cols-4">
+          <Slider
+            label={`Blur ambiental · ${cfg.envBlur}px`}
+            min={0}
+            max={24}
+            step={1}
+            value={cfg.envBlur}
+            onChange={(v) => set("envBlur", v)}
+          />
+          <Slider
+            label={`Opacidad del entorno · ${cfg.envOpacity.toFixed(2)}`}
+            min={0.2}
+            max={1}
+            step={0.05}
+            value={cfg.envOpacity}
+            onChange={(v) => set("envOpacity", v)}
+          />
+          <Slider
+            label={`Overlay / legibilidad · ${cfg.envOverlay.toFixed(2)}`}
+            min={0}
+            max={0.95}
+            step={0.05}
+            value={cfg.envOverlay}
+            onChange={(v) => set("envOverlay", v)}
+          />
+          <Slider
+            label={`Profundidad del parallax · ${cfg.envDepth.toFixed(2)}`}
+            min={0}
+            max={2}
+            step={0.1}
+            value={cfg.envDepth}
+            onChange={(v) => set("envDepth", v)}
+          />
+        </div>
+        <div className="mt-5 flex flex-wrap gap-5">
+          <Toggle
+            label="Activar ambiente dinámico global"
+            checked={cfg.envEnabled}
+            onChange={(v) => set("envEnabled", v)}
+          />
+          <Toggle label="Activar parallax" checked={cfg.envParallax} onChange={(v) => set("envParallax", v)} />
+          <Toggle
+            label="Ambiente automático por hora local"
+            checked={cfg.envAuto}
+            onChange={(v) => set("envAuto", v)}
+          />
+        </div>
+      </section>
+
+      <section className="glass rounded-3xl bg-white/70 p-6">
         <h3 className="text-[13px] font-extrabold">Especialidades interactivas</h3>
         <p className="text-[12px] text-muted-foreground">
           Posición en porcentaje sobre la escena (X horizontal, Y vertical).
