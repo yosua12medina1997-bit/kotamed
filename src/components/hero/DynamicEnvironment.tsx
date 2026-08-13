@@ -148,7 +148,10 @@ export function GlobalEnvironment() {
   const opacity = Math.max(0.2, Math.min(1, cfg.envOpacity));
   const blur = Math.max(0, Math.min(24, cfg.envBlur));
   const overlay = Math.max(0, Math.min(0.95, cfg.envOverlay));
-  const bright = 0.7 + active.ambient * 0.5 * cfg.lightIntensity;
+  // El escenario se "lava" en luz para que el contenido oscuro siga legible
+  // sobre él, sin dejar de percibirse el laboratorio.
+  const bright = (1.55 + active.ambient * 0.5) * cfg.lightIntensity;
+  const wash = `saturate(${0.45 + active.glow * 0.25}) contrast(0.82)`;
   const glow = active.glow * cfg.glowIntensity;
   const accent = cfg.accent;
 
@@ -183,7 +186,7 @@ export function GlobalEnvironment() {
           decoding="async"
           className="size-full object-cover object-[50%_35%]"
           style={{
-            filter: `${active.filter} brightness(${bright}) blur(${Math.max(2, blur * 0.6)}px)`,
+            filter: `brightness(${bright}) ${wash} blur(${Math.max(4, blur * 1.4)}px)`,
             transition: `filter ${transition}`,
           }}
         />
@@ -228,7 +231,7 @@ export function GlobalEnvironment() {
           decoding="async"
           className="size-full object-cover object-[50%_85%]"
           style={{
-            filter: `${active.filter} brightness(${bright * 0.9}) blur(${blur}px)`,
+            filter: `brightness(${bright * 1.05}) ${wash} blur(${Math.max(6, blur * 1.8)}px)`,
             transition: `filter ${transition}`,
           }}
         />
@@ -342,11 +345,11 @@ export function GlobalEnvironment() {
         className="absolute inset-0"
         style={{
           background: `linear-gradient(180deg, oklch(0.99 0.012 ${230 +
-            (1 - active.ambient) * 30} / ${(0.5 + (1 - active.ambient) * 0.26) *
+            (1 - active.ambient) * 30} / ${(0.22 + (1 - active.ambient) * 0.16) *
             (overlay / 0.72)}) 0%, oklch(0.98 0.014 ${230 +
-            (1 - active.ambient) * 30} / ${(0.62 + (1 - active.ambient) * 0.24) *
-            (overlay / 0.72)}) 55%, oklch(0.99 0.010 235 / ${(0.58 +
-            (1 - active.ambient) * 0.24) *
+            (1 - active.ambient) * 30} / ${(0.30 + (1 - active.ambient) * 0.18) *
+            (overlay / 0.72)}) 55%, oklch(0.99 0.010 235 / ${(0.28 +
+            (1 - active.ambient) * 0.18) *
             (overlay / 0.72)}) 100%)`,
           transition: `background ${transition}`,
         }}
