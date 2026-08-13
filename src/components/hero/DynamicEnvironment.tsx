@@ -312,29 +312,21 @@ export function GlobalEnvironment() {
         </div>
       )}
 
-      {/* 6 · ELEMENTOS DECORATIVOS: rejilla holográfica de piso + escaneo */}
+      {/* 6 · ELEMENTOS DECORATIVOS: rejilla holográfica de piso.
+          La línea de escaneo vertical vive únicamente dentro del Hero. */}
       {!lowPerf && !reduced && (
-        <>
-          <div
-            className="absolute inset-x-0 bottom-0 h-[34%] opacity-[0.18]"
-            style={{
-              backgroundImage: `linear-gradient(90deg, ${accent}55 1px, transparent 1px), linear-gradient(180deg, ${accent}44 1px, transparent 1px)`,
-              backgroundSize: "8% 14%",
-              maskImage: "linear-gradient(0deg, black, transparent)",
-              transform: "perspective(600px) rotateX(58deg)",
-              transformOrigin: "bottom",
-            }}
-          />
-          <div className="absolute inset-y-0 right-[8%] w-[36%] overflow-hidden">
-            <span
-              className="absolute inset-x-0 h-28 kotaro-spark"
-              style={{
-                background: `linear-gradient(180deg, transparent, color-mix(in oklab, ${accent} 16%, transparent), transparent)`,
-              }}
-            />
-          </div>
-        </>
+        <div
+          className="absolute inset-x-0 bottom-0 h-[34%] opacity-[0.18]"
+          style={{
+            backgroundImage: `linear-gradient(90deg, ${accent}55 1px, transparent 1px), linear-gradient(180deg, ${accent}44 1px, transparent 1px)`,
+            backgroundSize: "8% 14%",
+            maskImage: "linear-gradient(0deg, black, transparent)",
+            transform: "perspective(600px) rotateX(58deg)",
+            transformOrigin: "bottom",
+          }}
+        />
       )}
+
 
       {/* Escena principal, apenas insinuada como profundidad lateral */}
       {!lowPerf && (
