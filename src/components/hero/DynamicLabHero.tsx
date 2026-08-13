@@ -280,58 +280,6 @@ export function DynamicLabHero() {
   );
 }
 
-function HoloPanel({
-  label,
-  accent,
-  delay,
-  animate,
-}: {
-  label: string;
-  accent: string;
-  delay: number;
-  animate: boolean;
-}) {
-  return (
-    <div
-      className={`w-52 rounded-2xl border border-white/15 bg-[oklch(0.2_0.04_262_/_0.42)] p-3.5 backdrop-blur-xl ${
-        animate ? "animate-float-slow" : ""
-      }`}
-      style={{ animationDelay: `-${delay}s` }}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[11.5px] font-extrabold tracking-tight text-white">
-          {label}
-        </span>
-        <span
-          className="size-1.5 shrink-0 rounded-full"
-          style={{ background: accent, boxShadow: `0 0 10px ${accent}` }}
-        />
-      </div>
-      <svg viewBox="0 0 120 24" className="mt-2 w-full" fill="none" aria-hidden>
-        <path
-          d="M0 14h26l5-9 6 18 5-9h22l4-6 5 12 4-6h43"
-          stroke={accent}
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          className={animate ? "animate-ecg" : ""}
-          opacity="0.85"
-        />
-      </svg>
-      <div className="mt-1.5 flex gap-1">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <span
-            key={i}
-            className="h-1 flex-1 rounded-full"
-            style={{
-              background: `color-mix(in oklab, ${accent} ${18 + i * 12}%, transparent)`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function Particles({ accent }: { accent: string }) {
   const dots = [
     { x: 52, y: 22, d: 0 },
