@@ -18,6 +18,7 @@ import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as ApiCmsImageRouteImport } from './routes/api/cms-image'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedBienvenidaRouteImport } from './routes/_authenticated/bienvenida'
 import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
 import { Route as AuthenticatedAdmisionRouteImport } from './routes/_authenticated/admision'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -77,6 +78,11 @@ const ApiCmsImageRoute = ApiCmsImageRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBienvenidaRoute = AuthenticatedBienvenidaRouteImport.update({
+  id: '/bienvenida',
+  path: '/bienvenida',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAnatomyLabRoute = AuthenticatedAnatomyLabRouteImport.update({
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/p/$slug': typeof PSlugRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/p/$slug': typeof PSlugRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/admision': typeof AuthenticatedAdmisionRoute
   '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/_authenticated/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/p/$slug': typeof PSlugRoute
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admision'
     | '/anatomy-lab'
+    | '/bienvenida'
     | '/dashboard'
     | '/api/cms-image'
     | '/p/$slug'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admision'
     | '/anatomy-lab'
+    | '/bienvenida'
     | '/dashboard'
     | '/api/cms-image'
     | '/p/$slug'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/admision'
     | '/_authenticated/anatomy-lab'
+    | '/_authenticated/bienvenida'
     | '/_authenticated/dashboard'
     | '/api/cms-image'
     | '/p/$slug'
@@ -415,6 +427,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/bienvenida': {
+      id: '/_authenticated/bienvenida'
+      path: '/bienvenida'
+      fullPath: '/bienvenida'
+      preLoaderRoute: typeof AuthenticatedBienvenidaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/anatomy-lab': {
@@ -551,6 +570,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAdmisionRoute: typeof AuthenticatedAdmisionRoute
   AuthenticatedAnatomyLabRoute: typeof AuthenticatedAnatomyLabRoute
+  AuthenticatedBienvenidaRoute: typeof AuthenticatedBienvenidaRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
 }
 
@@ -558,6 +578,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAdmisionRoute: AuthenticatedAdmisionRoute,
   AuthenticatedAnatomyLabRoute: AuthenticatedAnatomyLabRoute,
+  AuthenticatedBienvenidaRoute: AuthenticatedBienvenidaRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
 }
 
