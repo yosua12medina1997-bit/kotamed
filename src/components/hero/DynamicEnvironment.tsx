@@ -350,18 +350,18 @@ export function GlobalEnvironment() {
         </div>
       )}
 
-      {/* 7 · OVERLAY DE LEGIBILIDAD — velo de cristal esmerilado.
-          Se aclara/oscurece según el ambiente activo, pero nunca oculta el
-          laboratorio: el escenario sigue siendo perceptible detrás. */}
+      {/* 7 · OVERLAY DE LEGIBILIDAD — velo profundo (interfaz oscura).
+          El laboratorio sigue percibiéndose detrás, pero el contenido se lee
+          siempre con contraste alto sobre el ambiente activo. */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(180deg, oklch(0.99 0.012 ${230 +
-            (1 - active.ambient) * 30} / ${(0.22 + (1 - active.ambient) * 0.16) *
-            (overlay / 0.72)}) 0%, oklch(0.98 0.014 ${230 +
-            (1 - active.ambient) * 30} / ${(0.30 + (1 - active.ambient) * 0.18) *
-            (overlay / 0.72)}) 55%, oklch(0.99 0.010 235 / ${(0.28 +
+          background: `linear-gradient(180deg, oklch(0.15 0.04 262 / ${(0.5 +
+            (1 - active.ambient) * 0.2) *
+            (overlay / 0.72)}) 0%, oklch(0.13 0.04 262 / ${(0.66 +
             (1 - active.ambient) * 0.18) *
+            (overlay / 0.72)}) 55%, oklch(0.12 0.035 262 / ${(0.78 +
+            (1 - active.ambient) * 0.12) *
             (overlay / 0.72)}) 100%)`,
           transition: `background ${transition}`,
         }}
@@ -370,9 +370,10 @@ export function GlobalEnvironment() {
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(120% 100% at 50% 0%, transparent 45%, oklch(0.55 0.05 250 / 0.18) 100%)",
+            "radial-gradient(120% 100% at 50% 0%, transparent 45%, oklch(0.10 0.03 262 / 0.55) 100%)",
         }}
       />
+
     </div>
   );
 }
