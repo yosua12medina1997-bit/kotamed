@@ -3,9 +3,9 @@
  *
  * Escena de laboratorio médico futurista que evoluciona según la hora local del
  * usuario (7 estados ambientales con transiciones suaves), con control manual de
- * ambiente, indicador de hora, paneles holográficos, hotspots de especialidades
- * sobre el cuerpo humano y efectos premium (parallax, glow, partículas, ECG).
+ * ambiente, indicador de hora y efectos premium (parallax, glow, partículas).
  */
+
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -45,7 +45,6 @@ export function DynamicLabHero() {
 
   const sceneRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hot, setHot] = useState<string | null>(null);
 
   useEffect(() => {
     if (reduced || lowPerf) return;
@@ -146,59 +145,6 @@ export function DynamicLabHero() {
             </>
           )}
 
-          {/* ---- Hotspots de especialidades ---- */}
-          {cfg.organInteraction &&
-            cfg.specialties.map((s) => (
-              <div
-                key={s.key}
-                className="absolute hidden lg:block"
-                style={{ left: `${s.x}%`, top: `${s.y}%` }}
-                onMouseEnter={() => setHot(s.key)}
-                onMouseLeave={() => setHot((h) => (h === s.key ? null : h))}
-              >
-                <button
-                  type="button"
-                  aria-label={`${s.label} · ${s.organ}`}
-                  className="grid size-4 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-transform hover:scale-125"
-                  style={{
-                    background: `color-mix(in oklab, ${cfg.accent} 70%, transparent)`,
-                    boxShadow: `0 0 0 6px color-mix(in oklab, ${cfg.accent} 14%, transparent), 0 0 22px color-mix(in oklab, ${cfg.accent} 55%, transparent)`,
-                  }}
-                >
-                  <span className="size-1.5 rounded-full bg-white/90" />
-                </button>
-                {hot === s.key && (
-                  <div className="absolute left-4 top-2 w-60 rounded-2xl border border-white/15 bg-[oklch(0.18_0.04_262_/_0.72)] p-3.5 text-white backdrop-blur-xl">
-                    <div
-                      className="text-[10px] font-bold uppercase tracking-[0.18em]"
-                      style={{ color: cfg.accent }}
-                    >
-                      {s.organ}
-                    </div>
-                    <div className="mt-0.5 text-sm font-extrabold tracking-tight">{s.label}</div>
-                    <p className="mt-1.5 text-[11.5px] leading-relaxed text-white/70">
-                      {s.description}
-                    </p>
-                    <Link
-                      to={s.href || "/programas"}
-                      className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-bold"
-                      style={{ color: cfg.accent }}
-                    >
-                      Explorar área
-                      <ArrowRight className="size-3" strokeWidth={2.5} />
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ))}
-
-          {/* ---- Paneles holográficos flotantes ---- */}
-          <div className="pointer-events-none absolute right-6 top-14 bottom-24 hidden gap-3 xl:flex xl:flex-col xl:justify-between">
-            {cfg.panels.slice(0, 6).map((p, i) => (
-              <HoloPanel key={p} label={p} accent={cfg.accent} delay={i * 0.6} animate={!reduced} />
-            ))}
-          </div>
-
           {/* ---- Contenido textual ---- */}
           <div className="relative z-10 flex min-h-[620px] flex-col justify-center px-7 py-14 sm:px-10 lg:min-h-[700px] lg:max-w-[54%] lg:px-14">
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-white/80 backdrop-blur-md">
@@ -254,20 +200,6 @@ export function DynamicLabHero() {
                 </span>
               ))}
             </div>
-
-            {/* Tarjetas de especialidad en móvil/tablet */}
-            {cfg.organInteraction && (
-              <div className="mt-8 flex flex-wrap gap-2 xl:hidden">
-                {cfg.specialties.slice(0, 4).map((s) => (
-                  <span
-                    key={s.key}
-                    className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10.5px] font-bold text-white/80 backdrop-blur-md"
-                  >
-                    {s.label}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* ---- Barra inferior: hora + control de ambiente ---- */}
@@ -345,58 +277,6 @@ export function DynamicLabHero() {
         </div>
       </div>
     </section>
-  );
-}
-
-function HoloPanel({
-  label,
-  accent,
-  delay,
-  animate,
-}: {
-  label: string;
-  accent: string;
-  delay: number;
-  animate: boolean;
-}) {
-  return (
-    <div
-      className={`w-52 rounded-2xl border border-white/15 bg-[oklch(0.2_0.04_262_/_0.42)] p-3.5 backdrop-blur-xl ${
-        animate ? "animate-float-slow" : ""
-      }`}
-      style={{ animationDelay: `-${delay}s` }}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-[11.5px] font-extrabold tracking-tight text-white">
-          {label}
-        </span>
-        <span
-          className="size-1.5 shrink-0 rounded-full"
-          style={{ background: accent, boxShadow: `0 0 10px ${accent}` }}
-        />
-      </div>
-      <svg viewBox="0 0 120 24" className="mt-2 w-full" fill="none" aria-hidden>
-        <path
-          d="M0 14h26l5-9 6 18 5-9h22l4-6 5 12 4-6h43"
-          stroke={accent}
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          className={animate ? "animate-ecg" : ""}
-          opacity="0.85"
-        />
-      </svg>
-      <div className="mt-1.5 flex gap-1">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <span
-            key={i}
-            className="h-1 flex-1 rounded-full"
-            style={{
-              background: `color-mix(in oklab, ${accent} ${18 + i * 12}%, transparent)`,
-            }}
-          />
-        ))}
-      </div>
-    </div>
   );
 }
 

@@ -275,15 +275,24 @@ export function useSaveHeroConfig() {
   });
 }
 
-/** Hora local en formato HH:MM y zona detectada, refrescada cada 30 s. */
+/** Hora local en formato HH:MM y zona detectada, refrescada cada 30 s.
+ *  Inicializa con valores estables para evitar saltos de hidratación SSR/cliente.
+ */
 export function useLocalClock() {
-  const [now, setNow] = useState(() => new Date());
+  const [hydrated, setHydrated] = useState(false);
+  const [now, setNow] = useState(() => new Date(0));
   useEffect(() => {
+    setHydrated(true);
+    setNow(new Date());
     const id = window.setInterval(() => setNow(new Date()), 30_000);
     return () => window.clearInterval(id);
   }, []);
 
   return useMemo(() => {
+    if (!hydrated) {
+      // Valores estables durante SSR e hidratación; se actualizan al montar.
+      return { hour: 12, time: "--:--", city: "" };
+    }
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     const city = zone.split("/").pop()?.replace(/_/g, " ") ?? "";
     return {
@@ -291,7 +300,7 @@ export function useLocalClock() {
       time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false }),
       city,
     };
-  }, [now]);
+  }, [now, hydrated]);
 }
 
 /** Detecta preferencia de movimiento reducido. */
