@@ -217,93 +217,9 @@ function Nav() {
 /* -------------------------------- Hero ---------------------------- */
 
 function Hero() {
-  return (
-    <section className="relative mx-auto max-w-7xl px-6 lg:px-10 pt-14 pb-10 lg:pt-24 lg:pb-20">
-      <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
-        {/* Left — message */}
-        <div className="animate-slide-up">
-          <span className="inline-flex items-center gap-2 rounded-full glass px-3.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-            <Crown className="size-3.5 text-primary" strokeWidth={2.5} />
-            Plataforma líder en educación médica
-          </span>
-
-          <h1 className="mt-7 text-5xl font-extrabold leading-[1.02] tracking-tighter text-balance md:text-6xl lg:text-[4.25rem]">
-            Formamos hoy,
-            <br />
-            cuidamos <span className="text-primary">el mañana</span>
-          </h1>
-
-          <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-muted-foreground text-pretty">
-            Plataforma integral de educación médica con inteligencia artificial. Aprende,
-            practica y evoluciona con casos reales, simulaciones y acompañamiento
-            personalizado.
-          </p>
-
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              to="/programas"
-              className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-7 py-4 text-sm font-bold text-primary-foreground transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/25"
-            >
-              <Rocket className="size-4" strokeWidth={2.25} />
-              Comenzar mi aprendizaje
-              <ArrowRight
-                className="size-4 transition-transform group-hover:translate-x-1"
-                strokeWidth={2.5}
-              />
-            </Link>
-            <Link
-              to="/dashboard"
-              className="group inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-white/70 px-7 py-4 text-sm font-bold backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <span className="grid size-6 place-items-center rounded-full border border-border">
-                <Play className="size-3 fill-current" strokeWidth={0} />
-              </span>
-              Explorar plataforma
-            </Link>
-          </div>
-
-          <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-3 text-[11.5px] font-semibold text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Activity className="size-3.5 text-primary" strokeWidth={2.5} />
-              Contenido actualizado
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Brain className="size-3.5 text-primary" strokeWidth={2.5} />
-              Simulaciones IA
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="size-3.5 text-primary" strokeWidth={2.5} />
-              Certificación premium
-            </span>
-          </div>
-        </div>
-
-        {/* Right — centered Core emblem with floating dashboard cards */}
-        <div className="relative mx-auto w-full max-w-2xl lg:max-w-3xl">
-          <div className="flex justify-center lg:-translate-x-[22%] lg:-translate-y-1 xl:-translate-x-[26%]">
-            <CoreEmblem />
-          </div>
-          <div className="hidden lg:absolute lg:inset-y-0 lg:right-0 lg:flex lg:flex-col lg:justify-center lg:gap-3 lg:translate-x-8">
-            <div className="w-56">
-              <ProgressCard />
-            </div>
-            <div className="w-56">
-              <LiveClassCard />
-            </div>
-            <div className="w-56">
-              <SimulationCard />
-            </div>
-          </div>
-          <div className="mt-6 grid gap-3.5 lg:hidden">
-            <ProgressCard />
-            <LiveClassCard />
-            <SimulationCard />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  return <DynamicLabHero />;
 }
+
 
 function CoreEmblem() {
   return (
