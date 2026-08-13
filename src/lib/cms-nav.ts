@@ -140,6 +140,7 @@ type SeedItem = {
 
 export const DEFAULT_HEADER: SeedItem[] = [
   { label: "Inicio", href: "/", icon: "Home" },
+  { label: "Programas", href: "/programas", icon: "Layers" },
   {
     label: "Academia",
     href: "/programas",
