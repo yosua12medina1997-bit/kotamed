@@ -6,7 +6,7 @@
  * blanco y premium → CTA final que vuelve al universo del Hero.
  * Todo el contenido es editable desde CMS Studio (scope page-ciencias-basicas).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -43,6 +43,27 @@ export function CienciasBasicasPage() {
   const cfg = data;
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
+
+  // SEO editable desde CMS Studio (título / descripción / imagen social).
+  const seo = cfg?.seo;
+  useEffect(() => {
+    if (!seo) return;
+    if (seo.title) document.title = seo.title;
+    const set = (sel: string, attr: string, key: string, content: string) => {
+      if (!content) return;
+      let el = document.head.querySelector<HTMLMetaElement>(sel);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+    };
+    set('meta[name="description"]', "name", "description", seo.description);
+    set('meta[property="og:title"]', "property", "og:title", seo.title);
+    set('meta[property="og:description"]', "property", "og:description", seo.description);
+    set('meta[property="og:image"]', "property", "og:image", seo.ogImage);
+  }, [seo]);
 
 
   if (!cfg) {
