@@ -146,59 +146,6 @@ export function DynamicLabHero() {
             </>
           )}
 
-          {/* ---- Hotspots de especialidades ---- */}
-          {cfg.organInteraction &&
-            cfg.specialties.map((s) => (
-              <div
-                key={s.key}
-                className="absolute hidden lg:block"
-                style={{ left: `${s.x}%`, top: `${s.y}%` }}
-                onMouseEnter={() => setHot(s.key)}
-                onMouseLeave={() => setHot((h) => (h === s.key ? null : h))}
-              >
-                <button
-                  type="button"
-                  aria-label={`${s.label} · ${s.organ}`}
-                  className="grid size-4 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-transform hover:scale-125"
-                  style={{
-                    background: `color-mix(in oklab, ${cfg.accent} 70%, transparent)`,
-                    boxShadow: `0 0 0 6px color-mix(in oklab, ${cfg.accent} 14%, transparent), 0 0 22px color-mix(in oklab, ${cfg.accent} 55%, transparent)`,
-                  }}
-                >
-                  <span className="size-1.5 rounded-full bg-white/90" />
-                </button>
-                {hot === s.key && (
-                  <div className="absolute left-4 top-2 w-60 rounded-2xl border border-white/15 bg-[oklch(0.18_0.04_262_/_0.72)] p-3.5 text-white backdrop-blur-xl">
-                    <div
-                      className="text-[10px] font-bold uppercase tracking-[0.18em]"
-                      style={{ color: cfg.accent }}
-                    >
-                      {s.organ}
-                    </div>
-                    <div className="mt-0.5 text-sm font-extrabold tracking-tight">{s.label}</div>
-                    <p className="mt-1.5 text-[11.5px] leading-relaxed text-white/70">
-                      {s.description}
-                    </p>
-                    <Link
-                      to={s.href || "/programas"}
-                      className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-bold"
-                      style={{ color: cfg.accent }}
-                    >
-                      Explorar área
-                      <ArrowRight className="size-3" strokeWidth={2.5} />
-                    </Link>
-                  </div>
-                )}
-              </div>
-            ))}
-
-          {/* ---- Paneles holográficos flotantes ---- */}
-          <div className="pointer-events-none absolute right-6 top-14 bottom-24 hidden gap-3 xl:flex xl:flex-col xl:justify-between">
-            {cfg.panels.slice(0, 6).map((p, i) => (
-              <HoloPanel key={p} label={p} accent={cfg.accent} delay={i * 0.6} animate={!reduced} />
-            ))}
-          </div>
-
           {/* ---- Contenido textual ---- */}
           <div className="relative z-10 flex min-h-[620px] flex-col justify-center px-7 py-14 sm:px-10 lg:min-h-[700px] lg:max-w-[54%] lg:px-14">
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.16em] text-white/80 backdrop-blur-md">
