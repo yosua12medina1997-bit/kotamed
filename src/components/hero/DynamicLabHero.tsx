@@ -201,20 +201,6 @@ export function DynamicLabHero() {
                 </span>
               ))}
             </div>
-
-            {/* Tarjetas de especialidad en móvil/tablet */}
-            {cfg.organInteraction && (
-              <div className="mt-8 flex flex-wrap gap-2 xl:hidden">
-                {cfg.specialties.slice(0, 4).map((s) => (
-                  <span
-                    key={s.key}
-                    className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10.5px] font-bold text-white/80 backdrop-blur-md"
-                  >
-                    {s.label}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* ---- Barra inferior: hora + control de ambiente ---- */}
