@@ -252,6 +252,8 @@ export function DynamicLabHero({ showEnvControls = false }: { showEnvControls?: 
               )}
             </div>
           </div>
+          )}
+
 
           {/* Frase ambiental */}
           <span
