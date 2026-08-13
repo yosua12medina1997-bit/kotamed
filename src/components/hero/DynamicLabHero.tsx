@@ -186,8 +186,10 @@ export function DynamicLabHero({ showEnvControls = false }: { showEnvControls?: 
             </div>
           </div>
 
-          {/* ---- Barra inferior: hora + control de ambiente ---- */}
+          {/* ---- Barra inferior: hora + control de ambiente (solo admin) ---- */}
+          {showEnvControls && (
           <div className="absolute inset-x-4 bottom-4 z-20 flex flex-wrap items-center justify-between gap-3 sm:inset-x-7 sm:bottom-6">
+
             <div className="flex items-center gap-2 rounded-full border border-white/15 bg-[oklch(0.16_0.04_262_/_0.55)] px-3.5 py-2 text-[11px] font-semibold text-white/75 backdrop-blur-md">
               <span
                 className="size-1.5 rounded-full"
