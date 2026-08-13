@@ -38,6 +38,48 @@ import {
 
 const STORAGE_KEY = "kotamed:env";
 
+/* --- Store global del ambiente elegido: sincroniza cualquier control de la
+   página (hero, barra flotante) sin depender del árbol de componentes. --- */
+let manualValue: EnvKey | null = null;
+let hydratedStore = false;
+const listeners = new Set<() => void>();
+
+function readStored(): EnvKey | null {
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    return saved && saved !== "auto" && ENV_BY_KEY[saved as EnvKey] ? (saved as EnvKey) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setManualGlobal(k: EnvKey | null) {
+  manualValue = k;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, k ?? "auto");
+  } catch {
+    /* almacenamiento no disponible */
+  }
+  listeners.forEach((l) => l());
+}
+
+function useManualEnv(): [EnvKey | null, (k: EnvKey | null) => void] {
+  const [value, setValue] = useState<EnvKey | null>(manualValue);
+  useEffect(() => {
+    if (!hydratedStore) {
+      hydratedStore = true;
+      manualValue = readStored();
+    }
+    const on = () => setValue(manualValue);
+    listeners.add(on);
+    on();
+    return () => {
+      listeners.delete(on);
+    };
+  }, []);
+  return [value, setManualGlobal];
+}
+
 type EnvContextValue = {
   cfg: HeroConfig;
   active: EnvState;
@@ -53,7 +95,7 @@ type EnvContextValue = {
 
 const EnvContext = createContext<EnvContextValue | null>(null);
 
-/** Estado ambiental compartido. Si no hay provider, calcula uno local. */
+/** Estado ambiental compartido (funciona con o sin provider). */
 export function useEnvironment(): EnvContextValue {
   const ctx = useContext(EnvContext);
   const fallback = useEnvironmentValue();
@@ -66,33 +108,11 @@ function useEnvironmentValue(): EnvContextValue {
   const clock = useLocalClock();
   const reduced = usePrefersReducedMotion();
   const lowPerf = useLowPerfMode();
-  const [manual, setManualState] = useState<EnvKey | null>(null);
-
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved && saved !== "auto" && ENV_BY_KEY[saved as EnvKey]) {
-        setManualState(saved as EnvKey);
-      }
-    } catch {
-      /* almacenamiento no disponible */
-    }
-  }, []);
-
-  const setManual = (k: EnvKey | null) => {
-    setManualState(k);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, k ?? "auto");
-    } catch {
-      /* almacenamiento no disponible */
-    }
-  };
+  const [manual, setManual] = useManualEnv();
 
   const autoAllowed = cfg.envAuto && cfg.autoMode;
   const auto = manual === null && autoAllowed;
-  const active = auto
-    ? envForHour(clock.hour)
-    : ENV_BY_KEY[manual ?? "noche"];
+  const active = auto ? envForHour(clock.hour) : ENV_BY_KEY[manual ?? "noche"];
   const transition = `${reduced ? 1.2 : Math.max(2, cfg.transitionSeconds)}s ease-in-out`;
 
   return useMemo(
