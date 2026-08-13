@@ -1,5 +1,4 @@
 import {
-  DynamicEnvironmentProvider,
   EnvironmentSwitcher,
   GlobalEnvironment,
 } from "@/components/hero/DynamicEnvironment";
@@ -38,6 +37,9 @@ function ProgramsIndex() {
 
     <div className="min-h-screen text-foreground relative overflow-hidden">
       <GlobalEnvironment />
+      <div className="pointer-events-auto fixed bottom-4 right-4 z-40">
+        <EnvironmentSwitcher />
+      </div>
       <div
         aria-hidden
         className="pointer-events-none absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-aurora"

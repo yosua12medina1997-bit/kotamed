@@ -4,7 +4,6 @@
  * URL: /p/<slug>?preview=draft → borrador (solo con permisos de administración)
  */
 import {
-  DynamicEnvironmentProvider,
   EnvironmentSwitcher,
   GlobalEnvironment,
 } from "@/components/hero/DynamicEnvironment";
@@ -58,6 +57,9 @@ function CmsPublicPage() {
   return (
     <div className="min-h-screen text-foreground">
       <GlobalEnvironment />
+      <div className="pointer-events-auto fixed bottom-4 right-4 z-40">
+        <EnvironmentSwitcher />
+      </div>
       {isDraft && (
         <div className="flex flex-wrap items-center justify-center gap-2 bg-amber-100 px-4 py-1.5 text-[11px] font-bold text-amber-900">
           <Eye className="size-3.5" /> Vista previa de cambios (borrador) — no visible para el público
