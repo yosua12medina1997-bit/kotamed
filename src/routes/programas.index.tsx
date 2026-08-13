@@ -54,7 +54,7 @@ function ProgramsIndex() {
         }}
       />
 
-      <main className="relative z-10 bg-background/10 max-w-7xl mx-auto px-6 md:px-10 py-14 relative">
+      <main className="relative z-10 bg-background/35 max-w-7xl mx-auto px-6 md:px-10 py-14 relative">
         <div className="flex items-center gap-3 mb-4">
           <Link
             to="/"
