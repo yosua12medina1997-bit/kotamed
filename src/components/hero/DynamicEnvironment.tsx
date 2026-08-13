@@ -150,8 +150,8 @@ export function GlobalEnvironment() {
   const overlay = Math.max(0, Math.min(0.95, cfg.envOverlay));
   // El escenario se "lava" en luz para que el contenido oscuro siga legible
   // sobre él, sin dejar de percibirse el laboratorio.
-  const bright = (1.55 + active.ambient * 0.5) * cfg.lightIntensity;
-  const wash = `saturate(${0.45 + active.glow * 0.25}) contrast(0.82)`;
+  const bright = (0.9 + active.ambient * 0.35) * cfg.lightIntensity;
+  const wash = `saturate(${0.7 + active.glow * 0.3}) contrast(0.95)`;
   const glow = active.glow * cfg.glowIntensity;
   const accent = cfg.accent;
 
