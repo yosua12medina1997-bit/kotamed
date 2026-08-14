@@ -1088,35 +1088,20 @@ function Inspector({
     }
   };
 
-  const genImage = async (target: "block" | number) => {
-    const base = typeof target === "number" ? items[target]?.title : props.title;
-    const prompt = window.prompt("Describe la imagen a generar", base || "Equipo médico en formación");
-    if (!prompt) return;
-    setImgBusy(true);
+  const upload = async (file: File, target: "block" | "poster" | number) => {
     try {
-      const res = await fetch("/api/cms-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const json = (await res.json()) as { data?: { b64_json?: string }[] };
-      const b64 = json.data?.[0]?.b64_json;
-      if (!b64) throw new Error("La IA no devolvió una imagen.");
-      const blob = await (await fetch(`data:image/png;base64,${b64}`)).blob();
-      const url = await uploadCmsMedia(blob, `${block.type}.png`);
-      if (typeof target === "number") {
-        setItems(items.map((it, i) => (i === target ? { ...it, image: url } : it)));
-      } else {
-        setProps({ image: url });
-      }
-      toast.success("Imagen generada");
+      const url = await uploadCmsMedia(file, file.name);
+      if (typeof target === "number") setItems(items.map((it, i) => (i === target ? { ...it, image: url } : it)));
+      else if (target === "poster") setProps({ poster: url });
+      else if (file.type.startsWith("video")) setProps({ video: url, videoKind: "upload" });
+      else setProps({ image: url });
+      toast.success("Archivo subido");
     } catch (e) {
       toast.error(String((e as { message?: string })?.message ?? e));
-    } finally {
-      setImgBusy(false);
     }
   };
+
+
 
   const upload = async (file: File, target: "block" | "poster" | number) => {
     try {
