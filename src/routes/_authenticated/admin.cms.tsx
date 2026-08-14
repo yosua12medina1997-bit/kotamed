@@ -1199,17 +1199,24 @@ function Inspector({
           <Input value={props.video ?? ""} onChange={(e) => setProps({ video: e.target.value })} />
         </Field>
         <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-xs font-semibold">
-          <Upload className="size-3.5" /> Subir video o miniatura
+          <Upload className="size-3.5" /> Subir archivo de video
           <input
             type="file"
             className="hidden"
-            accept="video/*,image/*"
+            accept="video/*"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) upload(f, f.type.startsWith("image") ? "poster" : "block");
+              if (f) upload(f, "block");
             }}
           />
         </label>
+        <ImagePicker
+          label="Miniatura (poster)"
+          value={props.poster}
+          onChange={(v) => setProps({ poster: v })}
+          aiHint={props.title ?? undefined}
+        />
+
         <div className="text-[11px] text-muted-foreground">Tipo de bloque: {BLOCK_LABEL[block.type]}</div>
       </div>
     );
