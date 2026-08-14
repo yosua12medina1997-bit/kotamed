@@ -1367,24 +1367,15 @@ function Inspector({
                 value={it.href ?? ""}
                 onChange={(v) => setItems(items.map((x, j) => (j === i ? { ...x, href: v } : x)))}
               />
-              <div className="flex items-center gap-1.5">
-                {it.image && <img src={it.image} alt="" className="size-10 rounded object-cover" />}
-                <Btn variant="ghost" onClick={() => genImage(i)}>
-                  <ImageIcon className="size-3" /> IA
-                </Btn>
-                <label className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-muted-foreground">
-                  <Upload className="size-3" /> Subir
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) upload(f, i);
-                    }}
-                  />
-                </label>
-              </div>
+              <ImagePicker
+                compact
+                value={it.image}
+                aiHint={it.title ?? undefined}
+                onChange={(v: string) =>
+                  setItems(items.map((x, j) => (j === i ? { ...x, image: v } : x)))
+                }
+              />
+
             </div>
           ))}
         </div>
