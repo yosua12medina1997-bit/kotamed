@@ -88,6 +88,7 @@ import { CienciasBasicasEditor } from "@/components/cms/CienciasBasicasEditor";
 import { CienciasClinicasEditor } from "@/components/cms/CienciasClinicasEditor";
 import { ProgramHubEditor } from "@/components/cms/ProgramHubEditor";
 
+import { ContentBuilder } from "@/components/cms/ContentBuilder";
 import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
 import { COLLECTIONS, useSeedCollections } from "@/lib/cms-collections";
 import { useSeedNav } from "@/lib/cms-nav";
@@ -116,6 +117,7 @@ type StudioView =
   | "rutas"
   | "navegacion"
   | "colecciones"
+  | "constructor"
   | "hero"
   | "bienvenida"
   | "ciencias"
@@ -134,6 +136,7 @@ const MODULES: { id: StudioView; label: string; hint: string; icon: React.Elemen
   { id: "ciencias", label: "Ciencias Básicas", hint: "Página pública /p/ciencias-basicas", icon: Sparkles },
   { id: "clinicas", label: "Ciencias Clínicas", hint: "Página pública /academia/ciencias-clinicas", icon: Sparkles },
   { id: "programas", label: "Programas (Hub)", hint: "Página pública /programas", icon: Sparkles },
+  { id: "constructor", label: "Constructor de contenido", hint: "Programas, bloques, temas y recursos", icon: Layers },
   { id: "colecciones", label: "Colecciones", hint: "Contenido reutilizable", icon: Recycle },
   { id: "sitio", label: "KOTAMED.APP", hint: "Sitio en producción", icon: Globe },
 ];
@@ -750,6 +753,10 @@ function CmsStudioPage() {
           <ProgramHubEditor />
         </div>
 
+      ) : view === "constructor" ? (
+        <div className="p-3">
+          <ContentBuilder />
+        </div>
       ) : view === "colecciones" ? (
         <div className="p-3">
           <CollectionsEditor />
