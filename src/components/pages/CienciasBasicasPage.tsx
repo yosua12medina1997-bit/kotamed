@@ -37,6 +37,8 @@ import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 const STEP_ICONS = [Dna, Layers, HeartPulse, Atom, Microscope, Stethoscope];
 const METHOD_ICONS = [Target, Brain, Atom, Stethoscope];
 const AUDIENCE_ICONS = [GraduationCap, Layers, Target, Users];
+const HOLO_ICONS = [Layers, Microscope, HeartPulse, Dna, Atom, ShieldCheck];
+
 
 export function CienciasBasicasPage() {
   const { data } = useCbConfig();
