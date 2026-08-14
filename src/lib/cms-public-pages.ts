@@ -57,13 +57,13 @@ const benefits = (title: string, subtitle: string, items: CmsItem[]): SeedBlock 
   style: st({ columns: 3 }),
 });
 
-const courses = (title: string, subtitle: string, items: CmsItem[], columns = 3): SeedBlock => ({
+const courses = (title: string, subtitle: string, items: CmsItem[], columns: 2 | 3 | 4 = 3): SeedBlock => ({
   type: "courses",
   props: { title, subtitle, items },
   style: st({ columns }),
 });
 
-const features = (title: string, subtitle: string, items: CmsItem[], columns = 4): SeedBlock => ({
+const features = (title: string, subtitle: string, items: CmsItem[], columns: 2 | 3 | 4 = 4): SeedBlock => ({
   type: "features",
   props: { title, subtitle, items },
   style: st({ columns, tone: "muted" }),
