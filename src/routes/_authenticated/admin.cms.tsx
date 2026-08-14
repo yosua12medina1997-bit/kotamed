@@ -94,6 +94,8 @@ import { WebsiteStudio } from "@/components/cms/WebsiteStudio";
 import { PagesManager } from "@/components/cms/PagesManager";
 import { RoutesManager } from "@/components/cms/RoutesManager";
 import { LinkPicker } from "@/components/cms/LinkPicker";
+import { ImagePicker } from "@/components/cms/ImagePicker";
+
 import { pagePath, useHomePageId } from "@/lib/cms-routes";
 import {
   logCmsAudit,
