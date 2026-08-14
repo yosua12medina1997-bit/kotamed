@@ -332,7 +332,7 @@ function FlashcardsPanel({ userId }: { userId: string }) {
                     { q: 3, label: "Bien" },
                     { q: 5, label: "Fácil" },
                   ].map((b) => (
-                    <Btn key={b.q} onClick={() => review.mutate({ card: c, quality: b.q })}>
+                    <Btn key={b.q} onClick={() => review.mutate({ card: c, grade: b.q })}>
                       {b.label}
                     </Btn>
                   ))}
