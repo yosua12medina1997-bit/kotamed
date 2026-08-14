@@ -40,7 +40,14 @@ const AUDIENCE_ICONS = [GraduationCap, Layers, Target, Users];
 
 export function CienciasBasicasPage() {
   const { data } = useCbConfig();
-  const cfg = data;
+  return <SciencePage cfg={data ?? null} />;
+}
+
+/**
+ * Renderizador compartido (Ciencias Básicas / Ciencias Clínicas):
+ * hero inmersivo + cuerpo académico blanco, todo dirigido por configuración.
+ */
+export function SciencePage({ cfg }: { cfg: CbConfig | null }) {
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
 
@@ -102,6 +109,7 @@ export function CienciasBasicasPage() {
     </div>
   );
 }
+
 
 /* ------------------------------- HERO ------------------------------- */
 
