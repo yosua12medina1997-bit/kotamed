@@ -204,12 +204,6 @@ export async function createAttempt(
   const { error: itemsError } = await db.from("apex_attempt_items").insert(items as never);
   if (itemsError) throw new Error(`No se pudo preparar el examen: ${itemsError.message}`);
 
-  await db
-    .from("apex_questions")
-    .update({ times_used: 1 } as never)
-    .in("id", [])
-    .then(() => undefined);
-
   return attempt.id as string;
 }
 
