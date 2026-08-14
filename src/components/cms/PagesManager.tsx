@@ -66,6 +66,7 @@ export function PagesManager({
   const publish = usePublishPage();
   const unpublish = useUnpublishPage();
   const { data: status } = usePublishStatus();
+  const seedPublic = useSeedPublicPages();
   const pending = useMemo(
     () => new Set((status?.rows ?? []).filter((r) => r.pending).map((r) => r.page.id)),
     [status],
