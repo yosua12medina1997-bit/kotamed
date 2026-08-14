@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   BarChart3,
   ClipboardCheck,
+  ClipboardList,
   BookOpen,
   Crown,
   GraduationCap,
@@ -18,6 +19,7 @@ import AdminTeachers from "@/components/admin/AdminTeachers";
 import AdminAnalytics from "@/components/admin/AdminAnalytics";
 import AdminAdmissions from "@/components/admin/AdminAdmissions";
 import AdminEnrollments from "@/components/admin/AdminEnrollments";
+import ApexStudio from "@/components/apex/ApexStudio";
 
 export const Route = createFileRoute("/_authenticated/admin/command")({
   head: () => ({
@@ -36,6 +38,7 @@ const SECTIONS = [
   { key: "matriculacion", label: "Matriculación manual", icon: GraduationCap },
   { key: "membresias", label: "Membresías y permisos", icon: Crown },
   { key: "docentes", label: "Docentes", icon: GraduationCap },
+  { key: "evaluaciones", label: "Evaluaciones (Apex)", icon: ClipboardList },
 ] as const;
 
 type SectionKey = (typeof SECTIONS)[number]["key"];
@@ -117,6 +120,7 @@ function CommandCenterPage() {
         {section === "matriculacion" && canEnroll === true && <AdminEnrollments />}
         {section === "membresias" && <AdminPlans />}
         {section === "docentes" && <AdminTeachers />}
+        {section === "evaluaciones" && <ApexStudio />}
       </div>
     </div>
   );

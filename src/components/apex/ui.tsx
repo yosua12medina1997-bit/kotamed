@@ -198,3 +198,82 @@ export function Pager({
     </div>
   );
 }
+
+export function Btn({
+  children,
+  onClick,
+  variant = "ghost",
+  disabled,
+  className,
+  type = "button",
+  title,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  variant?: "primary" | "ghost" | "danger" | "soft";
+  disabled?: boolean;
+  className?: string;
+  type?: "button" | "submit";
+  title?: string;
+}) {
+  const styles: Record<string, string> = {
+    primary: "bg-primary text-primary-foreground hover:opacity-90",
+    ghost: "border border-border bg-background hover:bg-muted",
+    soft: "bg-muted text-foreground hover:bg-muted/70",
+    danger: "border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100",
+  };
+  return (
+    <button
+      type={type}
+      title={title}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition disabled:opacity-50",
+        styles[variant],
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function Modal({
+  open,
+  onClose,
+  title,
+  subtitle,
+  children,
+  wide,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  wide?: boolean;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-foreground/40 p-4 backdrop-blur-sm sm:p-8">
+      <div
+        className={cn(
+          "mx-auto w-full rounded-3xl border border-border bg-card p-5 shadow-xl",
+          wide ? "max-w-5xl" : "max-w-2xl",
+        )}
+      >
+        <header className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-base font-extrabold tracking-tight">{title}</h3>
+            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+          </div>
+          <button onClick={onClose} className="rounded-lg p-2 hover:bg-muted" aria-label="Cerrar">
+            ✕
+          </button>
+        </header>
+        {children}
+      </div>
+    </div>
+  );
+}

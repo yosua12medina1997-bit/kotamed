@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProgramasIndexRouteImport } from './routes/programas.index'
+import { Route as ProgramasKotamedApexRouteImport } from './routes/programas.kotamed-apex'
 import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as ContenidoProgramRouteImport } from './routes/contenido.$program'
@@ -60,6 +61,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProgramasIndexRoute = ProgramasIndexRouteImport.update({
   id: '/programas/',
   path: '/programas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgramasKotamedApexRoute = ProgramasKotamedApexRouteImport.update({
+  id: '/programas/kotamed-apex',
+  path: '/programas/kotamed-apex',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgramasSlugRoute = ProgramasSlugRouteImport.update({
@@ -204,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/contenido/$program': typeof ContenidoProgramRoute
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
+  '/programas/kotamed-apex': typeof ProgramasKotamedApexRoute
   '/programas/': typeof ProgramasIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -233,6 +240,7 @@ export interface FileRoutesByTo {
   '/contenido/$program': typeof ContenidoProgramRoute
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
+  '/programas/kotamed-apex': typeof ProgramasKotamedApexRoute
   '/programas': typeof ProgramasIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -264,6 +272,7 @@ export interface FileRoutesById {
   '/contenido/$program': typeof ContenidoProgramRoute
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
+  '/programas/kotamed-apex': typeof ProgramasKotamedApexRoute
   '/programas/': typeof ProgramasIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -295,6 +304,7 @@ export interface FileRouteTypes {
     | '/contenido/$program'
     | '/p/$slug'
     | '/programas/$slug'
+    | '/programas/kotamed-apex'
     | '/programas/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -324,6 +334,7 @@ export interface FileRouteTypes {
     | '/contenido/$program'
     | '/p/$slug'
     | '/programas/$slug'
+    | '/programas/kotamed-apex'
     | '/programas'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/contenido/$program'
     | '/p/$slug'
     | '/programas/$slug'
+    | '/programas/kotamed-apex'
     | '/programas/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -380,6 +392,7 @@ export interface RootRouteChildren {
   ContenidoProgramRoute: typeof ContenidoProgramRoute
   PSlugRoute: typeof PSlugRoute
   ProgramasSlugRoute: typeof ProgramasSlugRoute
+  ProgramasKotamedApexRoute: typeof ProgramasKotamedApexRoute
   ProgramasIndexRoute: typeof ProgramasIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -426,6 +439,13 @@ declare module '@tanstack/react-router' {
       path: '/programas'
       fullPath: '/programas/'
       preLoaderRoute: typeof ProgramasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/programas/kotamed-apex': {
+      id: '/programas/kotamed-apex'
+      path: '/programas/kotamed-apex'
+      fullPath: '/programas/kotamed-apex'
+      preLoaderRoute: typeof ProgramasKotamedApexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programas/$slug': {
@@ -639,6 +659,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContenidoProgramRoute: ContenidoProgramRoute,
   PSlugRoute: PSlugRoute,
   ProgramasSlugRoute: ProgramasSlugRoute,
+  ProgramasKotamedApexRoute: ProgramasKotamedApexRoute,
   ProgramasIndexRoute: ProgramasIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
