@@ -370,7 +370,7 @@ function Areas({ cfg }: { cfg: CbConfig }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-2xl font-black tracking-tight sm:text-[1.9rem]">
-            Explora los <span className="text-[oklch(0.62_0.11_185)]">fundamentos</span> de la medicina
+            {cfg.areas.title}
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-[oklch(0.5_0.02_258)]">{cfg.areas.subtitle}</p>
         </div>
