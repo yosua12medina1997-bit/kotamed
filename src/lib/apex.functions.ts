@@ -444,13 +444,30 @@ export const apexSuggestClassification = createServerFn({ method: "POST" })
         "Usa nomenclatura médica estándar en español. No inventes referencias.",
       prompt: JSON.stringify(data.samples),
     });
+    type Suggestion = {
+      subject?: string;
+      topic?: string;
+      subtopic?: string;
+      chapter?: string;
+      difficulty?: string;
+      tags?: string[];
+    };
     const match = text.match(/\[[\s\S]*\]/);
-    if (!match) return [];
+    if (!match) return [] as Suggestion[];
     try {
-      return JSON.parse(match[0]) as Record<string, unknown>[];
+      const parsed = JSON.parse(match[0]) as Suggestion[];
+      return parsed.map((s) => ({
+        subject: String(s?.subject ?? ""),
+        topic: String(s?.topic ?? ""),
+        subtopic: String(s?.subtopic ?? ""),
+        chapter: String(s?.chapter ?? ""),
+        difficulty: String(s?.difficulty ?? ""),
+        tags: Array.isArray(s?.tags) ? s.tags.map(String).slice(0, 4) : [],
+      }));
     } catch {
-      return [];
+      return [] as Suggestion[];
     }
+
   });
 
 /* ------------------------------------------------------------------ */
