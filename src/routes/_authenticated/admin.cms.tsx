@@ -94,6 +94,8 @@ import { WebsiteStudio } from "@/components/cms/WebsiteStudio";
 import { PagesManager } from "@/components/cms/PagesManager";
 import { RoutesManager } from "@/components/cms/RoutesManager";
 import { LinkPicker } from "@/components/cms/LinkPicker";
+import { ImagePicker } from "@/components/cms/ImagePicker";
+
 import { pagePath, useHomePageId } from "@/lib/cms-routes";
 import {
   logCmsAudit,
@@ -1086,35 +1088,8 @@ function Inspector({
     }
   };
 
-  const genImage = async (target: "block" | number) => {
-    const base = typeof target === "number" ? items[target]?.title : props.title;
-    const prompt = window.prompt("Describe la imagen a generar", base || "Equipo médico en formación");
-    if (!prompt) return;
-    setImgBusy(true);
-    try {
-      const res = await fetch("/api/cms-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const json = (await res.json()) as { data?: { b64_json?: string }[] };
-      const b64 = json.data?.[0]?.b64_json;
-      if (!b64) throw new Error("La IA no devolvió una imagen.");
-      const blob = await (await fetch(`data:image/png;base64,${b64}`)).blob();
-      const url = await uploadCmsMedia(blob, `${block.type}.png`);
-      if (typeof target === "number") {
-        setItems(items.map((it, i) => (i === target ? { ...it, image: url } : it)));
-      } else {
-        setProps({ image: url });
-      }
-      toast.success("Imagen generada");
-    } catch (e) {
-      toast.error(String((e as { message?: string })?.message ?? e));
-    } finally {
-      setImgBusy(false);
-    }
-  };
+
+
 
   const upload = async (file: File, target: "block" | "poster" | number) => {
     try {
@@ -1199,17 +1174,24 @@ function Inspector({
           <Input value={props.video ?? ""} onChange={(e) => setProps({ video: e.target.value })} />
         </Field>
         <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-xs font-semibold">
-          <Upload className="size-3.5" /> Subir video o miniatura
+          <Upload className="size-3.5" /> Subir archivo de video
           <input
             type="file"
             className="hidden"
-            accept="video/*,image/*"
+            accept="video/*"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) upload(f, f.type.startsWith("image") ? "poster" : "block");
+              if (f) upload(f, "block");
             }}
           />
         </label>
+        <ImagePicker
+          label="Miniatura (poster)"
+          value={props.poster}
+          onChange={(v) => setProps({ poster: v })}
+          aiHint={props.title ?? undefined}
+        />
+
         <div className="text-[11px] text-muted-foreground">Tipo de bloque: {BLOCK_LABEL[block.type]}</div>
       </div>
     );
@@ -1287,29 +1269,13 @@ function Inspector({
         </div>
       </div>
 
-      <Field label="Imagen del bloque">
-        <div className="space-y-1.5">
-          {props.image && <img src={props.image} alt="" className="h-24 w-full rounded-lg object-cover" />}
-          <Input value={props.image ?? ""} onChange={(e) => setProps({ image: e.target.value })} />
-          <div className="flex gap-1.5">
-            <Btn variant="outline" loading={imgBusy} onClick={() => genImage("block")}>
-              <ImageIcon className="size-3" /> Generar imagen IA
-            </Btn>
-            <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] font-semibold">
-              <Upload className="size-3" /> Subir
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) upload(f, "block");
-                }}
-              />
-            </label>
-          </div>
-        </div>
-      </Field>
+      <ImagePicker
+        label="Imagen del bloque"
+        value={props.image}
+        onChange={(v: string) => setProps({ image: v })}
+        aiHint={props.title ?? undefined}
+      />
+
 
       {LIST_BLOCKS.includes(block.type) && (
         <div className="space-y-2 border-t border-border/60 pt-2">
@@ -1374,24 +1340,15 @@ function Inspector({
                 value={it.href ?? ""}
                 onChange={(v) => setItems(items.map((x, j) => (j === i ? { ...x, href: v } : x)))}
               />
-              <div className="flex items-center gap-1.5">
-                {it.image && <img src={it.image} alt="" className="size-10 rounded object-cover" />}
-                <Btn variant="ghost" onClick={() => genImage(i)}>
-                  <ImageIcon className="size-3" /> IA
-                </Btn>
-                <label className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-muted-foreground">
-                  <Upload className="size-3" /> Subir
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) upload(f, i);
-                    }}
-                  />
-                </label>
-              </div>
+              <ImagePicker
+                compact
+                value={it.image}
+                aiHint={it.title ?? undefined}
+                onChange={(v: string) =>
+                  setItems(items.map((x, j) => (j === i ? { ...x, image: v } : x)))
+                }
+              />
+
             </div>
           ))}
         </div>

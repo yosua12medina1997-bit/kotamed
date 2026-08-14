@@ -25,6 +25,7 @@ import {
 } from "@/lib/cms";
 import { usePublishPage, usePublishStatus, useUnpublishPage } from "@/lib/cms-publish";
 import { pagePath, useHomePageId, useSetHomePage } from "@/lib/cms-routes";
+import { PUBLIC_SEED_PAGES, useSeedPublicPages } from "@/lib/cms-public-pages";
 
 export const PAGE_KINDS: { value: CmsPageKind; label: string }[] = [
   { value: "page", label: "Páginas" },
@@ -66,6 +67,7 @@ export function PagesManager({
   const publish = usePublishPage();
   const unpublish = useUnpublishPage();
   const { data: status } = usePublishStatus();
+  const seedPublic = useSeedPublicPages();
   const pending = useMemo(
     () => new Set((status?.rows ?? []).filter((r) => r.pending).map((r) => r.page.id)),
     [status],
@@ -169,9 +171,31 @@ export function PagesManager({
       title="Administrador de páginas"
       accent="hsl(var(--primary))"
       actions={
-        <Btn variant="solid" onClick={createPage}>
-          <FilePlus2 className="size-3.5" /> Nueva página
-        </Btn>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Btn
+            variant="outline"
+            disabled={safeMode}
+            loading={seedPublic.isPending}
+            title="Crea (o reconstruye) y publica las páginas públicas oficiales del sitio"
+            onClick={() => {
+              if (
+                !window.confirm(
+                  `Se crearán y publicarán ${PUBLIC_SEED_PAGES.length} páginas públicas oficiales. Si ya existen, sus bloques se reconstruyen con el contenido base. ¿Continuar?`,
+                )
+              )
+                return;
+              seedPublic.mutate(undefined, {
+                onSuccess: (n) => toast.success(`${n} páginas publicadas`),
+                onError: (e) => toast.error(String((e as Error).message)),
+              });
+            }}
+          >
+            <Rocket className="size-3.5" /> Completar sitio público
+          </Btn>
+          <Btn variant="solid" onClick={createPage}>
+            <FilePlus2 className="size-3.5" /> Nueva página
+          </Btn>
+        </div>
       }
     >
       <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
