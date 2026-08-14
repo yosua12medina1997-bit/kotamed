@@ -154,10 +154,16 @@ export function ImagePicker({
 
       {tab === "library" && (
         <div className="space-y-1.5">
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en la biblioteca…" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Buscar en la biblioteca…"
+          />
           <div className="grid max-h-52 grid-cols-3 gap-1.5 overflow-y-auto">
             {assets.isLoading ? (
-              <p className="col-span-3 py-4 text-center text-[11px] text-muted-foreground">Cargando…</p>
+              <p className="col-span-3 py-4 text-center text-[11px] text-muted-foreground">
+                Cargando…
+              </p>
             ) : images.length === 0 ? (
               <p className="col-span-3 py-4 text-center text-[11px] text-muted-foreground">
                 Aún no hay imágenes en la biblioteca.
@@ -170,7 +176,11 @@ export function ImagePicker({
                   className="group overflow-hidden rounded-lg border border-border/60 hover:border-primary"
                   title={a.name}
                 >
-                  <img src={a.url} alt={a.alt ?? a.name} className="aspect-video w-full object-cover" />
+                  <img
+                    src={a.url}
+                    alt={a.alt ?? a.name}
+                    className="aspect-video w-full object-cover"
+                  />
                 </button>
               ))
             )}
@@ -197,7 +207,11 @@ export function ImagePicker({
     <div className="space-y-1.5">
       {value ? (
         <div className="relative overflow-hidden rounded-xl border border-border/60">
-          <img src={value} alt="" className={compact ? "h-16 w-full object-cover" : "h-28 w-full object-cover"} />
+          <img
+            src={value}
+            alt=""
+            className={compact ? "h-16 w-full object-cover" : "h-28 w-full object-cover"}
+          />
           <button
             onClick={() => onChange("")}
             className="absolute right-1.5 top-1.5 rounded-lg bg-background/80 p-1 text-muted-foreground backdrop-blur hover:text-destructive"
