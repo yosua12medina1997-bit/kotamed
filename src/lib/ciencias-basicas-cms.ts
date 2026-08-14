@@ -308,7 +308,7 @@ export function useCbConfig() {
     queryFn: async (): Promise<CbConfig> => {
       try {
         const { data } = await db.from("ui_menu_prefs").select("config").eq("scope", CB_SCOPE).maybeSingle();
-        return mergeCb(data?.config ?? null);
+        return mergeScienceConfig(data?.config ?? null);
       } catch {
         return DEFAULT_CB_CONFIG;
       }
