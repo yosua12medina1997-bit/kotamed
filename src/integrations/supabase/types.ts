@@ -3321,7 +3321,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      apex_is_admin: { Args: { _user_id: string }; Returns: boolean }
       approve_admission: {
         Args: { _actor_id: string; _application_id: string; _months?: number }
         Returns: {
