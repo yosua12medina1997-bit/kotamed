@@ -60,10 +60,13 @@ export type CbConfig = {
     secondaryLabel: string;
     secondaryHref: string;
     chips: string[];
+    /** Etiquetas de los paneles holográficos del hero (máx. 6). */
+    holoCards?: string[];
     /** Imagen ambiental del hero (vacío = laboratorio del Home). */
     image: string;
     showEnvControls: boolean;
   };
+
   stats: { value: string; label: string }[];
   intro: {
     title: string;
