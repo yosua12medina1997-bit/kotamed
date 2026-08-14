@@ -36,6 +36,7 @@ const SECTIONS = [
   { key: "matriculacion", label: "Matriculación manual", icon: GraduationCap },
   { key: "membresias", label: "Membresías y permisos", icon: Crown },
   { key: "docentes", label: "Docentes", icon: GraduationCap },
+  { key: "evaluaciones", label: "Evaluaciones (Apex)", icon: ClipboardList },
 ] as const;
 
 type SectionKey = (typeof SECTIONS)[number]["key"];
