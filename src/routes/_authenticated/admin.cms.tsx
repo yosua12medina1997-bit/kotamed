@@ -1088,18 +1088,6 @@ function Inspector({
     }
   };
 
-  const upload = async (file: File, target: "block" | "poster" | number) => {
-    try {
-      const url = await uploadCmsMedia(file, file.name);
-      if (typeof target === "number") setItems(items.map((it, i) => (i === target ? { ...it, image: url } : it)));
-      else if (target === "poster") setProps({ poster: url });
-      else if (file.type.startsWith("video")) setProps({ video: url, videoKind: "upload" });
-      else setProps({ image: url });
-      toast.success("Archivo subido");
-    } catch (e) {
-      toast.error(String((e as { message?: string })?.message ?? e));
-    }
-  };
 
 
 
