@@ -148,7 +148,7 @@ export const DEFAULT_HEADER: SeedItem[] = [
     children: [
       { label: "Todos los programas", href: "/programas", icon: "Layers", description: "Catálogo académico completo" },
       { label: "Ciencias básicas", href: "/p/ciencias-basicas", icon: "FlaskConical", description: "Fundamentos preclínicos" },
-      { label: "Ciencias clínicas", href: "/p/ciencias-clinicas", icon: "Stethoscope", description: "Semiología y clínica médica" },
+      { label: "Ciencias clínicas", href: "/academia/ciencias-clinicas", icon: "Stethoscope", description: "Semiología y clínica médica" },
       { label: "Internado médico", href: "/p/internado", icon: "ClipboardList", description: "Rotaciones y hospitalización" },
       { label: "ENAM", href: "/p/enam", icon: "Trophy", description: "Preparación intensiva" },  
       { label: "Residentado médico", href: "/p/residentado", icon: "Award", description: "Especialidades y subespecialidades" },
