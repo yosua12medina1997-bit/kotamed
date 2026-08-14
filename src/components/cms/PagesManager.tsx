@@ -25,6 +25,7 @@ import {
 } from "@/lib/cms";
 import { usePublishPage, usePublishStatus, useUnpublishPage } from "@/lib/cms-publish";
 import { pagePath, useHomePageId, useSetHomePage } from "@/lib/cms-routes";
+import { PUBLIC_SEED_PAGES, useSeedPublicPages } from "@/lib/cms-public-pages";
 
 export const PAGE_KINDS: { value: CmsPageKind; label: string }[] = [
   { value: "page", label: "Páginas" },
