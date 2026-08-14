@@ -477,3 +477,9 @@ export function flattenTree(nodes: CmsNode[], chain: CmsNode[] = []): { node: Cm
   }
   return out;
 }
+
+/** Plural en español para las etiquetas configurables de nivel. */
+export function plural(word: string) {
+  if (!word) return word;
+  return /[aeiouáéíóú]$/i.test(word) ? `${word}s` : `${word}es`;
+}

@@ -52,6 +52,7 @@ import {
   flattenTree,
   levelLabels,
   nodeStatus,
+  plural,
   sectionTypeLabel,
   statusPatch,
   useProgramRootMutations,
@@ -275,14 +276,14 @@ function ProgramWorkspace({ root }: { root: ProgramRoot }) {
           <h2 className="text-2xl font-extrabold tracking-tight">Contenido de {root.title}</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             {root.description ||
-              `Estructura jerárquica editable: ${labels.program.toLowerCase()}s, ${labels.area.toLowerCase()}s, ${labels.subarea.toLowerCase()}s, ${labels.chapter.toLowerCase()}s, ${labels.lesson.toLowerCase()}s y recursos.`}
+              `Estructura jerárquica editable: ${plural(labels.program).toLowerCase()}, ${plural(labels.area).toLowerCase()}, ${plural(labels.subarea).toLowerCase()}, ${plural(labels.chapter).toLowerCase()}, ${plural(labels.lesson).toLowerCase()} y recursos.`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Stat label={`${labels.program}s`} value={stats.blocks} />
-          <Stat label={`${labels.area}s`} value={stats.categories} />
-          <Stat label={`${labels.chapter}s`} value={stats.topics} />
-          <Stat label={`${labels.lesson}s`} value={stats.sections} />
+          <Stat label={plural(labels.program)} value={stats.blocks} />
+          <Stat label={plural(labels.area)} value={stats.categories} />
+          <Stat label={plural(labels.chapter)} value={stats.topics} />
+          <Stat label={plural(labels.lesson)} value={stats.sections} />
         </div>
       </div>
 
@@ -738,7 +739,7 @@ function TopicDrawer({
             ))}
             {live.children.length === 0 && (
               <div className="rounded-2xl border border-dashed border-border/60 p-6 text-center text-sm text-muted-foreground">
-                Este {labels.chapter.toLowerCase()} no tiene {labels.lesson.toLowerCase()}s todavía.
+                Este {labels.chapter.toLowerCase()} no tiene {plural(labels.lesson).toLowerCase()} todavía.
               </div>
             )}
 
