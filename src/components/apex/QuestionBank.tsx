@@ -324,7 +324,7 @@ function QuestionEditor({ row, onClose }: { row: Row; onClose: () => void }) {
   const [subject, setSubject] = useState(row.subject_label ?? "");
   const [topic, setTopic] = useState(row.topic_label ?? "");
   const [chapter, setChapter] = useState(row.chapter_label ?? "");
-  const [tags, setTags] = useState((row.tags ?? []).join(", "));
+  const [tags, setTags] = useState<string>(((row.tags ?? []) as string[]).join(", "));
 
   const submit = async () => {
     if (stem.trim().length < 10) return toast.error("El enunciado es demasiado corto.");
