@@ -717,6 +717,703 @@ export type Database = {
           },
         ]
       }
+      apex_attempt_items: {
+        Row: {
+          answered_at: string | null
+          attempt_id: string
+          block: number
+          chosen: string[] | null
+          created_at: string
+          flagged: boolean
+          id: string
+          is_correct: boolean | null
+          position: number
+          question_id: string
+          seconds: number
+        }
+        Insert: {
+          answered_at?: string | null
+          attempt_id: string
+          block?: number
+          chosen?: string[] | null
+          created_at?: string
+          flagged?: boolean
+          id?: string
+          is_correct?: boolean | null
+          position?: number
+          question_id: string
+          seconds?: number
+        }
+        Update: {
+          answered_at?: string | null
+          attempt_id?: string
+          block?: number
+          chosen?: string[] | null
+          created_at?: string
+          flagged?: boolean
+          id?: string
+          is_correct?: boolean | null
+          position?: number
+          question_id?: string
+          seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_attempt_items_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "apex_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apex_attempt_items_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "apex_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_attempts: {
+        Row: {
+          analysis: Json
+          blocks: number
+          config: Json
+          correct_count: number
+          created_at: string
+          duration_minutes: number
+          exam_id: string | null
+          expires_at: string | null
+          id: string
+          mode: string
+          question_count: number
+          score: number | null
+          seconds_used: number
+          started_at: string
+          status: string
+          submitted_at: string | null
+          title: string
+          unanswered_count: number
+          updated_at: string
+          user_id: string
+          wrong_count: number
+        }
+        Insert: {
+          analysis?: Json
+          blocks?: number
+          config?: Json
+          correct_count?: number
+          created_at?: string
+          duration_minutes?: number
+          exam_id?: string | null
+          expires_at?: string | null
+          id?: string
+          mode?: string
+          question_count?: number
+          score?: number | null
+          seconds_used?: number
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+          title?: string
+          unanswered_count?: number
+          updated_at?: string
+          user_id: string
+          wrong_count?: number
+        }
+        Update: {
+          analysis?: Json
+          blocks?: number
+          config?: Json
+          correct_count?: number
+          created_at?: string
+          duration_minutes?: number
+          exam_id?: string | null
+          expires_at?: string | null
+          id?: string
+          mode?: string
+          question_count?: number
+          score?: number | null
+          seconds_used?: number
+          started_at?: string
+          status?: string
+          submitted_at?: string | null
+          title?: string
+          unanswered_count?: number
+          updated_at?: string
+          user_id?: string
+          wrong_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_attempts_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "apex_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_exams: {
+        Row: {
+          blocks: number
+          config: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_published: boolean
+          mode: string
+          question_count: number
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          blocks?: number
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_published?: boolean
+          mode?: string
+          question_count?: number
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          blocks?: number
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_published?: boolean
+          mode?: string
+          question_count?: number
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      apex_flags: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          question_id: string
+          reason: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          question_id: string
+          reason: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          question_id?: string
+          reason?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_flags_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "apex_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_flashcards: {
+        Row: {
+          attempt_id: string | null
+          back: string
+          created_at: string
+          deck: string
+          due_at: string
+          ease: number
+          front: string
+          id: string
+          interval_days: number
+          last_grade: number | null
+          question_id: string | null
+          repetitions: number
+          source: string | null
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id?: string | null
+          back: string
+          created_at?: string
+          deck?: string
+          due_at?: string
+          ease?: number
+          front: string
+          id?: string
+          interval_days?: number
+          last_grade?: number | null
+          question_id?: string | null
+          repetitions?: number
+          source?: string | null
+          state?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string | null
+          back?: string
+          created_at?: string
+          deck?: string
+          due_at?: string
+          ease?: number
+          front?: string
+          id?: string
+          interval_days?: number
+          last_grade?: number | null
+          question_id?: string | null
+          repetitions?: number
+          source?: string | null
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_flashcards_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "apex_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apex_flashcards_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "apex_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_question_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          question_id: string
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          question_id: string
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          question_id?: string
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_question_versions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "apex_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_questions: {
+        Row: {
+          ai_suggested: Json
+          chapter_id: string | null
+          chapter_label: string | null
+          concept_id: string | null
+          correct_answers: string[]
+          created_at: string
+          created_by: string | null
+          difficulty: string
+          explanation: string | null
+          flagged_count: number
+          id: string
+          image_url: string | null
+          options: Json
+          program: string | null
+          question_code: string | null
+          question_type: string
+          reference: string | null
+          source: string | null
+          status: string
+          stem: string
+          subject_id: string | null
+          subject_label: string | null
+          subtopic_id: string | null
+          subtopic_label: string | null
+          tags: string[]
+          times_correct: number
+          times_used: number
+          times_wrong: number
+          topic_id: string | null
+          topic_label: string | null
+          total_seconds: number
+          updated_at: string
+          version: number
+          year: number | null
+        }
+        Insert: {
+          ai_suggested?: Json
+          chapter_id?: string | null
+          chapter_label?: string | null
+          concept_id?: string | null
+          correct_answers?: string[]
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          explanation?: string | null
+          flagged_count?: number
+          id?: string
+          image_url?: string | null
+          options?: Json
+          program?: string | null
+          question_code?: string | null
+          question_type?: string
+          reference?: string | null
+          source?: string | null
+          status?: string
+          stem: string
+          subject_id?: string | null
+          subject_label?: string | null
+          subtopic_id?: string | null
+          subtopic_label?: string | null
+          tags?: string[]
+          times_correct?: number
+          times_used?: number
+          times_wrong?: number
+          topic_id?: string | null
+          topic_label?: string | null
+          total_seconds?: number
+          updated_at?: string
+          version?: number
+          year?: number | null
+        }
+        Update: {
+          ai_suggested?: Json
+          chapter_id?: string | null
+          chapter_label?: string | null
+          concept_id?: string | null
+          correct_answers?: string[]
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          explanation?: string | null
+          flagged_count?: number
+          id?: string
+          image_url?: string | null
+          options?: Json
+          program?: string | null
+          question_code?: string | null
+          question_type?: string
+          reference?: string | null
+          source?: string | null
+          status?: string
+          stem?: string
+          subject_id?: string | null
+          subject_label?: string | null
+          subtopic_id?: string | null
+          subtopic_label?: string | null
+          tags?: string[]
+          times_correct?: number
+          times_used?: number
+          times_wrong?: number
+          topic_id?: string | null
+          topic_label?: string | null
+          total_seconds?: number
+          updated_at?: string
+          version?: number
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_questions_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "apex_taxonomy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apex_questions_concept_id_fkey"
+            columns: ["concept_id"]
+            isOneToOne: false
+            referencedRelation: "apex_taxonomy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apex_questions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "apex_taxonomy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apex_questions_subtopic_id_fkey"
+            columns: ["subtopic_id"]
+            isOneToOne: false
+            referencedRelation: "apex_taxonomy"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apex_questions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "apex_taxonomy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_resource_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_published: boolean
+          kind: string
+          label_match: string | null
+          node_id: string | null
+          resource_id: string | null
+          sort_order: number
+          taxonomy_id: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          kind?: string
+          label_match?: string | null
+          node_id?: string | null
+          resource_id?: string | null
+          sort_order?: number
+          taxonomy_id?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          kind?: string
+          label_match?: string | null
+          node_id?: string | null
+          resource_id?: string | null
+          sort_order?: number
+          taxonomy_id?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_resource_links_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "content_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apex_resource_links_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "content_resources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apex_resource_links_taxonomy_id_fkey"
+            columns: ["taxonomy_id"]
+            isOneToOne: false
+            referencedRelation: "apex_taxonomy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_study_plan: {
+        Row: {
+          attempt_id: string | null
+          created_at: string
+          day_number: number
+          detail: string | null
+          id: string
+          is_done: boolean
+          kind: string
+          minutes: number
+          taxonomy_label: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id?: string | null
+          created_at?: string
+          day_number?: number
+          detail?: string | null
+          id?: string
+          is_done?: boolean
+          kind?: string
+          minutes?: number
+          taxonomy_label?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string | null
+          created_at?: string
+          day_number?: number
+          detail?: string | null
+          id?: string
+          is_done?: boolean
+          kind?: string
+          minutes?: number
+          taxonomy_label?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_study_plan_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "apex_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_summaries: {
+        Row: {
+          attempt_id: string | null
+          content: string
+          created_at: string
+          id: string
+          sources: Json
+          title: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          sources?: Json
+          title: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          sources?: Json
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_summaries_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "apex_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      apex_taxonomy: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          level: string
+          name: string
+          parent_id: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string
+          name: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          level?: string
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apex_taxonomy_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "apex_taxonomy"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cms_assets: {
         Row: {
           alt: string | null
@@ -2624,6 +3321,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apex_is_admin: { Args: { _user_id: string }; Returns: boolean }
       approve_admission: {
         Args: { _actor_id: string; _application_id: string; _months?: number }
         Returns: {
