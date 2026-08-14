@@ -107,7 +107,6 @@ export const DEFAULT_CC_CONFIG: CbConfig = {
   },
   method: {
     title: "Metodología clínica KotaMed",
-    subtidle: undefined as never,
     subtitle: "Del caso al criterio: aprende decidiendo.",
     steps: [
       { title: "Caso real", text: "Empieza con un paciente, no con una lista." },
@@ -115,7 +114,7 @@ export const DEFAULT_CC_CONFIG: CbConfig = {
       { title: "Evidencia", text: "Valida el plan con guías y literatura." },
       { title: "Decisión", text: "Ejecuta, monitoriza y reevalúa." },
     ],
-  } as CbConfig["method"],
+  },
   ai: {
     title: "Tu copiloto clínico con inteligencia artificial",
     subtitle: "KotaMed AI razona contigo caso por caso, sin darte la respuesta masticada.",
