@@ -269,9 +269,11 @@ export const DEFAULT_CB_CONFIG: CbConfig = {
   },
 };
 
-function mergeCb(raw: any): CbConfig {
+/** Fusiona la configuración guardada con los valores por defecto indicados. */
+export function mergeScienceConfig(raw: any, defaults: CbConfig = DEFAULT_CB_CONFIG): CbConfig {
   const c = raw && typeof raw === "object" ? raw : {};
-  const d = DEFAULT_CB_CONFIG;
+  const d = defaults;
+
   const order: CbSectionId[] = Array.isArray(c.order)
     ? (c.order.filter((k: any) => d.order.includes(k)) as CbSectionId[])
     : d.order;
