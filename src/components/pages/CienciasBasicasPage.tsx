@@ -229,17 +229,17 @@ function Hero({ cfg, isAdmin }: { cfg: CbConfig; isAdmin: boolean }) {
           </div>
         </div>
 
-        {/* Composición holográfica de Ciencias Básicas */}
+        {/* Composición holográfica (paneles derivados del contenido) */}
         <div className="relative hidden min-h-[380px] items-center justify-center lg:flex">
           <div className="grid w-full grid-cols-2 gap-3">
-            {[
-              { label: "Anatomía", icon: Layers },
-              { label: "Histología", icon: Microscope },
-              { label: "Fisiología", icon: HeartPulse },
-              { label: "Genética", icon: Dna },
-              { label: "Bioquímica", icon: Atom },
-              { label: "Inmunología", icon: ShieldCheck },
-            ].map((h, i) => (
+            {(cfg.hero.holoCards?.length
+              ? cfg.hero.holoCards
+              : ["Anatomía", "Histología", "Fisiología", "Genética", "Bioquímica", "Inmunología"]
+            )
+              .slice(0, 6)
+              .map((label, i) => ({ label, icon: HOLO_ICONS[i % HOLO_ICONS.length]! }))
+              .map((h, i) => (
+
               <div
                 key={h.label}
                 className="rounded-2xl border border-white/15 bg-white/8 p-3.5 backdrop-blur-md animate-float-slow"
