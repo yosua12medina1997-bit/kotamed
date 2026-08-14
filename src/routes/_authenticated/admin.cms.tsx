@@ -1296,29 +1296,13 @@ function Inspector({
         </div>
       </div>
 
-      <Field label="Imagen del bloque">
-        <div className="space-y-1.5">
-          {props.image && <img src={props.image} alt="" className="h-24 w-full rounded-lg object-cover" />}
-          <Input value={props.image ?? ""} onChange={(e) => setProps({ image: e.target.value })} />
-          <div className="flex gap-1.5">
-            <Btn variant="outline" loading={imgBusy} onClick={() => genImage("block")}>
-              <ImageIcon className="size-3" /> Generar imagen IA
-            </Btn>
-            <label className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-border px-2 py-1 text-[11px] font-semibold">
-              <Upload className="size-3" /> Subir
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) upload(f, "block");
-                }}
-              />
-            </label>
-          </div>
-        </div>
-      </Field>
+      <ImagePicker
+        label="Imagen del bloque"
+        value={props.image}
+        onChange={(v: string) => setProps({ image: v })}
+        aiHint={props.title ?? undefined}
+      />
+
 
       {LIST_BLOCKS.includes(block.type) && (
         <div className="space-y-2 border-t border-border/60 pt-2">
