@@ -37,10 +37,19 @@ import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 const STEP_ICONS = [Dna, Layers, HeartPulse, Atom, Microscope, Stethoscope];
 const METHOD_ICONS = [Target, Brain, Atom, Stethoscope];
 const AUDIENCE_ICONS = [GraduationCap, Layers, Target, Users];
+const HOLO_ICONS = [Layers, Microscope, HeartPulse, Dna, Atom, ShieldCheck];
+
 
 export function CienciasBasicasPage() {
   const { data } = useCbConfig();
-  const cfg = data;
+  return <SciencePage cfg={data ?? null} />;
+}
+
+/**
+ * Renderizador compartido (Ciencias Básicas / Ciencias Clínicas):
+ * hero inmersivo + cuerpo académico blanco, todo dirigido por configuración.
+ */
+export function SciencePage({ cfg }: { cfg: CbConfig | null }) {
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
 
@@ -102,6 +111,7 @@ export function CienciasBasicasPage() {
     </div>
   );
 }
+
 
 /* ------------------------------- HERO ------------------------------- */
 
@@ -221,17 +231,17 @@ function Hero({ cfg, isAdmin }: { cfg: CbConfig; isAdmin: boolean }) {
           </div>
         </div>
 
-        {/* Composición holográfica de Ciencias Básicas */}
+        {/* Composición holográfica (paneles derivados del contenido) */}
         <div className="relative hidden min-h-[380px] items-center justify-center lg:flex">
           <div className="grid w-full grid-cols-2 gap-3">
-            {[
-              { label: "Anatomía", icon: Layers },
-              { label: "Histología", icon: Microscope },
-              { label: "Fisiología", icon: HeartPulse },
-              { label: "Genética", icon: Dna },
-              { label: "Bioquímica", icon: Atom },
-              { label: "Inmunología", icon: ShieldCheck },
-            ].map((h, i) => (
+            {(cfg.hero.holoCards?.length
+              ? cfg.hero.holoCards
+              : ["Anatomía", "Histología", "Fisiología", "Genética", "Bioquímica", "Inmunología"]
+            )
+              .slice(0, 6)
+              .map((label, i) => ({ label, icon: HOLO_ICONS[i % HOLO_ICONS.length]! }))
+              .map((h, i) => (
+
               <div
                 key={h.label}
                 className="rounded-2xl border border-white/15 bg-white/8 p-3.5 backdrop-blur-md animate-float-slow"
@@ -360,7 +370,7 @@ function Areas({ cfg }: { cfg: CbConfig }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-2xl font-black tracking-tight sm:text-[1.9rem]">
-            Explora los <span className="text-[oklch(0.62_0.11_185)]">fundamentos</span> de la medicina
+            {cfg.areas.title}
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-[oklch(0.5_0.02_258)]">{cfg.areas.subtitle}</p>
         </div>

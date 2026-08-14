@@ -102,10 +102,29 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-export function CienciasBasicasEditor() {
-  const { data, isLoading } = useCbConfig();
-  const save = useSaveCbConfig();
+export type ScienceEditorProps = {
+  heading?: string;
+  path?: string;
+  labels?: Record<CbSectionId, string>;
+  defaults?: CbConfig;
+  useConfig?: () => { data?: CbConfig; isLoading: boolean };
+  useSave?: () => { isPending: boolean; mutateAsync: (c: CbConfig) => Promise<CbConfig> };
+  successMessage?: string;
+};
+
+export function CienciasBasicasEditor({
+  heading = "Ciencias Básicas · /p/ciencias-basicas",
+  path = "/p/ciencias-basicas",
+  labels = CB_SECTION_LABEL,
+  defaults = DEFAULT_CB_CONFIG,
+  useConfig = useCbConfig,
+  useSave = useSaveCbConfig,
+  successMessage = "Ciencias Básicas actualizada",
+}: ScienceEditorProps = {}) {
+  const { data, isLoading } = useConfig();
+  const save = useSave();
   const [cfg, setCfg] = useState<CbConfig | null>(null);
+
 
   useEffect(() => {
     if (data && !cfg) setCfg(data);
@@ -142,14 +161,14 @@ export function CienciasBasicasEditor() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/60 bg-background p-3">
         <div>
-          <h2 className="text-sm font-black tracking-tight">Ciencias Básicas · /p/ciencias-basicas</h2>
+          <h2 className="text-sm font-black tracking-tight">{heading}</h2>
           <p className="text-[11px] text-muted-foreground">
             Página pública. Los cambios se aplican al guardar; solo administradores pueden editar.
           </p>
         </div>
         <div className="flex gap-2">
           <a
-            href="/p/ciencias-basicas"
+            href={path}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 rounded-xl border border-border/70 px-3 py-2 text-xs font-bold hover:bg-muted/50"
@@ -158,7 +177,7 @@ export function CienciasBasicasEditor() {
           </a>
           <button
             type="button"
-            onClick={() => setCfg(DEFAULT_CB_CONFIG)}
+            onClick={() => setCfg(defaults)}
             className="rounded-xl border border-border/70 px-3 py-2 text-xs font-bold hover:bg-muted/50"
           >
             Restaurar por defecto
@@ -169,7 +188,7 @@ export function CienciasBasicasEditor() {
             onClick={() =>
               save
                 .mutateAsync(cfg)
-                .then(() => toast.success("Ciencias Básicas actualizada"))
+                .then(() => toast.success(successMessage))
                 .catch((e) => toast.error(e.message ?? "No se pudo guardar"))
             }
             className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground disabled:opacity-60"
@@ -208,7 +227,7 @@ export function CienciasBasicasEditor() {
         <Card title="Secciones · orden y visibilidad">
           {cfg.order.map((id: CbSectionId, i) => (
             <div key={id} className="flex items-center gap-2 rounded-xl border border-border/60 px-2.5 py-1.5">
-              <span className="flex-1 truncate text-xs font-bold">{CB_SECTION_LABEL[id]}</span>
+              <span className="flex-1 truncate text-xs font-bold">{labels[id]}</span>
               <button type="button" onClick={() => moveSection(i, -1)} className="text-muted-foreground hover:text-foreground">
                 <ArrowUp className="size-3.5" />
               </button>

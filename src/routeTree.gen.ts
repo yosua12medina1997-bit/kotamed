@@ -17,6 +17,7 @@ import { Route as ProgramasIndexRouteImport } from './routes/programas.index'
 import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as ApiCmsImageRouteImport } from './routes/api/cms-image'
+import { Route as AcademiaCienciasClinicasRouteImport } from './routes/academia.ciencias-clinicas'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBienvenidaRouteImport } from './routes/_authenticated/bienvenida'
 import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
@@ -75,6 +76,12 @@ const ApiCmsImageRoute = ApiCmsImageRouteImport.update({
   path: '/api/cms-image',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AcademiaCienciasClinicasRoute =
+  AcademiaCienciasClinicasRouteImport.update({
+    id: '/academia/ciencias-clinicas',
+    path: '/academia/ciencias-clinicas',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -186,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
@@ -213,6 +221,7 @@ export interface FileRoutesByTo {
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
@@ -242,6 +251,7 @@ export interface FileRoutesById {
   '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/_authenticated/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
@@ -271,6 +281,7 @@ export interface FileRouteTypes {
     | '/anatomy-lab'
     | '/bienvenida'
     | '/dashboard'
+    | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/p/$slug'
     | '/programas/$slug'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/anatomy-lab'
     | '/bienvenida'
     | '/dashboard'
+    | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/p/$slug'
     | '/programas/$slug'
@@ -326,6 +338,7 @@ export interface FileRouteTypes {
     | '/_authenticated/anatomy-lab'
     | '/_authenticated/bienvenida'
     | '/_authenticated/dashboard'
+    | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/p/$slug'
     | '/programas/$slug'
@@ -350,6 +363,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  AcademiaCienciasClinicasRoute: typeof AcademiaCienciasClinicasRoute
   ApiCmsImageRoute: typeof ApiCmsImageRoute
   PSlugRoute: typeof PSlugRoute
   ProgramasSlugRoute: typeof ProgramasSlugRoute
@@ -420,6 +434,13 @@ declare module '@tanstack/react-router' {
       path: '/api/cms-image'
       fullPath: '/api/cms-image'
       preLoaderRoute: typeof ApiCmsImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/academia/ciencias-clinicas': {
+      id: '/academia/ciencias-clinicas'
+      path: '/academia/ciencias-clinicas'
+      fullPath: '/academia/ciencias-clinicas'
+      preLoaderRoute: typeof AcademiaCienciasClinicasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
@@ -593,6 +614,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  AcademiaCienciasClinicasRoute: AcademiaCienciasClinicasRoute,
   ApiCmsImageRoute: ApiCmsImageRoute,
   PSlugRoute: PSlugRoute,
   ProgramasSlugRoute: ProgramasSlugRoute,

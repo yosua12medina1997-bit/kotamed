@@ -13,6 +13,8 @@ import { CmsBlockView } from "@/components/cms/CmsBlocks";
 import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import { useCmsBlocks, useCmsPage, usePublicCmsPage } from "@/lib/cms";
 import { CienciasBasicasPage } from "@/components/pages/CienciasBasicasPage";
+import { CienciasClinicasPage } from "@/components/pages/CienciasClinicasPage";
+
 import kotaMedLogo from "@/assets/kotaro-logo.png";
 
 export const Route = createFileRoute("/p/$slug")({
@@ -44,6 +46,8 @@ function CmsPublicPage() {
   const isDraft = preview === "draft";
 
   if (slug === "ciencias-basicas") return <CienciasBasicasPage />;
+  if (slug === "ciencias-clinicas") return <CienciasClinicasPage />;
+
 
   return <CmsBlocksPage slug={slug} isDraft={isDraft} />;
 }

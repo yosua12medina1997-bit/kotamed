@@ -60,10 +60,13 @@ export type CbConfig = {
     secondaryLabel: string;
     secondaryHref: string;
     chips: string[];
+    /** Etiquetas de los paneles holográficos del hero (máx. 6). */
+    holoCards?: string[];
     /** Imagen ambiental del hero (vacío = laboratorio del Home). */
     image: string;
     showEnvControls: boolean;
   };
+
   stats: { value: string; label: string }[];
   intro: {
     title: string;
@@ -266,9 +269,11 @@ export const DEFAULT_CB_CONFIG: CbConfig = {
   },
 };
 
-function mergeCb(raw: any): CbConfig {
+/** Fusiona la configuración guardada con los valores por defecto indicados. */
+export function mergeScienceConfig(raw: any, defaults: CbConfig = DEFAULT_CB_CONFIG): CbConfig {
   const c = raw && typeof raw === "object" ? raw : {};
-  const d = DEFAULT_CB_CONFIG;
+  const d = defaults;
+
   const order: CbSectionId[] = Array.isArray(c.order)
     ? (c.order.filter((k: any) => d.order.includes(k)) as CbSectionId[])
     : d.order;
@@ -303,7 +308,7 @@ export function useCbConfig() {
     queryFn: async (): Promise<CbConfig> => {
       try {
         const { data } = await db.from("ui_menu_prefs").select("config").eq("scope", CB_SCOPE).maybeSingle();
-        return mergeCb(data?.config ?? null);
+        return mergeScienceConfig(data?.config ?? null);
       } catch {
         return DEFAULT_CB_CONFIG;
       }
