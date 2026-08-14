@@ -102,10 +102,29 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   );
 }
 
-export function CienciasBasicasEditor() {
-  const { data, isLoading } = useCbConfig();
-  const save = useSaveCbConfig();
+export type ScienceEditorProps = {
+  heading?: string;
+  path?: string;
+  labels?: Record<CbSectionId, string>;
+  defaults?: CbConfig;
+  useConfig?: () => { data?: CbConfig; isLoading: boolean };
+  useSave?: () => { isPending: boolean; mutateAsync: (c: CbConfig) => Promise<CbConfig> };
+  successMessage?: string;
+};
+
+export function CienciasBasicasEditor({
+  heading = "Ciencias Básicas · /p/ciencias-basicas",
+  path = "/p/ciencias-basicas",
+  labels = CB_SECTION_LABEL,
+  defaults = DEFAULT_CB_CONFIG,
+  useConfig = useCbConfig,
+  useSave = useSaveCbConfig,
+  successMessage = "Ciencias Básicas actualizada",
+}: ScienceEditorProps = {}) {
+  const { data, isLoading } = useConfig();
+  const save = useSave();
   const [cfg, setCfg] = useState<CbConfig | null>(null);
+
 
   useEffect(() => {
     if (data && !cfg) setCfg(data);
