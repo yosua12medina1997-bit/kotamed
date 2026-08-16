@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import { toast } from "sonner";
-import { BarChart3, Database, ListTree, Plus, Save, ScrollText, Trash2 } from "lucide-react";
+import { BarChart3, BookMarked, Database, ListTree, Plus, Save, ScrollText, Trash2 } from "lucide-react";
 import {
   DURATION_OPTIONS,
   EXAM_MODE_LABEL,
@@ -17,9 +17,12 @@ import {
   useApexAnalytics,
   useExamBlueprintMutations,
   useExamBlueprints,
+  useResourceLinks,
+  useResourceMutations,
   useTaxonomy,
   useTaxonomyMutations,
   type ExamBlueprint,
+  type ResourceLink,
   type TaxNode,
 } from "@/lib/apex";
 import QuestionBank from "./QuestionBank";
@@ -29,6 +32,7 @@ const TABS = [
   { key: "banco", label: "Banco de preguntas", icon: Database },
   { key: "taxonomia", label: "Taxonomía", icon: ListTree },
   { key: "examenes", label: "Exámenes", icon: ScrollText },
+  { key: "recursos", label: "Recursos oficiales", icon: BookMarked },
   { key: "analitica", label: "Analítica IA", icon: BarChart3 },
 ] as const;
 
@@ -46,8 +50,149 @@ export default function ApexStudio() {
       {tab === "banco" && <QuestionBank />}
       {tab === "taxonomia" && <TaxonomyEditor />}
       {tab === "examenes" && <ExamTemplates />}
+      {tab === "recursos" && <ResourceLibrary />}
       {tab === "analitica" && <ApexAnalytics />}
     </div>
+  );
+}
+
+/* ------------------------- Recursos oficiales ------------------------- */
+
+const RESOURCE_KINDS = ["libro", "guía", "video", "artículo", "clase", "flashcards"];
+
+function ResourceLibrary() {
+  const list = useResourceLinks();
+  const { save, remove } = useResourceMutations();
+  const [editing, setEditing] = useState<Partial<ResourceLink> | null>(null);
+
+  return (
+    <>
+      <Panel
+        title="Recursos oficiales"
+        subtitle="Se sugieren automáticamente en los resultados según la materia o tema fallado."
+        right={
+          <Btn variant="primary" onClick={() => setEditing({ kind: "libro", is_published: true })}>
+            <Plus className="size-3.5" /> Nuevo recurso
+          </Btn>
+        }
+      >
+        <div className="space-y-2">
+          {(list.data ?? []).map((r) => (
+            <div key={r.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-3">
+              <div className="min-w-48 flex-1">
+                <p className="text-sm font-bold">{r.title}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {r.kind}
+                  {r.label_match ? ` · coincide con "${r.label_match}"` : ""}
+                </p>
+              </div>
+              <Chip className={r.is_published ? "border-emerald-200 bg-emerald-50 text-emerald-600" : undefined}>
+                {r.is_published ? "Visible" : "Oculto"}
+              </Chip>
+              <Btn onClick={() => setEditing(r)}>Editar</Btn>
+              <Btn
+                variant="danger"
+                onClick={async () => {
+                  if (window.confirm("¿Eliminar recurso?")) await remove.mutateAsync(r.id);
+                }}
+              >
+                <Trash2 className="size-3" />
+              </Btn>
+            </div>
+          ))}
+          {(list.data ?? []).length === 0 && (
+            <Empty title="Sin recursos" hint="Vincula libros, guías o clases a las materias y temas del banco." />
+          )}
+        </div>
+      </Panel>
+
+      {editing && (
+        <Modal open title={editing.id ? "Editar recurso" : "Nuevo recurso"} onClose={() => setEditing(null)}>
+          <div className="space-y-3">
+            <Field label="Título">
+              <input
+                className={inputClass}
+                value={editing.title ?? ""}
+                onChange={(e) => setEditing((p) => ({ ...p!, title: e.target.value }))}
+              />
+            </Field>
+            <Field label="Descripción">
+              <textarea
+                className={`${inputClass} min-h-20`}
+                value={editing.description ?? ""}
+                onChange={(e) => setEditing((p) => ({ ...p!, description: e.target.value }))}
+              />
+            </Field>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Tipo">
+                <select
+                  className={inputClass}
+                  value={editing.kind ?? "libro"}
+                  onChange={(e) => setEditing((p) => ({ ...p!, kind: e.target.value }))}
+                >
+                  {RESOURCE_KINDS.map((k) => (
+                    <option key={k} value={k}>
+                      {k}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Etiqueta a la que aplica" hint="Materia o tema exacto, ej. Cardiología">
+                <input
+                  className={inputClass}
+                  value={editing.label_match ?? ""}
+                  onChange={(e) => setEditing((p) => ({ ...p!, label_match: e.target.value }))}
+                />
+              </Field>
+            </div>
+            <Field label="Enlace">
+              <input
+                className={inputClass}
+                placeholder="https://…"
+                value={editing.url ?? ""}
+                onChange={(e) => setEditing((p) => ({ ...p!, url: e.target.value }))}
+              />
+            </Field>
+            <label className="flex items-center gap-2 text-xs font-semibold">
+              <input
+                type="checkbox"
+                checked={!!editing.is_published}
+                onChange={(e) => setEditing((p) => ({ ...p!, is_published: e.target.checked }))}
+              />
+              Visible para estudiantes
+            </label>
+            <div className="flex justify-end gap-2 border-t border-border pt-3">
+              <Btn onClick={() => setEditing(null)}>Cancelar</Btn>
+              <Btn
+                variant="primary"
+                onClick={async () => {
+                  if (!editing.title?.trim()) return toast.error("Ponle un título.");
+                  try {
+                    await save.mutateAsync({
+                      id: editing.id ?? null,
+                      patch: {
+                        title: editing.title.trim(),
+                        description: editing.description?.trim() || null,
+                        kind: editing.kind ?? "libro",
+                        label_match: editing.label_match?.trim() || null,
+                        url: editing.url?.trim() || null,
+                        is_published: !!editing.is_published,
+                      },
+                    });
+                    toast.success("Recurso guardado.");
+                    setEditing(null);
+                  } catch (e: any) {
+                    toast.error(e?.message ?? "No se pudo guardar.");
+                  }
+                }}
+              >
+                <Save className="size-3.5" /> Guardar
+              </Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }
 
