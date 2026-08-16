@@ -187,6 +187,11 @@ export default function ResultsView({
                       <Chip>{it.seconds}s</Chip>
                     </div>
                     {it.reference && <p className="text-[11px] text-muted-foreground">📚 {it.reference}</p>}
+                    <div className="flex justify-end pt-1">
+                      <Btn onClick={() => setReport({ questionId: it.questionId, reason: FLAG_REASONS[0], note: "" })}>
+                        <Flag className="size-3" /> Reportar pregunta
+                      </Btn>
+                    </div>
                   </div>
                 </details>
               ))}
@@ -194,6 +199,61 @@ export default function ResultsView({
             </div>
           )}
         </Panel>
+      )}
+
+      {report && (
+        <Modal
+          open
+          title="Reportar pregunta"
+          subtitle="El equipo académico revisará el ítem y lo corregirá o anulará."
+          onClose={() => setReport(null)}
+        >
+          <div className="space-y-3">
+            <Field label="Motivo">
+              <select
+                className={inputClass}
+                value={report.reason}
+                onChange={(e) => setReport((p) => ({ ...p!, reason: e.target.value }))}
+              >
+                {FLAG_REASONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Detalle (opcional)">
+              <textarea
+                className={`${inputClass} min-h-24`}
+                value={report.note}
+                placeholder="Describe el problema con la mayor precisión posible."
+                onChange={(e) => setReport((p) => ({ ...p!, note: e.target.value }))}
+              />
+            </Field>
+            <div className="flex justify-end gap-2 border-t border-border pt-3">
+              <Btn onClick={() => setReport(null)}>Cancelar</Btn>
+              <Btn
+                variant="primary"
+                disabled={actions.flag.isPending}
+                onClick={async () => {
+                  try {
+                    await actions.flag.mutateAsync({
+                      questionId: report.questionId,
+                      reason: report.reason,
+                      note: report.note.trim() || undefined,
+                    });
+                    toast.success("Reporte enviado. Gracias por mejorar el banco.");
+                    setReport(null);
+                  } catch (e: any) {
+                    toast.error(e?.message ?? "No se pudo enviar el reporte.");
+                  }
+                }}
+              >
+                <Flag className="size-3.5" /> Enviar reporte
+              </Btn>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );
