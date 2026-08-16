@@ -5,11 +5,20 @@
  */
 import { useState } from "react";
 import { toast } from "sonner";
-import { BookOpen, Brain, CheckCircle2, FileText, Loader2, RotateCcw, XCircle } from "lucide-react";
+import { BookOpen, Brain, CheckCircle2, FileText, Flag, Loader2, RotateCcw, XCircle } from "lucide-react";
 import type { AttemptAnalysis, ReviewItem } from "@/lib/apex-types";
 import { useAttemptReview, useLearningActions, useMyAttempts } from "@/lib/apex";
-import { Btn, Chip, Empty, MasteryBar, Panel, Stat } from "./ui";
+import { Btn, Chip, Empty, Field, inputClass, MasteryBar, Modal, Panel, Stat } from "./ui";
 import { cn } from "@/lib/utils";
+
+const FLAG_REASONS = [
+  "Respuesta incorrecta",
+  "Enunciado confuso",
+  "Explicación insuficiente",
+  "Pregunta duplicada",
+  "Error de tipeo",
+  "Otro",
+];
 
 export default function ResultsView({
   attemptId,
