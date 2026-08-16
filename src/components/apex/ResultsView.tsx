@@ -36,6 +36,7 @@ export default function ResultsView({
   const review = useAttemptReview(attemptId);
   const actions = useLearningActions();
   const [tab, setTab] = useState<"mapa" | "revision">("mapa");
+  const [report, setReport] = useState<{ questionId: string; reason: string; note: string } | null>(null);
 
   const analysis = (attempt?.analysis ?? {}) as Partial<AttemptAnalysis>;
   const items: ReviewItem[] = ((review.data as any)?.items ?? []) as ReviewItem[];
