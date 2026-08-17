@@ -6,8 +6,12 @@ import { Loader2 } from "lucide-react";
 import kotaroLogo from "@/assets/kotaro-logo.png";
 
 export const Route = createFileRoute("/auth")({
+  // Página 100% dependiente del navegador (sesión, origin, redirect): evita
+  // cualquier desajuste de hidratación entre el HTML del servidor y el cliente.
+  ssr: false,
   validateSearch: (search: Record<string, unknown>): { redirect?: string } =>
     typeof search.redirect === "string" ? { redirect: search.redirect } : {},
+
   head: () => ({
     meta: [
       { title: "Ingresar · KotaMed" },
