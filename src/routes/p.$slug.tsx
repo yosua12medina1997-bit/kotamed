@@ -26,6 +26,12 @@ export const Route = createFileRoute("/p/$slug")({
   }),
   head: ({ params }) => {
     const custom: Record<string, { title: string; description: string; image?: string }> = {
+      enam: {
+        title: "Preparación ENAM | KotaMed",
+        description:
+          "Prepárate para el ENAM con preguntas, simulacros, casos clínicos, clases, análisis de rendimiento y acompañamiento con inteligencia artificial.",
+        image: "https://kotamed.app/enam/hero-enam.jpg",
+      },
       internado: {
         title: "Internado Médico | KotaMed",
         description:
@@ -69,6 +75,7 @@ function CmsPublicPage() {
   if (slug === "ciencias-basicas") return <CienciasBasicasPage />;
   if (slug === "ciencias-clinicas") return <CienciasClinicasPage />;
   if (slug === "internado") return <InternadoPage />;
+  if (slug === "enam") return <EnamPage />;
 
 
 
