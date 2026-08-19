@@ -14,6 +14,8 @@ import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/Si
 import { useCmsBlocks, useCmsPage, usePublicCmsPage } from "@/lib/cms";
 import { CienciasBasicasPage } from "@/components/pages/CienciasBasicasPage";
 import { CienciasClinicasPage } from "@/components/pages/CienciasClinicasPage";
+import { InternadoPage } from "@/components/pages/InternadoPage";
+
 
 import kotaMedLogo from "@/assets/kotaro-logo.png";
 
@@ -21,22 +23,40 @@ export const Route = createFileRoute("/p/$slug")({
   validateSearch: (search: Record<string, unknown>): { preview?: "draft" } => ({
     preview: search.preview === "draft" ? ("draft" as const) : undefined,
   }),
-  head: ({ params }) => ({
-    meta: [
-      { title: `${params.slug.replace(/-/g, " ")} · KotaMed` },
-      {
-        name: "description",
-        content: "Contenido académico de KotaMed: programas, cursos y especialidades médicas con IA.",
+  head: ({ params }) => {
+    const custom: Record<string, { title: string; description: string; image?: string }> = {
+      internado: {
+        title: "Internado Médico | KotaMed",
+        description:
+          "Prepárate para tu internado médico con guías, casos clínicos, evaluaciones, herramientas y acompañamiento con inteligencia artificial.",
+        image: "https://kotamed.app/int/hero-internado.jpg",
       },
-      { property: "og:title", content: `${params.slug.replace(/-/g, " ")} · KotaMed` },
-      {
-        property: "og:description",
-        content: "Formación médica premium con inteligencia artificial, casos reales y simulación clínica.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+    };
+    const meta = custom[params.slug];
+    const title = meta?.title ?? `${params.slug.replace(/-/g, " ")} · KotaMed`;
+    const description =
+      meta?.description ?? "Contenido académico de KotaMed: programas, cursos y especialidades médicas con IA.";
+    const url = `https://kotamed.app/p/${params.slug}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
+        { name: "twitter:card", content: "summary_large_image" },
+        ...(meta?.image
+          ? [
+              { property: "og:image", content: meta.image },
+              { name: "twitter:image", content: meta.image },
+            ]
+          : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
+
   component: CmsPublicPage,
 });
 
@@ -47,6 +67,8 @@ function CmsPublicPage() {
 
   if (slug === "ciencias-basicas") return <CienciasBasicasPage />;
   if (slug === "ciencias-clinicas") return <CienciasClinicasPage />;
+  if (slug === "internado") return <InternadoPage />;
+
 
 
   return <CmsBlocksPage slug={slug} isDraft={isDraft} />;
