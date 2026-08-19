@@ -137,6 +137,8 @@ const MODULES: { id: StudioView; label: string; hint: string; icon: React.Elemen
   { id: "bienvenida", label: "Post-matrícula", hint: "Bienvenida y accesos del alumno", icon: Sparkles },
   { id: "ciencias", label: "Ciencias Básicas", hint: "Página pública /p/ciencias-basicas", icon: Sparkles },
   { id: "clinicas", label: "Ciencias Clínicas", hint: "Página pública /academia/ciencias-clinicas", icon: Sparkles },
+  { id: "internado", label: "Internado Médico", hint: "Página pública /p/internado", icon: Sparkles },
+
   { id: "programas", label: "Programas (Hub)", hint: "Página pública /programas", icon: Sparkles },
   { id: "constructor", label: "Constructor de contenido", hint: "Programas, bloques, temas y recursos", icon: Layers },
   { id: "colecciones", label: "Colecciones", hint: "Contenido reutilizable", icon: Recycle },
