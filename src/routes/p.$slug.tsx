@@ -14,6 +14,8 @@ import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/Si
 import { useCmsBlocks, useCmsPage, usePublicCmsPage } from "@/lib/cms";
 import { CienciasBasicasPage } from "@/components/pages/CienciasBasicasPage";
 import { CienciasClinicasPage } from "@/components/pages/CienciasClinicasPage";
+import { InternadoPage } from "@/components/pages/InternadoPage";
+
 
 import kotaMedLogo from "@/assets/kotaro-logo.png";
 
