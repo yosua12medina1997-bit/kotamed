@@ -49,6 +49,8 @@ function CmsPublicPage() {
 
   if (slug === "ciencias-basicas") return <CienciasBasicasPage />;
   if (slug === "ciencias-clinicas") return <CienciasClinicasPage />;
+  if (slug === "internado") return <InternadoPage />;
+
 
 
   return <CmsBlocksPage slug={slug} isDraft={isDraft} />;
