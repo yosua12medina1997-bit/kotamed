@@ -754,6 +754,11 @@ function CmsStudioPage() {
         <div className="p-3">
           <CienciasClinicasEditor />
         </div>
+      ) : view === "internado" ? (
+        <div className="p-3">
+          <InternadoEditor />
+        </div>
+
       ) : view === "programas" ? (
         <div className="p-3">
           <ProgramHubEditor />
