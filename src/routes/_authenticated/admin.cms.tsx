@@ -122,6 +122,8 @@ type StudioView =
   | "bienvenida"
   | "ciencias"
   | "clinicas"
+  | "internado"
+
   | "programas"
   | "sitio";
 
