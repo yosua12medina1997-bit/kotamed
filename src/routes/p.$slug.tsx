@@ -15,6 +15,7 @@ import { useCmsBlocks, useCmsPage, usePublicCmsPage } from "@/lib/cms";
 import { CienciasBasicasPage } from "@/components/pages/CienciasBasicasPage";
 import { CienciasClinicasPage } from "@/components/pages/CienciasClinicasPage";
 import { InternadoPage } from "@/components/pages/InternadoPage";
+import { EnamPage } from "@/components/pages/EnamPage";
 
 
 import kotaMedLogo from "@/assets/kotaro-logo.png";
