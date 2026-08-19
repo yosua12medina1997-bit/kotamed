@@ -86,6 +86,8 @@ import { HeroEnvEditor } from "@/components/cms/HeroEnvEditor";
 import { WelcomeEditor } from "@/components/cms/WelcomeEditor";
 import { CienciasBasicasEditor } from "@/components/cms/CienciasBasicasEditor";
 import { CienciasClinicasEditor } from "@/components/cms/CienciasClinicasEditor";
+import { InternadoEditor } from "@/components/cms/InternadoEditor";
+
 import { ProgramHubEditor } from "@/components/cms/ProgramHubEditor";
 
 import { ContentBuilder } from "@/components/cms/ContentBuilder";
