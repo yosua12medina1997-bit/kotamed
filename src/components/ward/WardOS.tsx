@@ -35,8 +35,10 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "@/components/academy/ui";
-import { useSupabaseUser } from "@/lib/session";
+import { useMyRoles, useSupabaseUser } from "@/lib/session";
+
 import {
   editablePatientIds,
   initialsOf,
@@ -211,6 +213,10 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
   const { data: bedAssignments = [] } = useBedAssignments();
   const { data: roster = [] } = useWardRoster();
   const { data: tasks = [] } = useTasks();
+  const { data: myRoles = [] } = useMyRoles(user?.id);
+  const isSuperAdmin = myRoles.includes("super_admin");
+  const delPatient = useWardDelete("ward_patients", [WARD_KEYS.patients]);
+
 
   const zoneIds = useMemo(() => new Set(zones.map((z) => z.id)), [zones]);
   const pavilionBeds = useMemo(() => beds.filter((b) => zoneIds.has(b.zone_id)), [beds, zoneIds]);
@@ -350,8 +356,23 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             onSwitch={() => setSwitcherOpen(true)}
             onNewEvolution={() => setSection("p-soap")}
             onTasks={() => setSection("pendientes")}
+            canDelete={isSuperAdmin}
+            deleting={delPatient.isPending}
+            onDelete={() => {
+              const label = patientLabel(patient);
+              if (!window.confirm(`¿Eliminar definitivamente al paciente ${label}? Se borrará todo su registro clínico.`))
+                return;
+              delPatient.mutate(patient.id, {
+                onSuccess: () => {
+                  toast.success("Paciente eliminado");
+                  setActivePatientId(null);
+                  setSection("pacientes");
+                },
+              });
+            }}
           />
         )}
+
 
         {section === "inicio" && (
           <Dashboard
@@ -572,6 +593,9 @@ function ActivePatientBar({
   onSwitch,
   onNewEvolution,
   onTasks,
+  canDelete,
+  deleting,
+  onDelete,
 }: {
   patient: WardPatient;
   bedNumber: string | null;
@@ -581,7 +605,11 @@ function ActivePatientBar({
   onSwitch: () => void;
   onNewEvolution: () => void;
   onTasks: () => void;
+  canDelete?: boolean;
+  deleting?: boolean;
+  onDelete?: () => void;
 }) {
+
   return (
     <section
       className="rounded-3xl border border-border/50 bg-background/70 px-5 py-4 backdrop-blur"
@@ -620,6 +648,17 @@ function ActivePatientBar({
           <Btn onClick={onSwitch}>
             <Repeat2 className="size-3.5" /> Cambiar paciente
           </Btn>
+          {canDelete && (
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={onDelete}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-destructive/30 bg-destructive/10 px-2.5 py-1.5 text-[11.5px] font-bold text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
+            >
+              <Trash2 className="size-3.5" /> {deleting ? "Eliminando…" : "Eliminar paciente"}
+            </button>
+          )}
+
         </div>
       </div>
     </section>
