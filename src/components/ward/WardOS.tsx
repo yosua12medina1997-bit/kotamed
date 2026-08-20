@@ -361,6 +361,7 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             patients={pavilionPatients}
             myPatients={myPatients}
             pendingTasks={pendingTasks}
+            myBedIds={myBedIds}
             pavilionCode={pavilionCode}
             userName={
               (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
@@ -407,10 +408,14 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
               pavilionCode={pavilionCode}
               pavilionName={pavilionName}
               tasks={tasks}
+              myBedIds={myBedIds}
+              bedOwners={ownerByBed(bedAssignments)}
+              roster={rosterMap(roster)}
+              isAdmin={isAdmin}
               pavilions={pavilions}
               activePavilionId={activePavilion}
               onPavilion={setPavilionId}
-              canEdit
+              canEdit={isAdmin}
               userId={user?.id}
               onSelectPatient={(id) => selectPatient(id)}
               onSelectBed={(b) => {
@@ -436,6 +441,13 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
               setFormOpen(true);
             }}
           />
+        )}
+
+        {isPatientSection && patient && !canEditActive && (
+          <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-[12.5px] font-semibold text-amber-700 dark:text-amber-300">
+            Esta cama está asignada a otro interno. Solo puedes editar la información clínica de tus
+            camas asignadas; aquí puedes consultar en modo lectura.
+          </div>
         )}
 
         {isPatientSection &&
@@ -507,7 +519,13 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
         {section === "competencias" && <Competencies accent={accent} userId={user?.id} />}
         {section === "casos" && <LearningCases accent={accent} patients={patients} />}
         {section === "config" && (
-          <WardConfig accent={accent} pavilionId={activePavilion} zones={zones} beds={pavilionBeds} />
+          <WardConfig
+            accent={accent}
+            pavilionId={activePavilion}
+            pavilionName={pavilionName}
+            zones={zones}
+            beds={pavilionBeds}
+          />
         )}
       </div>
 
