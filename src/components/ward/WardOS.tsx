@@ -126,9 +126,10 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
         <div className="rounded-3xl border border-border/60 bg-background/70 p-3 backdrop-blur">
           <div className="px-2 pb-2">
             <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Ward OS
+              Kota Ward
             </div>
-            <div className="truncate text-sm font-black tracking-tight">Hospitalización Pediátrica</div>
+            <div className="truncate text-sm font-black tracking-tight">Rotación Pediatría HNSEB</div>
+
           </div>
           <nav className="space-y-1">
             {SECTIONS.filter((s) => !s.adminOnly || isAdmin).map((s) => {
