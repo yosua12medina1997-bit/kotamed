@@ -2080,6 +2080,188 @@ export type Database = {
           },
         ]
       }
+      emerg_box_assignments: {
+        Row: {
+          active: boolean
+          assigned_by: string | null
+          box_id: string
+          created_at: string
+          id: string
+          note: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          assigned_by?: string | null
+          box_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          role?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          assigned_by?: string | null
+          box_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_box_assignments_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_boxes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_boxes: {
+        Row: {
+          active: boolean
+          area: string
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          area?: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          area?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      emerg_patients: {
+        Row: {
+          abcde: Json
+          admitted_at: string
+          age_label: string | null
+          area: string
+          box_id: string | null
+          code: string | null
+          created_at: string
+          created_by: string | null
+          discharged_at: string | null
+          disposition: string | null
+          disposition_at: string | null
+          disposition_note: string | null
+          general_state: string | null
+          handoff_at: string | null
+          id: string
+          initial: Json
+          initials: string | null
+          main_dx: string | null
+          next_recheck_at: string | null
+          notes: string | null
+          problems: Json
+          reason: string | null
+          sex: string | null
+          status: string
+          updated_at: string
+          ward_patient_id: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          abcde?: Json
+          admitted_at?: string
+          age_label?: string | null
+          area?: string
+          box_id?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          discharged_at?: string | null
+          disposition?: string | null
+          disposition_at?: string | null
+          disposition_note?: string | null
+          general_state?: string | null
+          handoff_at?: string | null
+          id?: string
+          initial?: Json
+          initials?: string | null
+          main_dx?: string | null
+          next_recheck_at?: string | null
+          notes?: string | null
+          problems?: Json
+          reason?: string | null
+          sex?: string | null
+          status?: string
+          updated_at?: string
+          ward_patient_id?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          abcde?: Json
+          admitted_at?: string
+          age_label?: string | null
+          area?: string
+          box_id?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          discharged_at?: string | null
+          disposition?: string | null
+          disposition_at?: string | null
+          disposition_note?: string | null
+          general_state?: string | null
+          handoff_at?: string | null
+          id?: string
+          initial?: Json
+          initials?: string | null
+          main_dx?: string | null
+          next_recheck_at?: string | null
+          notes?: string | null
+          problems?: Json
+          reason?: string | null
+          sex?: string | null
+          status?: string
+          updated_at?: string
+          ward_patient_id?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_patients_box_id_fkey"
+            columns: ["box_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_boxes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emerg_patients_ward_patient_id_fkey"
+            columns: ["ward_patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollment_audit_log: {
         Row: {
           action: string
@@ -4640,6 +4822,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      can_edit_emerg_patient: {
+        Args: { _patient_id: string }
+        Returns: boolean
       }
       can_edit_ward_patient: { Args: { _patient_id: string }; Returns: boolean }
       has_role: {
