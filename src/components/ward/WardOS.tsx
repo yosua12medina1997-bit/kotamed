@@ -299,6 +299,9 @@ function Dashboard({
   myPatients,
   myPatientIds,
   pendingTasks,
+  pavilionCode,
+  pavilionName,
+  userId,
   onSelectPatient,
   onNewPatient,
 }: {
@@ -308,10 +311,14 @@ function Dashboard({
   patients: WardPatient[];
   myPatients: WardPatient[];
   myPatientIds: Set<string>;
-  pendingTasks: { id: string; title: string; patient_id: string | null; priority: string }[];
+  pendingTasks: WardTask[];
+  pavilionCode?: string | null;
+  pavilionName?: string | null;
+  userId?: string;
   onSelectPatient: (id: string) => void;
   onNewPatient: () => void;
 }) {
+
   const { data: links = [] } = useStudyLinks();
   const evolvedToday = 0;
   const critical = patients.filter((p) => p.status === "critico" || p.status === "prioritario");
