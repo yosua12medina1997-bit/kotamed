@@ -43,6 +43,7 @@ import {
   useZones,
   type WardBed,
   type WardPatient,
+  type WardTask,
   type WardZone,
 } from "@/lib/ward-os";
 import { PavilionMap } from "./PavilionMap";
