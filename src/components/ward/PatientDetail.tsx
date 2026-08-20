@@ -6,14 +6,24 @@ import { useMemo, useState } from "react";
 import {
   Activity,
   BookOpen,
+  Calculator,
   CalendarDays,
   ClipboardList,
+  Droplets,
+  FileText,
+  FlaskConical,
+  HeartPulse,
   ListChecks,
+  Paperclip,
   Pencil,
+  Pill,
   Plus,
   Save,
+  Siren,
   Stethoscope,
+  Syringe,
   Trash2,
+  Users,
 } from "lucide-react";
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "@/components/academy/ui";
 import {
@@ -37,6 +47,25 @@ import {
   type WardPatient,
   type WardZone,
 } from "@/lib/ward-os";
+import {
+  AtencionInicial,
+  ClinicalTimeline,
+  ExamenFisico,
+  HistoriaClinica,
+  Monitorizacion,
+  ResumenYAlta,
+  StageTracker,
+} from "./ClinicalRecord";
+import {
+  BalanceHidrico,
+  ExamenesAuxiliares,
+  Interconsultas,
+  Procedimientos,
+  Tratamiento,
+} from "./ClinicalOrders";
+import { FileDrop } from "./FileDrop";
+import { WardCalculator } from "./WardCalculator";
+
 import { StatusPill, WardCard } from "./ui";
 
 const TABS = [
