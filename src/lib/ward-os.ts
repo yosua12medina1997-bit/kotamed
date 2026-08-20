@@ -7,9 +7,24 @@
  * usa un cliente sin tipar (mismo patrón que el HIS neonatal).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const wdb = supabase as any;
+
+export const PERMISSION_MSG =
+  "No se guardó: no tienes permisos sobre este registro (cama asignada a otro interno o se requiere rol administrador).";
+
+/** Muestra el motivo real del fallo de una mutación clínica. */
+export function wardError(e: unknown) {
+  const msg =
+    (e as { message?: string; hint?: string } | null)?.message ??
+    "No se pudo guardar. Inténtalo de nuevo.";
+  toast.error(msg);
+  // eslint-disable-next-line no-console
+  console.error("[Ward OS]", e);
+}
+
 
 /* ────────────────────────────── Modelos ────────────────────────────── */
 
