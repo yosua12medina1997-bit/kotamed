@@ -4823,10 +4823,6 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      can_edit_emerg_patient: {
-        Args: { _patient_id: string }
-        Returns: boolean
-      }
       can_edit_ward_patient: { Args: { _patient_id: string }; Returns: boolean }
       has_role: {
         Args: {
