@@ -2,7 +2,10 @@
  * Expediente académico del paciente hospitalizado: resumen, SOAP del día,
  * problemas clínicos, plan, pendientes, línea de tiempo y ruta de estudio.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
 import {
   Activity,
   BookOpen,
