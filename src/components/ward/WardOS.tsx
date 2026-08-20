@@ -1308,11 +1308,13 @@ function LearningCases({ accent, patients }: { accent: string; patients: WardPat
 function WardConfig({
   accent,
   pavilionId,
+  pavilionName,
   zones,
   beds,
 }: {
   accent: string;
   pavilionId: string | null;
+  pavilionName: string | null;
   zones: WardZone[];
   beds: WardBed[];
 }) {
@@ -1322,9 +1324,40 @@ function WardConfig({
   const delBed = useWardDelete("ward_beds", [WARD_KEYS.beds]);
   const [newZone, setNewZone] = useState({ label: "", kind: "room" });
   const [newBed, setNewBed] = useState<Record<string, string>>({});
+  const [assignZone, setAssignZone] = useState<WardZone | null>(null);
+  const [distOpen, setDistOpen] = useState(false);
 
   return (
     <div className="space-y-5">
+      <DistributionSummary
+        accent={accent}
+        pavilionName={pavilionName}
+        beds={beds}
+        onOpen={() => setDistOpen(true)}
+      />
+
+      <AssignmentsModal
+        open={!!assignZone}
+        onClose={() => setAssignZone(null)}
+        accent={accent}
+        zone={assignZone}
+        pavilionName={pavilionName}
+        beds={beds}
+      />
+
+      <DistributionModal
+        open={distOpen}
+        onClose={() => setDistOpen(false)}
+        accent={accent}
+        pavilionName={pavilionName}
+        zones={zones}
+        beds={beds}
+        onManageZone={(z) => {
+          setDistOpen(false);
+          setAssignZone(z);
+        }}
+      />
+
       <WardCard
         title="Croquis editable"
         subtitle="Como super admin puedes crear salas, moverlas en la cuadrícula y administrar camas sin restricciones."
