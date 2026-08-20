@@ -4651,6 +4651,15 @@ export type Database = {
       }
       is_enrollment_admin: { Args: { _user_id: string }; Returns: boolean }
       is_ward_admin: { Args: { _user_id: string }; Returns: boolean }
+      ward_roster: {
+        Args: never
+        Returns: {
+          full_name: string
+          initials: string
+          is_admin: boolean
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "student" | "super_admin" | "academic_admin"
