@@ -95,14 +95,20 @@ export function PatientDetail({
   beds,
   accent,
   onEdit,
+  userId,
+  isAdmin,
 }: {
   patient: WardPatient;
   zones: WardZone[];
   beds: WardBed[];
   accent: string;
   onEdit: () => void;
+  userId?: string;
+  isAdmin?: boolean;
 }) {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("resumen");
+  const ctx = { patient, accent, userId, isAdmin };
+
   const bed = beds.find((b) => b.id === patient.bed_id);
   const zone = zones.find((z) => z.id === bed?.zone_id);
 
