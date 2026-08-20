@@ -384,8 +384,13 @@ function Dashboard({
             patients={patients}
             accent={accent}
             myPatientIds={myPatientIds}
+            pavilionCode={pavilionCode}
+            pavilionName={pavilionName}
+            tasks={pendingTasks}
+            userId={userId}
             onSelectPatient={onSelectPatient}
           />
+
         </WardCard>
 
         <div className="space-y-5">
