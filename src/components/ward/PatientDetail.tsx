@@ -41,11 +41,24 @@ import { StatusPill, WardCard } from "./ui";
 
 const TABS = [
   { id: "resumen", label: "Resumen", icon: Stethoscope },
+  { id: "historia", label: "Historia clínica", icon: ClipboardList },
+  { id: "inicial", label: "Atención inicial", icon: Siren },
+  { id: "examen", label: "Examen físico", icon: HeartPulse },
+  { id: "monitor", label: "Monitorización", icon: Activity },
+  { id: "examenes", label: "Exámenes auxiliares", icon: FlaskConical },
+  { id: "tratamiento", label: "Tratamiento", icon: Pill },
+  { id: "balance", label: "Balance hídrico", icon: Droplets },
+  { id: "interconsultas", label: "Interconsultas", icon: Users },
+  { id: "procedimientos", label: "Procedimientos", icon: Syringe },
+  { id: "calculadora", label: "Calculadora", icon: Calculator },
   { id: "soap", label: "Evolución SOAP", icon: ClipboardList },
   { id: "problemas", label: "Problemas y plan", icon: ListChecks },
+  { id: "archivos", label: "Archivos", icon: Paperclip },
+  { id: "alta", label: "Resumen y alta", icon: FileText },
   { id: "timeline", label: "Línea de tiempo", icon: CalendarDays },
   { id: "estudio", label: "Ruta de estudio", icon: BookOpen },
 ] as const;
+
 
 export function PatientDetail({
   patient,
