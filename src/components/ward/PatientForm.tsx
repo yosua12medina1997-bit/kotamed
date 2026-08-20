@@ -1,6 +1,7 @@
 /** Formulario de ingreso / edición de paciente académico del pabellón. */
 import { useState } from "react";
 import { Save } from "lucide-react";
+import { toast } from "sonner";
 import { Btn, Field, Input, Select, Textarea } from "@/components/academy/ui";
 import {
   PATIENT_STATUS,
