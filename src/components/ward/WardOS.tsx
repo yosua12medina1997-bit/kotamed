@@ -648,6 +648,17 @@ function ActivePatientBar({
           <Btn onClick={onSwitch}>
             <Repeat2 className="size-3.5" /> Cambiar paciente
           </Btn>
+          {canDelete && (
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={onDelete}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-destructive/30 bg-destructive/10 px-2.5 py-1.5 text-[11.5px] font-bold text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
+            >
+              <Trash2 className="size-3.5" /> {deleting ? "Eliminando…" : "Eliminar paciente"}
+            </button>
+          )}
+
         </div>
       </div>
     </section>
