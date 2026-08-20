@@ -32,7 +32,7 @@ export const ABCDE = [
   { key: "e", label: "E — Exposición", hint: "Hallazgos relevantes, temperatura, lesiones" },
 ] as const;
 
-export const HISTORY_BLOCKS = [
+export const HISTORY_BLOCKS: { key: string; label: string; hint?: string }[] = [
   { key: "identificacion", label: "Identificación", hint: "Acompañante, responsable, procedencia" },
   { key: "motivo", label: "Motivo de consulta", hint: "Ej. fiebre y dificultad respiratoria de 3 días" },
   { key: "enfermedad_actual", label: "Enfermedad actual", hint: "Inicio, tiempo, forma, curso, cronología" },
