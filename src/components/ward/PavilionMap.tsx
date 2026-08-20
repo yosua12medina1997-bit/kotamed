@@ -65,6 +65,9 @@ export function PavilionMap({
   tasks = [],
   canEdit = false,
   userId,
+  pavilions = [],
+  onPavilion,
+  activePavilionId,
 }: {
   zones: WardZone[];
   beds: WardBed[];
@@ -79,6 +82,9 @@ export function PavilionMap({
   tasks?: WardTask[];
   canEdit?: boolean;
   userId?: string;
+  pavilions?: { id: string; code: string; name: string }[];
+  onPavilion?: (id: string) => void;
+  activePavilionId?: string | null;
 }) {
   const croquis = croquisFor(pavilionCode);
   const [levelFilter, setLevelFilter] = useState<Set<BedLevel>>(new Set());
@@ -210,6 +216,30 @@ export function PavilionMap({
   return (
     <div className="space-y-4">
       {/* Panel de control */}
+      {pavilions.length > 1 && onPavilion && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            Pabellón
+          </span>
+          {pavilions.map((p) => {
+            const active = p.id === activePavilionId;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => onPavilion(p.id)}
+                className={`rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-wide transition ${
+                  active ? "border-transparent text-white" : "border-border/60 hover:bg-muted/50"
+                }`}
+                style={active ? { background: accent } : undefined}
+              >
+                {p.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
           Estado de camas

@@ -218,6 +218,9 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
               pavilionCode={pavilions.find((p) => p.id === activePavilion)?.code ?? null}
               pavilionName={pavilions.find((p) => p.id === activePavilion)?.name ?? null}
               tasks={tasks}
+              pavilions={pavilions}
+              activePavilionId={activePavilion}
+              onPavilion={setPavilionId}
               canEdit
               userId={user?.id}
               onSelectPatient={openPatient}
