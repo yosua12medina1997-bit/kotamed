@@ -173,7 +173,7 @@ export function PatientDetail({
       {tab === "resumen" && (
         <>
           <StageTracker {...ctx} />
-          <Resumen patient={patient} accent={accent} />
+          <PatientResumen patient={patient} accent={accent} />
         </>
       )}
       {tab === "historia" && <HistoriaClinica {...ctx} />}
@@ -214,7 +214,7 @@ export function PatientDetail({
 
 /* ─────────────────────────────── Resumen ─────────────────────────────── */
 
-function Resumen({ patient, accent }: { patient: WardPatient; accent: string }) {
+export function PatientResumen({ patient, accent }: { patient: WardPatient; accent: string }) {
   const { data: problems = [] } = useProblems(patient.id);
   const { data: evolutions = [] } = useEvolutions(patient.id);
   const last = evolutions[0];
@@ -294,7 +294,7 @@ function Resumen({ patient, accent }: { patient: WardPatient; accent: string }) 
 
 /* ──────────────────────────────── SOAP ──────────────────────────────── */
 
-function SoapEditor({ patient, accent }: { patient: WardPatient; accent: string }) {
+export function SoapEditor({ patient, accent }: { patient: WardPatient; accent: string }) {
   const { data: evolutions = [] } = useEvolutions(patient.id);
   const today = new Date().toISOString().slice(0, 10);
   const existing = evolutions.find((e) => e.evo_date === today);
@@ -424,7 +424,7 @@ function SoapEditor({ patient, accent }: { patient: WardPatient; accent: string 
 
 /* ─────────────────────── Problemas, plan y pendientes ─────────────────────── */
 
-function ProblemsAndPlan({ patient, accent }: { patient: WardPatient; accent: string }) {
+export function ProblemsAndPlan({ patient, accent }: { patient: WardPatient; accent: string }) {
   const { data: problems = [] } = useProblems(patient.id);
   const { data: plan = [] } = usePlanItems(patient.id);
   const { data: tasks = [] } = useTasks();
