@@ -1,23 +1,38 @@
 /**
- * Ward OS — sistema operativo del interno en Hospitalización Pediátrica
- * (Rotación Pediatría · HNSEB). Croquis interactivo, censo, expedientes,
- * modo ronda, competencias, casos de aprendizaje y configuración de admin.
+ * Kota Ward — Clinical Workspace longitudinal de Hospitalización Pediátrica
+ * (Rotación Pediatría · HNSEB). Arquitectura: Panel del interno · Croquis del
+ * pabellón · Mis pacientes · Workspace del paciente activo · Jornada ·
+ * Aprendizaje · Sistema. Todo gira alrededor del PACIENTE ACTIVO.
  */
 import { useMemo, useState } from "react";
 import {
   Activity,
   BedDouble,
   BookOpen,
+  Calculator,
+  CalendarDays,
   ClipboardList,
+  Crosshair,
+  Droplets,
+  FileText,
+  FlaskConical,
   GraduationCap,
+  HeartPulse,
   LayoutGrid,
   ListChecks,
   MapPin,
+  Paperclip,
+  Pencil,
+  Pill,
   Plus,
+  Repeat2,
   Settings2,
+  Siren,
   Sparkles,
   Stethoscope,
+  Syringe,
   Trash2,
+  UserRound,
   Users,
 } from "lucide-react";
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "@/components/academy/ui";
@@ -46,39 +61,127 @@ import {
   type WardTask,
   type WardZone,
 } from "@/lib/ward-os";
-import { Pendientes } from "./ClinicalOrders";
 import { PavilionMap } from "./PavilionMap";
-import { PatientDetail } from "./PatientDetail";
+import {
+  PatientResumen,
+  ProblemsAndPlan,
+  SoapEditor,
+  StudyRoute,
+} from "./PatientDetail";
+import {
+  AtencionInicial,
+  ClinicalTimeline,
+  ExamenFisico,
+  HistoriaClinica,
+  Monitorizacion,
+  ResumenYAlta,
+  StageTracker,
+} from "./ClinicalRecord";
+import {
+  BalanceHidrico,
+  ExamenesAuxiliares,
+  Interconsultas,
+  Pendientes,
+  Procedimientos,
+  Tratamiento,
+} from "./ClinicalOrders";
+import { FileDrop } from "./FileDrop";
+import { WardCalculator } from "./WardCalculator";
 import { PatientForm } from "./PatientForm";
 import { RoundMode } from "./RoundMode";
-import { Bar, KpiTile, Modal, StatusPill, WardCard } from "./ui";
+import { Bar, KpiTile, Modal, StatusDot, StatusPill, WardCard } from "./ui";
 
 type SectionId =
   | "inicio"
   | "pabellon"
   | "pacientes"
+  | "p-resumen"
+  | "p-historia"
+  | "p-soap"
+  | "p-examenes"
+  | "p-tratamiento"
+  | "p-balance"
+  | "p-interconsultas"
+  | "p-procedimientos"
+  | "p-calculadora"
   | "ronda"
   | "pendientes"
   | "competencias"
   | "casos"
   | "config";
 
-const SECTIONS: { id: SectionId; label: string; icon: typeof MapPin; adminOnly?: boolean }[] = [
-  { id: "inicio", label: "Panel del interno", icon: LayoutGrid },
-  { id: "pabellon", label: "Croquis del pabellón", icon: MapPin },
-  { id: "pacientes", label: "Mis pacientes", icon: Users },
-  { id: "ronda", label: "Modo Ronda", icon: Stethoscope },
-  { id: "pendientes", label: "Pendientes clínicos", icon: ListChecks },
-  { id: "competencias", label: "Competencias", icon: GraduationCap },
-  { id: "casos", label: "Casos de aprendizaje", icon: BookOpen },
-  { id: "config", label: "Configurar pabellón", icon: Settings2, adminOnly: true },
+type NavItem = {
+  id: SectionId;
+  label: string;
+  icon: typeof MapPin;
+  adminOnly?: boolean;
+  patient?: boolean;
+};
+
+const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
+  {
+    items: [
+      { id: "inicio", label: "Panel del interno", icon: LayoutGrid },
+      { id: "pabellon", label: "Croquis del pabellón", icon: Crosshair },
+      { id: "pacientes", label: "Mis pacientes", icon: Users },
+    ],
+  },
+  {
+    label: "Paciente",
+    items: [
+      { id: "p-resumen", label: "Resumen clínico", icon: Stethoscope, patient: true },
+      { id: "p-historia", label: "Historia clínica", icon: ClipboardList, patient: true },
+      { id: "p-soap", label: "Evolución / SOAP", icon: Pencil, patient: true },
+      { id: "p-examenes", label: "Exámenes auxiliares", icon: FlaskConical, patient: true },
+      { id: "p-tratamiento", label: "Tratamiento", icon: Pill, patient: true },
+      { id: "p-balance", label: "Balance hídrico", icon: Droplets, patient: true },
+      { id: "p-interconsultas", label: "Interconsultas", icon: Users, patient: true },
+      { id: "p-procedimientos", label: "Procedimientos", icon: Syringe, patient: true },
+      { id: "p-calculadora", label: "Calculadora pediátrica", icon: Calculator, patient: true },
+    ],
+  },
+  {
+    label: "Jornada",
+    items: [
+      { id: "ronda", label: "Modo ronda", icon: Activity },
+      { id: "pendientes", label: "Pendientes clínicos", icon: ListChecks },
+    ],
+  },
+  {
+    label: "Aprendizaje",
+    items: [
+      { id: "competencias", label: "Competencias", icon: GraduationCap },
+      { id: "casos", label: "Casos de aprendizaje", icon: BookOpen },
+    ],
+  },
+  {
+    label: "Sistema",
+    items: [{ id: "config", label: "Configurar pabellón", icon: Settings2, adminOnly: true }],
+  },
 ];
+
+const DAY_FMT = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "2-digit", month: "short" });
+
+function turnoLabel(): string {
+  const h = new Date().getHours();
+  if (h < 13) return "Turno mañana · En curso";
+  if (h < 19) return "Turno tarde · En curso";
+  return "Turno noche · En curso";
+}
+
+function saludo(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Buenos días";
+  if (h < 19) return "Buenas tardes";
+  return "Buenas noches";
+}
 
 export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }) {
   const user = useSupabaseUser();
   const [section, setSection] = useState<SectionId>("inicio");
   const [pavilionId, setPavilionId] = useState<string | null>(null);
-  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
+  const [activePatientId, setActivePatientId] = useState<string | null>(null);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [formBed, setFormBed] = useState<string | null>(null);
   const [editing, setEditing] = useState<WardPatient | null>(null);
@@ -111,53 +214,81 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
     [pavilionPatients, myPatientIds],
   );
 
-  const patient = patients.find((p) => p.id === selectedPatient) ?? null;
+  const patient = patients.find((p) => p.id === activePatientId) ?? null;
   const pendingTasks = tasks.filter((t) => t.status !== "hecho");
+  const pavilionCode = pavilions.find((p) => p.id === activePavilion)?.code ?? null;
+  const pavilionName = pavilions.find((p) => p.id === activePavilion)?.name ?? null;
 
-  function openPatient(id: string) {
-    setSelectedPatient(id);
-    setSection("pacientes");
+  const bed = beds.find((b) => b.id === patient?.bed_id) ?? null;
+  const zone = zones.find((z) => z.id === bed?.zone_id) ?? null;
+  const isPatientSection = section.startsWith("p-");
+
+  function selectPatient(id: string, go: SectionId = "p-resumen") {
+    setActivePatientId(id);
+    setSwitcherOpen(false);
+    setSection(go);
   }
 
+  const ctx = { patient: patient as WardPatient, accent, userId: user?.id, isAdmin };
+
   return (
-    <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
-      {/* Navegación lateral */}
+    <div className="grid gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
+      {/* ─── Menú lateral ─── */}
       <aside className="lg:sticky lg:top-24 lg:self-start">
-        <div className="rounded-3xl border border-border/60 bg-background/70 p-3 backdrop-blur">
-          <div className="px-2 pb-2">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="rounded-3xl border border-border/50 bg-background/70 p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] backdrop-blur">
+          <div className="px-2 pb-3">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: accent }}>
               Kota Ward
             </div>
-            <div className="truncate text-sm font-black tracking-tight">Rotación Pediatría HNSEB</div>
-
+            <div className="truncate text-[11px] font-semibold text-muted-foreground">
+              Hospitalización Pediátrica
+            </div>
           </div>
-          <nav className="space-y-1">
-            {SECTIONS.filter((s) => !s.adminOnly || isAdmin).map((s) => {
-              const active = section === s.id;
+
+          <nav className="space-y-3">
+            {NAV_GROUPS.map((group, gi) => {
+              const items = group.items.filter((i) => !i.adminOnly || isAdmin);
+              if (items.length === 0) return null;
               return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSection(s.id)}
-                  className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-xl px-3 py-2 text-left text-[12px] font-bold transition ${
-                    active ? "text-white" : "hover:bg-muted/60"
-                  }`}
-                  style={active ? { background: accent } : undefined}
-                >
-                  <s.icon className="size-4 shrink-0" />
-                  <span className="truncate">{s.label}</span>
-                </button>
+                <div key={group.label ?? gi} className={gi > 0 ? "border-t border-border/40 pt-3" : ""}>
+                  {group.label && (
+                    <div className="px-3 pb-1.5 text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                      {group.label}
+                    </div>
+                  )}
+                  <div className="space-y-0.5">
+                    {items.map((item) => {
+                      const active = section === item.id;
+                      const dim = item.patient && !patient;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setSection(item.id)}
+                          className={`grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[12px] font-semibold transition ${
+                            active
+                              ? "text-white"
+                              : dim
+                                ? "text-muted-foreground/60 hover:bg-muted/40"
+                                : "hover:bg-muted/60"
+                          }`}
+                          style={active ? { background: accent } : undefined}
+                        >
+                          <item.icon className="size-4 shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </nav>
 
           {pavilions.length > 1 && (
-            <div className="mt-3 border-t border-border/60 pt-3">
+            <div className="mt-3 border-t border-border/40 pt-3">
               <Field label="Pabellón">
-                <Select
-                  value={activePavilion ?? ""}
-                  onChange={(e) => setPavilionId(e.target.value)}
-                >
+                <Select value={activePavilion ?? ""} onChange={(e) => setPavilionId(e.target.value)}>
                   {pavilions.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -171,6 +302,20 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
       </aside>
 
       <div className="min-w-0 space-y-5">
+        {/* ─── Barra de paciente activo ─── */}
+        {patient && (
+          <ActivePatientBar
+            patient={patient}
+            bedNumber={bed?.number ?? null}
+            zoneLabel={zone?.label ?? null}
+            pavilionCode={pavilionCode}
+            accent={accent}
+            onSwitch={() => setSwitcherOpen(true)}
+            onNewEvolution={() => setSection("p-soap")}
+            onTasks={() => setSection("pendientes")}
+          />
+        )}
+
         {section === "inicio" && (
           <Dashboard
             accent={accent}
@@ -178,13 +323,16 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             beds={pavilionBeds}
             patients={pavilionPatients}
             myPatients={myPatients}
-            myPatientIds={myPatientIds}
             pendingTasks={pendingTasks}
-            pavilionCode={pavilions.find((p) => p.id === activePavilion)?.code ?? null}
-            pavilionName={pavilions.find((p) => p.id === activePavilion)?.name ?? null}
-            userId={user?.id}
-
-            onSelectPatient={openPatient}
+            pavilionCode={pavilionCode}
+            userName={
+              (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
+              user?.email?.split("@")[0] ??
+              "interno"
+            }
+            onSelectPatient={selectPatient}
+            onOpenCroquis={() => setSection("pabellon")}
+            onAllPatients={() => setSection("pacientes")}
             onNewPatient={() => {
               setEditing(null);
               setFormBed(null);
@@ -196,8 +344,8 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
         {section === "pabellon" && (
           <WardCard
             title="Croquis del pabellón"
-            subtitle="Toca una cama para abrir el expediente; las camas libres permiten registrar un ingreso."
-            icon={<MapPin className="size-4" style={{ color: accent }} />}
+            subtitle="Toca una cama para convertirla en tu paciente activo; las camas libres permiten registrar un ingreso."
+            icon={<Crosshair className="size-4" style={{ color: accent }} />}
             actions={
               <Btn
                 variant="solid"
@@ -218,57 +366,87 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
               patients={pavilionPatients}
               accent={accent}
               myPatientIds={myPatientIds}
-              selectedPatientId={selectedPatient}
-              pavilionCode={pavilions.find((p) => p.id === activePavilion)?.code ?? null}
-              pavilionName={pavilions.find((p) => p.id === activePavilion)?.name ?? null}
+              selectedPatientId={activePatientId}
+              pavilionCode={pavilionCode}
+              pavilionName={pavilionName}
               tasks={tasks}
               pavilions={pavilions}
               activePavilionId={activePavilion}
               onPavilion={setPavilionId}
               canEdit
               userId={user?.id}
-              onSelectPatient={openPatient}
-              onSelectBed={(bed) => {
+              onSelectPatient={(id) => selectPatient(id)}
+              onSelectBed={(b) => {
                 setEditing(null);
-                setFormBed(bed.id);
+                setFormBed(b.id);
                 setFormOpen(true);
               }}
             />
-
           </WardCard>
         )}
 
-        {section === "pacientes" &&
+        {section === "pacientes" && (
+          <Census
+            accent={accent}
+            zones={zones}
+            beds={pavilionBeds}
+            patients={pavilionPatients}
+            myPatientIds={myPatientIds}
+            onSelect={(id) => selectPatient(id)}
+            onNew={() => {
+              setEditing(null);
+              setFormBed(null);
+              setFormOpen(true);
+            }}
+          />
+        )}
+
+        {isPatientSection &&
           (patient ? (
             <>
-              <Btn onClick={() => setSelectedPatient(null)}>← Volver al censo</Btn>
-              <PatientDetail
-                patient={patient}
-                zones={zones}
-                beds={beds}
-                accent={accent}
-                userId={user?.id}
-                isAdmin={isAdmin}
-                onEdit={() => {
-                  setEditing(patient);
-                  setFormOpen(true);
-                }}
-              />
+              {section === "p-resumen" && (
+                <PatientSubTabs
+                  accent={accent}
+                  tabs={[
+                    { id: "resumen", label: "Resumen", icon: Stethoscope, render: () => (
+                      <>
+                        <StageTracker {...ctx} />
+                        <PatientResumen patient={patient} accent={accent} />
+                      </>
+                    ) },
+                    { id: "problemas", label: "Problemas y plan", icon: ListChecks, render: () => <ProblemsAndPlan patient={patient} accent={accent} /> },
+                    { id: "timeline", label: "Línea de tiempo", icon: CalendarDays, render: () => <ClinicalTimeline {...ctx} /> },
+                    { id: "alta", label: "Resumen y alta", icon: FileText, render: () => <ResumenYAlta {...ctx} /> },
+                    { id: "estudio", label: "Ruta de estudio", icon: BookOpen, render: () => <StudyRoute patient={patient} accent={accent} /> },
+                  ]}
+                />
+              )}
+              {section === "p-historia" && (
+                <PatientSubTabs
+                  accent={accent}
+                  tabs={[
+                    { id: "historia", label: "Identificación y enfermedad actual", icon: ClipboardList, render: () => <HistoriaClinica {...ctx} /> },
+                    { id: "inicial", label: "Atención inicial", icon: Siren, render: () => <AtencionInicial {...ctx} /> },
+                    { id: "examen", label: "Examen físico", icon: HeartPulse, render: () => <ExamenFisico {...ctx} /> },
+                    { id: "vitales", label: "Signos vitales", icon: Activity, render: () => <Monitorizacion {...ctx} /> },
+                    { id: "archivos", label: "Archivos", icon: Paperclip, render: () => (
+                      <WardCard title="Archivos del expediente">
+                        <FileDrop patientId={patient.id} refKind="all" accent={accent} userId={user?.id} isAdmin={isAdmin} />
+                      </WardCard>
+                    ) },
+                  ]}
+                />
+              )}
+              {section === "p-soap" && <SoapEditor patient={patient} accent={accent} />}
+              {section === "p-examenes" && <ExamenesAuxiliares {...ctx} />}
+              {section === "p-tratamiento" && <Tratamiento {...ctx} />}
+              {section === "p-balance" && <BalanceHidrico {...ctx} />}
+              {section === "p-interconsultas" && <Interconsultas {...ctx} />}
+              {section === "p-procedimientos" && <Procedimientos {...ctx} />}
+              {section === "p-calculadora" && <WardCalculator patient={patient} accent={accent} />}
             </>
           ) : (
-            <Census
-              accent={accent}
-              zones={zones}
-              beds={pavilionBeds}
-              patients={pavilionPatients}
-              myPatientIds={myPatientIds}
-              onSelect={openPatient}
-              onNew={() => {
-                setEditing(null);
-                setFormBed(null);
-                setFormOpen(true);
-              }}
-            />
+            <NoPatient accent={accent} onSelect={() => setSwitcherOpen(true)} />
           ))}
 
         {section === "ronda" && (
@@ -284,8 +462,8 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
           <Pendientes
             accent={accent}
             patients={patients}
-            patientId={selectedPatient}
-            onSelectPatient={openPatient}
+            patientId={activePatientId}
+            onSelectPatient={(id) => selectPatient(id)}
           />
         )}
 
@@ -295,6 +473,22 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
           <WardConfig accent={accent} pavilionId={activePavilion} zones={zones} beds={pavilionBeds} />
         )}
       </div>
+
+      <Modal
+        open={switcherOpen}
+        title="Seleccionar paciente"
+        subtitle="El paciente elegido se convierte en tu paciente activo en todo el workspace."
+        onClose={() => setSwitcherOpen(false)}
+      >
+        <PatientPicker
+          accent={accent}
+          patients={(myPatients.length > 0 ? myPatients : pavilionPatients)}
+          beds={beds}
+          zones={zones}
+          activeId={activePatientId}
+          onPick={(id) => selectPatient(id, isPatientSection ? section : "p-resumen")}
+        />
+      </Modal>
 
       {formOpen && (
         <PatientForm
@@ -312,6 +506,186 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
   );
 }
 
+/* ─────────────────────── Barra de paciente activo ─────────────────────── */
+
+function ActivePatientBar({
+  patient,
+  bedNumber,
+  zoneLabel,
+  pavilionCode,
+  accent,
+  onSwitch,
+  onNewEvolution,
+  onTasks,
+}: {
+  patient: WardPatient;
+  bedNumber: string | null;
+  zoneLabel: string | null;
+  pavilionCode: string | null;
+  accent: string;
+  onSwitch: () => void;
+  onNewEvolution: () => void;
+  onTasks: () => void;
+}) {
+  return (
+    <section
+      className="rounded-3xl border border-border/50 bg-background/70 px-5 py-4 backdrop-blur"
+      style={{ boxShadow: `inset 3px 0 0 ${accent}` }}
+    >
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            <StatusDot status={patient.status} size={7} /> Paciente activo
+          </div>
+          <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2">
+            <span className="truncate text-base font-black tracking-tight">
+              {bedNumber ? `Cama ${bedNumber}` : "Sin cama"}
+              {pavilionCode ? ` · Pabellón ${pavilionCode}` : ""}
+            </span>
+            <StatusPill status={patient.status} />
+          </div>
+          <div className="mt-0.5 truncate text-[12px] text-muted-foreground">
+            {[
+              patientLabel(patient),
+              patient.age_label,
+              zoneLabel,
+              `Día ${String(hospitalDay(patient.admitted_at)).padStart(2, "0")} de hospitalización`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Btn variant="outline" accent={accent} onClick={onNewEvolution}>
+            <Pencil className="size-3.5" /> Nueva evolución
+          </Btn>
+          <Btn onClick={onTasks}>
+            <ListChecks className="size-3.5" /> Pendientes
+          </Btn>
+          <Btn onClick={onSwitch}>
+            <Repeat2 className="size-3.5" /> Cambiar paciente
+          </Btn>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NoPatient({ accent, onSelect }: { accent: string; onSelect: () => void }) {
+  return (
+    <WardCard>
+      <div className="grid place-items-center gap-4 px-6 py-14 text-center">
+        <span
+          className="grid size-14 place-items-center rounded-2xl"
+          style={{ background: `${accent}14`, color: accent }}
+        >
+          <UserRound className="size-6" />
+        </span>
+        <div>
+          <h3 className="text-base font-black tracking-tight">Sin paciente activo</h3>
+          <p className="mt-1 max-w-sm text-[12.5px] text-muted-foreground">
+            Selecciona un paciente para acceder a su información clínica.
+          </p>
+        </div>
+        <Btn variant="solid" accent={accent} onClick={onSelect}>
+          Seleccionar paciente →
+        </Btn>
+      </div>
+    </WardCard>
+  );
+}
+
+function PatientPicker({
+  accent,
+  patients,
+  beds,
+  zones,
+  activeId,
+  onPick,
+}: {
+  accent: string;
+  patients: WardPatient[];
+  beds: WardBed[];
+  zones: WardZone[];
+  activeId: string | null;
+  onPick: (id: string) => void;
+}) {
+  const [q, setQ] = useState("");
+  const list = patients.filter((p) =>
+    `${patientLabel(p)} ${p.main_dx ?? ""} ${p.code ?? ""}`.toLowerCase().includes(q.toLowerCase()),
+  );
+  return (
+    <div className="space-y-3">
+      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar cama, iniciales o diagnóstico" />
+      {list.length === 0 && <Empty text="No hay pacientes disponibles." />}
+      <div className="max-h-[50vh] space-y-2 overflow-y-auto">
+        {list.map((p) => {
+          const b = beds.find((x) => x.id === p.bed_id);
+          const z = zones.find((x) => x.id === b?.zone_id);
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onPick(p.id)}
+              className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border px-4 py-3 text-left transition hover:border-primary/40 ${
+                activeId === p.id ? "border-primary/50 bg-primary/5" : "border-border/50 bg-background/40"
+              }`}
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-black">
+                  {b ? `Cama ${b.number}` : "Sin cama"} · {patientLabel(p)}
+                </span>
+                <span className="block truncate text-[11.5px] text-muted-foreground">
+                  {p.main_dx ?? "Sin diagnóstico"} · día {hospitalDay(p.admitted_at)}
+                  {z ? ` · ${z.label}` : ""}
+                </span>
+              </span>
+              <StatusPill status={p.status} />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────── Sub-navegación del paciente ─────────────────── */
+
+function PatientSubTabs({
+  accent,
+  tabs,
+}: {
+  accent: string;
+  tabs: { id: string; label: string; icon: typeof MapPin; render: () => React.ReactNode }[];
+}) {
+  const [tab, setTab] = useState(tabs[0]!.id);
+  const current = tabs.find((t) => t.id === tab) ?? tabs[0]!;
+  return (
+    <div className="space-y-5">
+      <nav className="flex flex-wrap gap-1.5 rounded-2xl border border-border/50 bg-background/60 p-1.5">
+        {tabs.map((t) => {
+          const active = t.id === current.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold transition ${
+                active ? "text-white" : "text-muted-foreground hover:bg-muted/60"
+              }`}
+              style={active ? { background: accent } : undefined}
+            >
+              <t.icon className="size-3.5" />
+              {t.label}
+            </button>
+          );
+        })}
+      </nav>
+      {current.render()}
+    </div>
+  );
+}
+
 /* ────────────────────────────── Panel inicio ────────────────────────────── */
 
 function Dashboard({
@@ -320,12 +694,12 @@ function Dashboard({
   beds,
   patients,
   myPatients,
-  myPatientIds,
   pendingTasks,
   pavilionCode,
-  pavilionName,
-  userId,
+  userName,
   onSelectPatient,
+  onOpenCroquis,
+  onAllPatients,
   onNewPatient,
 }: {
   accent: string;
@@ -333,96 +707,202 @@ function Dashboard({
   beds: WardBed[];
   patients: WardPatient[];
   myPatients: WardPatient[];
-  myPatientIds: Set<string>;
   pendingTasks: WardTask[];
   pavilionCode?: string | null;
-  pavilionName?: string | null;
-  userId?: string;
+  userName: string;
   onSelectPatient: (id: string) => void;
+  onOpenCroquis: () => void;
+  onAllPatients: () => void;
   onNewPatient: () => void;
 }) {
-
   const { data: links = [] } = useStudyLinks();
-  const evolvedToday = 0;
   const critical = patients.filter((p) => p.status === "critico" || p.status === "prioritario");
   const myZone = zones.find((z) =>
     beds.some((b) => b.zone_id === z.id && myPatients.some((p) => p.bed_id === b.id)),
   );
+  const myBeds = beds
+    .filter((b) => myPatients.some((p) => p.bed_id === b.id))
+    .slice(0, 6);
 
   const suggested = useMemo(() => {
     const keys = new Set<string>();
     for (const p of myPatients.length > 0 ? myPatients : patients) {
       for (const key of dxKeysFor(`${p.main_dx ?? ""} ${p.secondary_dx.join(" ")}`)) keys.add(key);
     }
-    return links.filter((l) => keys.has(l.dx_key)).slice(0, 5);
+    return links.filter((l) => keys.has(l.dx_key)).slice(0, 4);
   }, [links, myPatients, patients]);
+
+  const shown = (myPatients.length > 0 ? myPatients : patients).slice(0, 4);
 
   return (
     <div className="space-y-5">
+      {/* Header del dashboard */}
+      <div className="grid gap-3 rounded-3xl border border-border/50 bg-background/70 px-5 py-4 backdrop-blur sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <div className="min-w-0">
+          <h2 className="truncate text-xl font-black tracking-tight">
+            {saludo()}, {userName}.
+          </h2>
+          <p className="mt-0.5 text-[12.5px] text-muted-foreground">
+            Tu jornada clínica en Hospitalización Pediátrica.
+          </p>
+        </div>
+        <div className="text-left sm:text-right">
+          <div className="text-[12px] font-bold capitalize">{DAY_FMT.format(new Date())}</div>
+          <div className="text-[11px] text-muted-foreground">{turnoLabel()}</div>
+        </div>
+      </div>
+
+      {/* Indicadores compactos */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiTile
           label="Mi ubicación"
-          value={myZone?.label ?? "Sin asignar"}
-          hint="Sala asignada hoy"
+          value={pavilionCode ? `Pabellón ${pavilionCode}` : "Sin asignar"}
+          hint={myZone?.label ?? "Sala por asignar"}
           accent={accent}
           icon={<MapPin className="size-4" />}
         />
         <KpiTile
           label="Mis pacientes"
-          value={myPatients.length}
+          value={String(myPatients.length).padStart(2, "0")}
           hint={`${patients.length} en el pabellón`}
           accent="#38bdf8"
           icon={<Users className="size-4" />}
         />
         <KpiTile
           label="Pendientes"
-          value={pendingTasks.length}
+          value={String(pendingTasks.length).padStart(2, "0")}
           hint="Tareas por cerrar"
           accent="#f59e0b"
           icon={<ListChecks className="size-4" />}
         />
         <KpiTile
           label="Prioritarios"
-          value={critical.length}
+          value={String(critical.length).padStart(2, "0")}
           hint="Requieren revisión temprana"
           accent="#ef4444"
           icon={<Activity className="size-4" />}
         />
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Mis pacientes hoy — protagonista */}
         <WardCard
-          title="Croquis del pabellón"
-          subtitle="Vista operativa en tiempo real de salas, camas y estado de cada paciente."
-          icon={<MapPin className="size-4" style={{ color: accent }} />}
+          title="Mis pacientes hoy"
+          subtitle="Selecciona un paciente para abrir su workspace clínico."
+          icon={<Users className="size-4" style={{ color: accent }} />}
           actions={
-            <Btn variant="solid" accent={accent} onClick={onNewPatient}>
-              <Plus className="size-3.5" /> Nuevo ingreso
-            </Btn>
+            <>
+              <Btn onClick={onAllPatients}>Ver todos →</Btn>
+              <Btn variant="solid" accent={accent} onClick={onNewPatient}>
+                <Plus className="size-3.5" /> Nuevo ingreso
+              </Btn>
+            </>
           }
         >
-          <PavilionMap
-            zones={zones}
-            beds={beds}
-            patients={patients}
-            accent={accent}
-            myPatientIds={myPatientIds}
-            pavilionCode={pavilionCode}
-            pavilionName={pavilionName}
-            tasks={pendingTasks}
-            userId={userId}
-            onSelectPatient={onSelectPatient}
-          />
-
+          {shown.length === 0 ? (
+            <Empty text="Aún no tienes pacientes asignados." />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {shown.map((p) => {
+                const b = beds.find((x) => x.id === p.bed_id);
+                const pend = pendingTasks.filter((t) => t.patient_id === p.id).length;
+                return (
+                  <article
+                    key={p.id}
+                    className="rounded-2xl border border-border/50 bg-background/40 p-4 transition hover:border-primary/40"
+                  >
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <StatusDot status={p.status} />
+                        <span className="truncate text-[12.5px] font-black uppercase tracking-wide">
+                          {b ? `Cama ${b.number}` : "Sin cama"}
+                        </span>
+                      </div>
+                      <StatusPill status={p.status} />
+                    </div>
+                    <div className="mt-2 truncate text-sm font-bold">{patientLabel(p)}</div>
+                    <div className="text-[11.5px] text-muted-foreground">
+                      {[p.age_label, `Día ${String(hospitalDay(p.admitted_at)).padStart(2, "0")}`]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-[12px] font-semibold">
+                      {p.main_dx ?? "Sin diagnóstico registrado"}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      {pend > 0 ? (
+                        <Chip accent="#f59e0b">{pend} pendiente{pend > 1 ? "s" : ""}</Chip>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground">Sin pendientes</span>
+                      )}
+                      <Btn variant="outline" accent={accent} onClick={() => onSelectPatient(p.id)}>
+                        Ver paciente →
+                      </Btn>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </WardCard>
 
         <div className="space-y-5">
-          <WardCard title="Pendientes de hoy" icon={<ListChecks className="size-4" style={{ color: accent }} />}>
+          {/* Ubicación de hoy — croquis resumido */}
+          <WardCard
+            title="Ubicación de hoy"
+            icon={<MapPin className="size-4" style={{ color: accent }} />}
+            actions={<Btn onClick={onOpenCroquis}>Ver croquis →</Btn>}
+          >
+            <div className="rounded-2xl border border-border/50 bg-background/40 p-4">
+              <div className="text-[11px] font-black uppercase tracking-[0.18em]" style={{ color: accent }}>
+                📍 {pavilionCode ? `Pabellón ${pavilionCode}` : "Pabellón por asignar"}
+              </div>
+              <div className="mt-1 truncate text-sm font-bold">{myZone?.label ?? "Sala por asignar"}</div>
+              <div className="mt-3 text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Camas asignadas
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {myBeds.length === 0 && (
+                  <span className="text-[11.5px] text-muted-foreground">Sin camas asignadas.</span>
+                )}
+                {myBeds.map((b) => {
+                  const p = myPatients.find((x) => x.bed_id === b.id);
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => (p ? onSelectPatient(p.id) : onOpenCroquis())}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[12px] font-black transition hover:border-primary/40"
+                    >
+                      {p && <StatusDot status={p.status} size={7} />}
+                      {b.number}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2 border-t border-border/40 pt-3">
+                {(["estable", "seguimiento", "prioritario"] as const).map((s) => (
+                  <span key={s} className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <span
+                      className="inline-block size-2 rounded-full"
+                      style={{ background: PATIENT_STATUS[s]?.color }}
+                    />
+                    {PATIENT_STATUS[s]?.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </WardCard>
+
+          <WardCard
+            title="Pendientes de hoy"
+            icon={<ListChecks className="size-4" style={{ color: accent }} />}
+          >
             {pendingTasks.length === 0 ? (
               <Empty text="Sin pendientes abiertos." />
             ) : (
               <ul className="space-y-2">
-                {pendingTasks.slice(0, 6).map((t) => (
+                {pendingTasks.slice(0, 5).map((t) => (
                   <li
                     key={t.id}
                     className="rounded-xl border border-border/50 bg-background/40 px-3 py-2 text-[12px]"
@@ -431,32 +911,6 @@ function Dashboard({
                     <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       prioridad {t.priority}
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </WardCard>
-
-          <WardCard title="Mis pacientes" icon={<Users className="size-4" style={{ color: accent }} />}>
-            {myPatients.length === 0 ? (
-              <Empty text="Aún no tienes pacientes asignados." />
-            ) : (
-              <ul className="space-y-2">
-                {myPatients.map((p) => (
-                  <li key={p.id}>
-                    <button
-                      type="button"
-                      onClick={() => onSelectPatient(p.id)}
-                      className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-border/50 bg-background/40 px-3 py-2 text-left hover:border-primary/40"
-                    >
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-bold">{patientLabel(p)}</span>
-                        <span className="block truncate text-[11px] text-muted-foreground">
-                          {p.main_dx ?? "Sin diagnóstico"} · día {hospitalDay(p.admitted_at)}
-                        </span>
-                      </span>
-                      <StatusPill status={p.status} />
-                    </button>
                   </li>
                 ))}
               </ul>
@@ -485,10 +939,10 @@ function Dashboard({
           </WardCard>
         </div>
       </div>
-      <span className="hidden">{evolvedToday}</span>
     </div>
   );
 }
+
 
 /* ──────────────────────────────── Censo ──────────────────────────────── */
 
