@@ -210,6 +210,11 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
               accent={accent}
               myPatientIds={myPatientIds}
               selectedPatientId={selectedPatient}
+              pavilionCode={pavilions.find((p) => p.id === activePavilion)?.code ?? null}
+              pavilionName={pavilions.find((p) => p.id === activePavilion)?.name ?? null}
+              tasks={tasks}
+              canEdit
+              userId={user?.id}
               onSelectPatient={openPatient}
               onSelectBed={(bed) => {
                 setEditing(null);
@@ -217,6 +222,7 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
                 setFormOpen(true);
               }}
             />
+
           </WardCard>
         )}
 
