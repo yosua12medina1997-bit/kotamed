@@ -13,7 +13,8 @@ import { PediatriaNeoContenido } from "@/components/PediatriaNeoContenido";
 import { buildModuleMeta, defaultProgramModules, genericBlueprint } from "@/lib/program-modules";
 import { getProgram } from "@/lib/pediatria-programs";
 import { NeonatalHospital } from "@/components/hospital/NeonatalHospital";
-import { Baby } from "lucide-react";
+import { WardOS } from "@/components/ward/WardOS";
+import { Baby, Hospital } from "lucide-react";
 
 /** Programa personalizado con módulo de Hospitalización Neonatal. */
 const HOSPITAL_PROGRAM = "internado-medico-hospitalizacion";
@@ -105,18 +106,29 @@ function GenericAreaModule() {
         areasParams={{ slug }}
         areasLabel="Programa"
         extraSections={
-          (slug === HOSPITAL_PROGRAM || /hospitaliza/i.test(slug)) && /neonatolog/i.test(area)
+          /hospitaliza/i.test(area) && /pediatr/i.test(`${slug} ${area}`) && !/neonatolog/i.test(area)
             ? [
                 {
-                  id: "hospitalizacion",
-                  label: "🏥 Hospitalización Neonatal",
-                  icon: Baby,
+                  id: "ward-os",
+                  label: "🏥 Hospitalización Pediátrica",
+                  icon: Hospital,
                   render: ({ isAdmin }: { isAdmin: boolean }) => (
-                    <NeonatalHospital isAdmin={isAdmin} accent={meta.accent} />
+                    <WardOS isAdmin={isAdmin} accent={meta.accent} />
                   ),
                 },
               ]
-            : []
+            : (slug === HOSPITAL_PROGRAM || /hospitaliza/i.test(slug)) && /neonatolog/i.test(area)
+              ? [
+                  {
+                    id: "hospitalizacion",
+                    label: "🏥 Hospitalización Neonatal",
+                    icon: Baby,
+                    render: ({ isAdmin }: { isAdmin: boolean }) => (
+                      <NeonatalHospital isAdmin={isAdmin} accent={meta.accent} />
+                    ),
+                  },
+                ]
+              : []
         }
         renderContenido={() => (
           <PediatriaNeoContenido

@@ -3215,6 +3215,698 @@ export type Database = {
         }
         Relationships: []
       }
+      ward_assignments: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          ended_at: string | null
+          id: string
+          patient_id: string
+          role: string
+          started_at: string
+          updated_at: string
+          user_id: string
+          zone_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          ended_at?: string | null
+          id?: string
+          patient_id: string
+          role?: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+          zone_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          ended_at?: string | null
+          id?: string
+          patient_id?: string
+          role?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+          zone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_assignments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ward_assignments_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "ward_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_beds: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          number: string
+          sort_order: number
+          updated_at: string
+          zone_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          number: string
+          sort_order?: number
+          updated_at?: string
+          zone_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          number?: string
+          sort_order?: number
+          updated_at?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_beds_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "ward_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_competencies: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          group_label: string
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          group_label?: string
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          group_label?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ward_competency_progress: {
+        Row: {
+          competency_id: string
+          created_at: string
+          id: string
+          note: string | null
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          competency_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          state?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          competency_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_competency_progress_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "ward_competencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_evolutions: {
+        Row: {
+          analysis: string | null
+          author_id: string | null
+          created_at: string
+          created_by: string | null
+          evo_date: string
+          hosp_day: number | null
+          id: string
+          objective: Json
+          patient_id: string
+          plan_note: string | null
+          status: string
+          subjective: Json
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          analysis?: string | null
+          author_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          evo_date?: string
+          hosp_day?: number | null
+          id?: string
+          objective?: Json
+          patient_id: string
+          plan_note?: string | null
+          status?: string
+          subjective?: Json
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          analysis?: string | null
+          author_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          evo_date?: string
+          hosp_day?: number | null
+          id?: string
+          objective?: Json
+          patient_id?: string
+          plan_note?: string | null
+          status?: string
+          subjective?: Json
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_evolutions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_learning_cases: {
+        Row: {
+          author_id: string | null
+          created_at: string
+          created_by: string | null
+          differential: string | null
+          difficulties: string | null
+          evolution: string | null
+          final_dx: string | null
+          id: string
+          learnings: string | null
+          patient_id: string | null
+          pearls: string | null
+          problem: string | null
+          reflection: string | null
+          studies: string | null
+          title: string
+          treatment: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          differential?: string | null
+          difficulties?: string | null
+          evolution?: string | null
+          final_dx?: string | null
+          id?: string
+          learnings?: string | null
+          patient_id?: string | null
+          pearls?: string | null
+          problem?: string | null
+          reflection?: string | null
+          studies?: string | null
+          title: string
+          treatment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          differential?: string | null
+          difficulties?: string | null
+          evolution?: string | null
+          final_dx?: string | null
+          id?: string
+          learnings?: string | null
+          patient_id?: string | null
+          pearls?: string | null
+          problem?: string | null
+          reflection?: string | null
+          studies?: string | null
+          title?: string
+          treatment?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_learning_cases_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_patients: {
+        Row: {
+          admitted_at: string
+          age_label: string | null
+          allergies: string | null
+          background: string | null
+          bed_id: string | null
+          code: string | null
+          created_at: string
+          created_by: string | null
+          devices: string[]
+          discharged_at: string | null
+          height_cm: number | null
+          id: string
+          initials: string | null
+          main_dx: string | null
+          medications: string | null
+          notes: string | null
+          priority: string
+          reason: string | null
+          secondary_dx: string[]
+          sex: string | null
+          status: string
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          admitted_at?: string
+          age_label?: string | null
+          allergies?: string | null
+          background?: string | null
+          bed_id?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          devices?: string[]
+          discharged_at?: string | null
+          height_cm?: number | null
+          id?: string
+          initials?: string | null
+          main_dx?: string | null
+          medications?: string | null
+          notes?: string | null
+          priority?: string
+          reason?: string | null
+          secondary_dx?: string[]
+          sex?: string | null
+          status?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          admitted_at?: string
+          age_label?: string | null
+          allergies?: string | null
+          background?: string | null
+          bed_id?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          devices?: string[]
+          discharged_at?: string | null
+          height_cm?: number | null
+          id?: string
+          initials?: string | null
+          main_dx?: string | null
+          medications?: string | null
+          notes?: string | null
+          priority?: string
+          reason?: string | null
+          secondary_dx?: string[]
+          sex?: string | null
+          status?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_patients_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "ward_beds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_pavilions: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          sort_order: number
+          subtitle: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          subtitle?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          subtitle?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ward_plan_items: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          due_at: string | null
+          id: string
+          owner: string | null
+          patient_id: string
+          problem_id: string | null
+          sort_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          id?: string
+          owner?: string | null
+          patient_id: string
+          problem_id?: string | null
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          id?: string
+          owner?: string | null
+          patient_id?: string
+          problem_id?: string | null
+          sort_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_plan_items_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ward_plan_items_problem_id_fkey"
+            columns: ["problem_id"]
+            isOneToOne: false
+            referencedRelation: "ward_problems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_problems: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          evidence: string | null
+          id: string
+          patient_id: string
+          plan: string | null
+          sort_order: number
+          state: string
+          studies: string | null
+          title: string
+          trend: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          evidence?: string | null
+          id?: string
+          patient_id: string
+          plan?: string | null
+          sort_order?: number
+          state?: string
+          studies?: string | null
+          title: string
+          trend?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          evidence?: string | null
+          id?: string
+          patient_id?: string
+          plan?: string | null
+          sort_order?: number
+          state?: string
+          studies?: string | null
+          title?: string
+          trend?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_problems_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_study_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dx_key: string
+          id: string
+          key_points: string | null
+          sort_order: number
+          summary: string | null
+          topic: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dx_key: string
+          id?: string
+          key_points?: string | null
+          sort_order?: number
+          summary?: string | null
+          topic: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dx_key?: string
+          id?: string
+          key_points?: string | null
+          sort_order?: number
+          summary?: string | null
+          topic?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      ward_tasks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          done_at: string | null
+          due_at: string | null
+          id: string
+          kind: string
+          owner: string | null
+          patient_id: string | null
+          priority: string
+          problem_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          due_at?: string | null
+          id?: string
+          kind?: string
+          owner?: string | null
+          patient_id?: string | null
+          priority?: string
+          problem_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          due_at?: string | null
+          id?: string
+          kind?: string
+          owner?: string | null
+          patient_id?: string | null
+          priority?: string
+          problem_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_tasks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ward_tasks_problem_id_fkey"
+            columns: ["problem_id"]
+            isOneToOne: false
+            referencedRelation: "ward_problems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_zones: {
+        Row: {
+          accent: string | null
+          col: number
+          col_span: number
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          label: string
+          note: string | null
+          pavilion_id: string
+          row_index: number
+          row_span: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accent?: string | null
+          col?: number
+          col_span?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          label: string
+          note?: string | null
+          pavilion_id: string
+          row_index?: number
+          row_span?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accent?: string | null
+          col?: number
+          col_span?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          label?: string
+          note?: string | null
+          pavilion_id?: string
+          row_index?: number
+          row_span?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_zones_pavilion_id_fkey"
+            columns: ["pavilion_id"]
+            isOneToOne: false
+            referencedRelation: "ward_pavilions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       website_projects: {
         Row: {
           created_at: string
@@ -3370,6 +4062,7 @@ export type Database = {
         Returns: boolean
       }
       is_enrollment_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_ward_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "student" | "super_admin" | "academic_admin"
