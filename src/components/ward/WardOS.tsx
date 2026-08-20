@@ -350,8 +350,23 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             onSwitch={() => setSwitcherOpen(true)}
             onNewEvolution={() => setSection("p-soap")}
             onTasks={() => setSection("pendientes")}
+            canDelete={isSuperAdmin}
+            deleting={delPatient.isPending}
+            onDelete={() => {
+              const label = patientLabel(patient);
+              if (!window.confirm(`¿Eliminar definitivamente al paciente ${label}? Se borrará todo su registro clínico.`))
+                return;
+              delPatient.mutate(patient.id, {
+                onSuccess: () => {
+                  toast.success("Paciente eliminado");
+                  setActivePatientId(null);
+                  setSection("pacientes");
+                },
+              });
+            }}
           />
         )}
+
 
         {section === "inicio" && (
           <Dashboard
