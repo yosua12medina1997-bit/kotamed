@@ -195,8 +195,8 @@ export const PATIENT_STATUS: Record<
   { label: string; color: string; short: string }
 > = {
   estable: { label: "Estable", color: "#22c55e", short: "EST" },
-  seguimiento: { label: "En seguimiento", color: "#38bdf8", short: "SEG" },
-  prioritario: { label: "Prioritario", color: "#f59e0b", short: "PRI" },
+  seguimiento: { label: "En seguimiento", color: "#eab308", short: "SEG" },
+  prioritario: { label: "Prioritario", color: "#f97316", short: "PRI" },
   critico: { label: "Crítico", color: "#ef4444", short: "CRÍ" },
   pendiente: { label: "Pendiente", color: "#a78bfa", short: "PEN" },
   alta: { label: "Alta programada", color: "#14b8a6", short: "ALT" },

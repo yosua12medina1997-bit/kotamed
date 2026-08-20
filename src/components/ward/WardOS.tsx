@@ -43,6 +43,7 @@ import {
   useZones,
   type WardBed,
   type WardPatient,
+  type WardTask,
   type WardZone,
 } from "@/lib/ward-os";
 import { PavilionMap } from "./PavilionMap";
@@ -175,6 +176,10 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             myPatients={myPatients}
             myPatientIds={myPatientIds}
             pendingTasks={pendingTasks}
+            pavilionCode={pavilions.find((p) => p.id === activePavilion)?.code ?? null}
+            pavilionName={pavilions.find((p) => p.id === activePavilion)?.name ?? null}
+            userId={user?.id}
+
             onSelectPatient={openPatient}
             onNewPatient={() => {
               setEditing(null);
@@ -210,6 +215,14 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
               accent={accent}
               myPatientIds={myPatientIds}
               selectedPatientId={selectedPatient}
+              pavilionCode={pavilions.find((p) => p.id === activePavilion)?.code ?? null}
+              pavilionName={pavilions.find((p) => p.id === activePavilion)?.name ?? null}
+              tasks={tasks}
+              pavilions={pavilions}
+              activePavilionId={activePavilion}
+              onPavilion={setPavilionId}
+              canEdit
+              userId={user?.id}
               onSelectPatient={openPatient}
               onSelectBed={(bed) => {
                 setEditing(null);
@@ -217,6 +230,7 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
                 setFormOpen(true);
               }}
             />
+
           </WardCard>
         )}
 
@@ -293,6 +307,9 @@ function Dashboard({
   myPatients,
   myPatientIds,
   pendingTasks,
+  pavilionCode,
+  pavilionName,
+  userId,
   onSelectPatient,
   onNewPatient,
 }: {
@@ -302,10 +319,14 @@ function Dashboard({
   patients: WardPatient[];
   myPatients: WardPatient[];
   myPatientIds: Set<string>;
-  pendingTasks: { id: string; title: string; patient_id: string | null; priority: string }[];
+  pendingTasks: WardTask[];
+  pavilionCode?: string | null;
+  pavilionName?: string | null;
+  userId?: string;
   onSelectPatient: (id: string) => void;
   onNewPatient: () => void;
 }) {
+
   const { data: links = [] } = useStudyLinks();
   const evolvedToday = 0;
   const critical = patients.filter((p) => p.status === "critico" || p.status === "prioritario");
@@ -371,8 +392,13 @@ function Dashboard({
             patients={patients}
             accent={accent}
             myPatientIds={myPatientIds}
+            pavilionCode={pavilionCode}
+            pavilionName={pavilionName}
+            tasks={pendingTasks}
+            userId={userId}
             onSelectPatient={onSelectPatient}
           />
+
         </WardCard>
 
         <div className="space-y-5">
