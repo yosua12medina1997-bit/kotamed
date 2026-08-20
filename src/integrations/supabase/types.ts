@@ -2080,6 +2080,53 @@ export type Database = {
           },
         ]
       }
+      emerg_balance: {
+        Row: {
+          at: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          label: string | null
+          note: string | null
+          patient_id: string
+          updated_at: string
+          volume_ml: number
+        }
+        Insert: {
+          at?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          label?: string | null
+          note?: string | null
+          patient_id: string
+          updated_at?: string
+          volume_ml?: number
+        }
+        Update: {
+          at?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          label?: string | null
+          note?: string | null
+          patient_id?: string
+          updated_at?: string
+          volume_ml?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_balance_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       emerg_box_assignments: {
         Row: {
           active: boolean
@@ -2156,6 +2203,244 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      emerg_calcs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          patient_id: string
+          result: string | null
+          tool: string
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          patient_id: string
+          result?: string | null
+          tool: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          patient_id?: string
+          result?: string | null
+          tool?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_calcs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_consults: {
+        Row: {
+          answer: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          patient_id: string
+          priority: string
+          question: string | null
+          requested_at: string
+          specialty: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          patient_id: string
+          priority?: string
+          question?: string | null
+          requested_at?: string
+          specialty: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          patient_id?: string
+          priority?: string
+          question?: string | null
+          requested_at?: string
+          specialty?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_consults_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_events: {
+        Row: {
+          at: string
+          created_at: string
+          created_by: string | null
+          detail: string | null
+          id: string
+          kind: string
+          patient_id: string
+          title: string
+        }
+        Insert: {
+          at?: string
+          created_at?: string
+          created_by?: string | null
+          detail?: string | null
+          id?: string
+          kind?: string
+          patient_id: string
+          title: string
+        }
+        Update: {
+          at?: string
+          created_at?: string
+          created_by?: string | null
+          detail?: string | null
+          id?: string
+          kind?: string
+          patient_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_events_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_evolutions: {
+        Row: {
+          analysis: string | null
+          at: string
+          author_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          objective: string | null
+          patient_id: string
+          plan_note: string | null
+          status: string
+          subjective: string | null
+          updated_at: string
+        }
+        Insert: {
+          analysis?: string | null
+          at?: string
+          author_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          objective?: string | null
+          patient_id: string
+          plan_note?: string | null
+          status?: string
+          subjective?: string | null
+          updated_at?: string
+        }
+        Update: {
+          analysis?: string | null
+          at?: string
+          author_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          objective?: string | null
+          patient_id?: string
+          plan_note?: string | null
+          status?: string
+          subjective?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_evolutions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_exams: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          flag: string
+          id: string
+          name: string
+          patient_id: string
+          priority: string
+          requested_at: string
+          result: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          flag?: string
+          id?: string
+          name: string
+          patient_id: string
+          priority?: string
+          requested_at?: string
+          result?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          flag?: string
+          id?: string
+          name?: string
+          patient_id?: string
+          priority?: string
+          requested_at?: string
+          result?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_exams_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       emerg_patients: {
         Row: {
@@ -2258,6 +2543,206 @@ export type Database = {
             columns: ["ward_patient_id"]
             isOneToOne: false
             referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_procedures: {
+        Row: {
+          at: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          operator: string | null
+          patient_id: string
+          result: string | null
+          status: string
+          supervisor: string | null
+          updated_at: string
+        }
+        Insert: {
+          at?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          operator?: string | null
+          patient_id: string
+          result?: string | null
+          status?: string
+          supervisor?: string | null
+          updated_at?: string
+        }
+        Update: {
+          at?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          operator?: string | null
+          patient_id?: string
+          result?: string | null
+          status?: string
+          supervisor?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_procedures_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_reassessments: {
+        Row: {
+          at: string
+          author_id: string | null
+          conduct: string | null
+          created_at: string
+          created_by: string | null
+          findings: string | null
+          id: string
+          patient_id: string
+          response: string | null
+          state: string | null
+          updated_at: string
+          vitals: Json
+        }
+        Insert: {
+          at?: string
+          author_id?: string | null
+          conduct?: string | null
+          created_at?: string
+          created_by?: string | null
+          findings?: string | null
+          id?: string
+          patient_id: string
+          response?: string | null
+          state?: string | null
+          updated_at?: string
+          vitals?: Json
+        }
+        Update: {
+          at?: string
+          author_id?: string | null
+          conduct?: string | null
+          created_at?: string
+          created_by?: string | null
+          findings?: string | null
+          id?: string
+          patient_id?: string
+          response?: string | null
+          state?: string | null
+          updated_at?: string
+          vitals?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_reassessments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_tasks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          done_at: string | null
+          due_at: string | null
+          id: string
+          patient_id: string | null
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          due_at?: string | null
+          id?: string
+          patient_id?: string | null
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          due_at?: string | null
+          id?: string
+          patient_id?: string | null
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_tasks_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emerg_treatments: {
+        Row: {
+          at: string
+          created_at: string
+          created_by: string | null
+          dose: string | null
+          drug: string
+          id: string
+          note: string | null
+          patient_id: string
+          route: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          at?: string
+          created_at?: string
+          created_by?: string | null
+          dose?: string | null
+          drug: string
+          id?: string
+          note?: string | null
+          patient_id: string
+          route?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          at?: string
+          created_at?: string
+          created_by?: string | null
+          dose?: string | null
+          drug?: string
+          id?: string
+          note?: string | null
+          patient_id?: string
+          route?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emerg_treatments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "emerg_patients"
             referencedColumns: ["id"]
           },
         ]
