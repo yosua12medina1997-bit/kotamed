@@ -3319,6 +3319,85 @@ export type Database = {
           },
         ]
       }
+      ward_bed_assignment_log: {
+        Row: {
+          actor_id: string | null
+          bed_id: string
+          created_at: string
+          from_user_id: string | null
+          id: string
+          to_user_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          bed_id: string
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          to_user_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          bed_id?: string
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          to_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_bed_assignment_log_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "ward_beds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_bed_assignments: {
+        Row: {
+          active: boolean
+          assigned_by: string | null
+          bed_id: string
+          created_at: string
+          id: string
+          note: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          assigned_by?: string | null
+          bed_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          assigned_by?: string | null
+          bed_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_bed_assignments_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "ward_beds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ward_beds: {
         Row: {
           active: boolean
@@ -4562,6 +4641,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      can_edit_ward_patient: { Args: { _patient_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4571,6 +4651,15 @@ export type Database = {
       }
       is_enrollment_admin: { Args: { _user_id: string }; Returns: boolean }
       is_ward_admin: { Args: { _user_id: string }; Returns: boolean }
+      ward_roster: {
+        Args: never
+        Returns: {
+          full_name: string
+          initials: string
+          is_admin: boolean
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "student" | "super_admin" | "academic_admin"

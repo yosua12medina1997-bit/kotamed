@@ -38,6 +38,22 @@ import {
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "@/components/academy/ui";
 import { useSupabaseUser } from "@/lib/session";
 import {
+  editablePatientIds,
+  initialsOf,
+  internColor,
+  ownerByBed,
+  rosterMap,
+  useBedAssignments,
+  useWardRoster,
+} from "@/lib/ward-assign";
+import {
+  AssignmentsModal,
+  DistributionModal,
+  DistributionSummary,
+  InternLegend,
+  ZoneAssignmentSummary,
+} from "@/components/ward/BedAssignments";
+import {
   PATIENT_STATUS,
   WARD_KEYS,
   ZONE_KINDS,
@@ -192,6 +208,8 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
   const { data: beds = [] } = useBeds();
   const { data: patients = [] } = usePatients();
   const { data: assignments = [] } = useAssignments();
+  const { data: bedAssignments = [] } = useBedAssignments();
+  const { data: roster = [] } = useWardRoster();
   const { data: tasks = [] } = useTasks();
 
   const zoneIds = useMemo(() => new Set(zones.map((z) => z.id)), [zones]);
@@ -202,12 +220,30 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
     [patients, pavilionBedIds],
   );
 
+  /** Camas cuya responsabilidad clínica es del usuario actual. */
+  const myBedIds = useMemo(
+    () => new Set(bedAssignments.filter((a) => a.user_id === user?.id).map((a) => a.bed_id)),
+    [bedAssignments, user?.id],
+  );
+
   const myPatientIds = useMemo(() => {
     const ids = new Set<string>();
     for (const a of assignments) if (a.user_id === user?.id) ids.add(a.patient_id);
-    for (const p of patients) if (p.created_by && p.created_by === user?.id) ids.add(p.id);
+    for (const p of patients) {
+      if (p.created_by && p.created_by === user?.id) ids.add(p.id);
+      if (p.bed_id && myBedIds.has(p.bed_id)) ids.add(p.id);
+    }
     return ids;
-  }, [assignments, patients, user?.id]);
+  }, [assignments, myBedIds, patients, user?.id]);
+
+  /** Pacientes que el usuario puede editar (mismas reglas que la base de datos). */
+  const editableIds = useMemo(
+    () =>
+      isAdmin
+        ? null
+        : editablePatientIds(patients, bedAssignments, user?.id),
+    [bedAssignments, isAdmin, patients, user?.id],
+  );
 
   const myPatients = useMemo(
     () => pavilionPatients.filter((p) => myPatientIds.has(p.id)),
@@ -229,6 +265,7 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
     setSection(go);
   }
 
+  const canEditActive = !patient || isAdmin || (editableIds?.has(patient.id) ?? true);
   const ctx = { patient: patient as WardPatient, accent, userId: user?.id, isAdmin };
 
   return (
@@ -324,6 +361,7 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             patients={pavilionPatients}
             myPatients={myPatients}
             pendingTasks={pendingTasks}
+            myBedIds={myBedIds}
             pavilionCode={pavilionCode}
             userName={
               (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
@@ -370,10 +408,14 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
               pavilionCode={pavilionCode}
               pavilionName={pavilionName}
               tasks={tasks}
+              myBedIds={myBedIds}
+              bedOwners={ownerByBed(bedAssignments)}
+              roster={rosterMap(roster)}
+              isAdmin={isAdmin}
               pavilions={pavilions}
               activePavilionId={activePavilion}
               onPavilion={setPavilionId}
-              canEdit
+              canEdit={isAdmin}
               userId={user?.id}
               onSelectPatient={(id) => selectPatient(id)}
               onSelectBed={(b) => {
@@ -399,6 +441,13 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
               setFormOpen(true);
             }}
           />
+        )}
+
+        {isPatientSection && patient && !canEditActive && (
+          <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-[12.5px] font-semibold text-amber-700 dark:text-amber-300">
+            Esta cama está asignada a otro interno. Solo puedes editar la información clínica de tus
+            camas asignadas; aquí puedes consultar en modo lectura.
+          </div>
         )}
 
         {isPatientSection &&
@@ -470,7 +519,13 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
         {section === "competencias" && <Competencies accent={accent} userId={user?.id} />}
         {section === "casos" && <LearningCases accent={accent} patients={patients} />}
         {section === "config" && (
-          <WardConfig accent={accent} pavilionId={activePavilion} zones={zones} beds={pavilionBeds} />
+          <WardConfig
+            accent={accent}
+            pavilionId={activePavilion}
+            pavilionName={pavilionName}
+            zones={zones}
+            beds={pavilionBeds}
+          />
         )}
       </div>
 
@@ -695,6 +750,7 @@ function Dashboard({
   patients,
   myPatients,
   pendingTasks,
+  myBedIds,
   pavilionCode,
   userName,
   onSelectPatient,
@@ -708,6 +764,7 @@ function Dashboard({
   patients: WardPatient[];
   myPatients: WardPatient[];
   pendingTasks: WardTask[];
+  myBedIds: Set<string>;
   pavilionCode?: string | null;
   userName: string;
   onSelectPatient: (id: string) => void;
@@ -717,12 +774,11 @@ function Dashboard({
 }) {
   const { data: links = [] } = useStudyLinks();
   const critical = patients.filter((p) => p.status === "critico" || p.status === "prioritario");
-  const myZone = zones.find((z) =>
-    beds.some((b) => b.zone_id === z.id && myPatients.some((p) => p.bed_id === b.id)),
+  /** Camas propias: asignación clínica formal + camas de mis pacientes. */
+  const myBeds = beds.filter(
+    (b) => myBedIds.has(b.id) || myPatients.some((p) => p.bed_id === b.id),
   );
-  const myBeds = beds
-    .filter((b) => myPatients.some((p) => p.bed_id === b.id))
-    .slice(0, 6);
+  const myZone = zones.find((z) => myBeds.some((b) => b.zone_id === z.id));
 
   const suggested = useMemo(() => {
     const keys = new Set<string>();
@@ -760,6 +816,13 @@ function Dashboard({
           hint={myZone?.label ?? "Sala por asignar"}
           accent={accent}
           icon={<MapPin className="size-4" />}
+        />
+        <KpiTile
+          label="Mis camas"
+          value={String(myBeds.length).padStart(2, "0")}
+          hint={`${beds.length} camas en el pabellón`}
+          accent="#a78bfa"
+          icon={<Crosshair className="size-4" />}
         />
         <KpiTile
           label="Mis pacientes"
@@ -847,6 +910,49 @@ function Dashboard({
         </WardCard>
 
         <div className="space-y-5">
+          {/* Mis camas hoy — responsabilidad clínica asignada */}
+          <WardCard
+            title="Mis camas hoy"
+            subtitle="Camas bajo tu responsabilidad clínica en este pabellón."
+            icon={<Crosshair className="size-4" style={{ color: accent }} />}
+            actions={<Btn onClick={onOpenCroquis}>Ver en croquis →</Btn>}
+          >
+            {myBeds.length === 0 ? (
+              <Empty text="Aún no tienes camas asignadas por el administrador." />
+            ) : (
+              <ul className="space-y-2">
+                {myBeds.map((b) => {
+                  const p = patients.find((x) => x.bed_id === b.id);
+                  const z = zones.find((x) => x.id === b.zone_id);
+                  return (
+                    <li key={b.id}>
+                      <button
+                        type="button"
+                        onClick={() => (p ? onSelectPatient(p.id) : onOpenCroquis())}
+                        className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-border/50 bg-background/40 px-3 py-2 text-left transition hover:border-primary/40"
+                      >
+                        <span className="text-[12.5px] font-black tabular-nums">{b.number}</span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-[12px] font-semibold">
+                            {p ? patientLabel(p) : "Cama disponible"}
+                          </span>
+                          <span className="block truncate text-[10.5px] text-muted-foreground">
+                            {z?.label ?? "Sala"}
+                          </span>
+                        </span>
+                        {p ? <StatusDot status={p.status} /> : (
+                          <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                            libre
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </WardCard>
+
           {/* Ubicación de hoy — croquis resumido */}
           <WardCard
             title="Ubicación de hoy"
@@ -1253,11 +1359,13 @@ function LearningCases({ accent, patients }: { accent: string; patients: WardPat
 function WardConfig({
   accent,
   pavilionId,
+  pavilionName,
   zones,
   beds,
 }: {
   accent: string;
   pavilionId: string | null;
+  pavilionName: string | null;
   zones: WardZone[];
   beds: WardBed[];
 }) {
@@ -1267,9 +1375,40 @@ function WardConfig({
   const delBed = useWardDelete("ward_beds", [WARD_KEYS.beds]);
   const [newZone, setNewZone] = useState({ label: "", kind: "room" });
   const [newBed, setNewBed] = useState<Record<string, string>>({});
+  const [assignZone, setAssignZone] = useState<WardZone | null>(null);
+  const [distOpen, setDistOpen] = useState(false);
 
   return (
     <div className="space-y-5">
+      <DistributionSummary
+        accent={accent}
+        pavilionName={pavilionName}
+        beds={beds}
+        onOpen={() => setDistOpen(true)}
+      />
+
+      <AssignmentsModal
+        open={!!assignZone}
+        onClose={() => setAssignZone(null)}
+        accent={accent}
+        zone={assignZone}
+        pavilionName={pavilionName}
+        beds={beds}
+      />
+
+      <DistributionModal
+        open={distOpen}
+        onClose={() => setDistOpen(false)}
+        accent={accent}
+        pavilionName={pavilionName}
+        zones={zones}
+        beds={beds}
+        onManageZone={(z) => {
+          setDistOpen(false);
+          setAssignZone(z);
+        }}
+      />
+
       <WardCard
         title="Croquis editable"
         subtitle="Como super admin puedes crear salas, moverlas en la cuadrícula y administrar camas sin restricciones."
@@ -1411,6 +1550,12 @@ function WardConfig({
                   </span>
                 </div>
               </div>
+
+              <ZoneAssignmentSummary
+                accent={accent}
+                zoneBeds={beds.filter((b) => b.zone_id === z.id)}
+                onOpen={() => setAssignZone(z)}
+              />
             </div>
           ))}
         </div>

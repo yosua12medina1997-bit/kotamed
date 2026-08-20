@@ -36,6 +36,7 @@ import {
   type CroquisBed,
   type CroquisBlock,
 } from "@/lib/ward-croquis";
+import { initialsOf, internColor } from "@/lib/ward-assign";
 
 const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 3;
@@ -48,6 +49,10 @@ type Slot = {
   patient: WardPatient | null;
   level: BedLevel;
   mine: boolean;
+  /** Interno responsable de la cama (asignación clínica). */
+  ownerId: string | null;
+  ownerName: string | null;
+  ownerInitials: string | null;
   pending: number;
 };
 
@@ -64,6 +69,10 @@ export function PavilionMap({
   pavilionName,
   tasks = [],
   canEdit = false,
+  isAdmin = false,
+  myBedIds,
+  bedOwners,
+  roster,
   userId,
   pavilions = [],
   onPavilion,
@@ -81,6 +90,13 @@ export function PavilionMap({
   pavilionName?: string | null;
   tasks?: WardTask[];
   canEdit?: boolean;
+  isAdmin?: boolean;
+  /** Camas cuya responsabilidad clínica es del usuario actual. */
+  myBedIds?: Set<string>;
+  /** bed_id → user_id del interno responsable. */
+  bedOwners?: Map<string, string>;
+  /** user_id → nombre e iniciales del interno. */
+  roster?: Map<string, { full_name: string; initials: string }>;
   userId?: string;
   pavilions?: { id: string; code: string; name: string }[];
   onPavilion?: (id: string) => void;
@@ -128,6 +144,8 @@ export function PavilionMap({
               beds.find((b) => b.number === bed.number) ??
               null);
         const patient = dbBed ? (patientByBed.get(dbBed.id) ?? null) : null;
+        const ownerId = dbBed ? (bedOwners?.get(dbBed.id) ?? null) : null;
+        const ownerEntry = ownerId ? (roster?.get(ownerId) ?? null) : null;
         out.push({
           key: `${block.id}-${i}`,
           bed,
@@ -135,13 +153,28 @@ export function PavilionMap({
           dbBed,
           patient,
           level: levelForStatus(patient?.status),
-          mine: patient ? myPatientIds.has(patient.id) : false,
+          mine:
+            (!!dbBed && !!myBedIds?.has(dbBed.id)) ||
+            (patient ? myPatientIds.has(patient.id) : false),
+          ownerId,
+          ownerName: ownerEntry?.full_name ?? null,
+          ownerInitials: ownerEntry?.initials || (ownerId ? initialsOf(ownerEntry?.full_name) : null),
           pending: patient ? (pendingByPatient.get(patient.id) ?? 0) : 0,
         });
       }
     }
     return out;
-  }, [beds, croquis.blocks, myPatientIds, patientByBed, pendingByPatient, zoneByLabel]);
+  }, [
+    bedOwners,
+    beds,
+    croquis.blocks,
+    myBedIds,
+    myPatientIds,
+    patientByBed,
+    pendingByPatient,
+    roster,
+    zoneByLabel,
+  ]);
 
   const counts = useMemo(() => {
     const c: Record<BedLevel, number> = {
@@ -277,7 +310,7 @@ export function PavilionMap({
           }`}
           style={onlyMine ? { background: accent } : undefined}
         >
-          <UserCheck className="size-3" /> Mis pacientes
+          <UserCheck className="size-3" /> Mis camas
         </button>
         <div className="ml-auto flex items-center gap-1">
           <Btn onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z - 0.25))}>
@@ -375,7 +408,8 @@ export function PavilionMap({
             <BedPanel
               slot={selected}
               accent={accent}
-              canEdit={canEdit}
+              canEdit={canEdit || isAdmin || selected.mine}
+              isAdmin={isAdmin}
               userId={userId}
               onOpenPatient={onSelectPatient}
               onRegister={() => {
@@ -519,7 +553,7 @@ function BedNode({
           borderColor: free ? "#94a3b855" : `${color}cc`,
           background: free ? "#94a3b81f" : `${color}2e`,
           color: free ? undefined : color,
-          opacity: dim ? 0.28 : 1,
+          opacity: dim ? 0.35 : 1,
           boxShadow: selected
             ? `0 0 0 3px ${color}, 0 0 22px ${color}55`
             : slot.level === "critico"
@@ -532,13 +566,23 @@ function BedNode({
         title={slot.bed.number ? `Cama ${slot.bed.number}` : "Espacio de cama sin numeración"}
       >
         {slot.bed.number ?? "·"}
-        {slot.mine && (
+        {slot.ownerId ? (
           <span
-            className="absolute -bottom-1 -right-1 grid size-[45%] place-items-center rounded-full text-white"
-            style={{ background: accent }}
+            className="absolute -bottom-1 -right-1 grid size-[48%] place-items-center rounded-full text-[52%] font-black text-slate-900 shadow"
+            style={{ background: internColor(slot.ownerId) }}
+            title={slot.ownerName ?? "Interno responsable"}
           >
-            <User className="size-[60%]" />
+            {slot.ownerInitials ?? ""}
           </span>
+        ) : (
+          slot.mine && (
+            <span
+              className="absolute -bottom-1 -right-1 grid size-[45%] place-items-center rounded-full text-white"
+              style={{ background: accent }}
+            >
+              <User className="size-[60%]" />
+            </span>
+          )
         )}
       </button>
 
@@ -557,6 +601,9 @@ function BedNode({
           </div>
           <div className="mt-1 space-y-0.5 text-[10px] text-muted-foreground">
             <div>Paciente: {slot.patient ? patientLabel(slot.patient) : "—"}</div>
+            <div>
+              Responsable: {slot.ownerName ?? (slot.mine ? "Tú" : "Sin asignar")}
+            </div>
             <div>Pendientes: {slot.pending}</div>
             <div>{slot.block.tag ?? slot.block.label}</div>
           </div>
@@ -574,6 +621,7 @@ function BedPanel({
   slot,
   accent,
   canEdit,
+  isAdmin = false,
   userId,
   onOpenPatient,
   onRegister,
@@ -582,6 +630,7 @@ function BedPanel({
   slot: Slot;
   accent: string;
   canEdit: boolean;
+  isAdmin?: boolean;
   userId?: string;
   onOpenPatient: (id: string) => void;
   onRegister: () => void;
@@ -639,8 +688,20 @@ function BedPanel({
               <span className="font-bold tabular-nums">{slot.pending}</span>
             </li>
             <li className="flex justify-between gap-2">
-              <span className="text-muted-foreground">Responsable</span>
-              <span className="font-bold">{slot.mine ? "Mi paciente" : "Otro interno"}</span>
+              <span className="text-muted-foreground">Interno responsable</span>
+              <span className="inline-flex min-w-0 items-center gap-1.5 font-bold">
+                {slot.ownerId && (
+                  <span
+                    className="grid size-5 shrink-0 place-items-center rounded-full text-[8px] font-black text-slate-900"
+                    style={{ background: internColor(slot.ownerId) }}
+                  >
+                    {slot.ownerInitials ?? ""}
+                  </span>
+                )}
+                <span className="truncate">
+                  {slot.mine ? "Tú" : (slot.ownerName ?? "Sin asignar")}
+                </span>
+              </span>
             </li>
           </ul>
 
@@ -664,6 +725,13 @@ function BedPanel({
               </Btn>
             )}
           </div>
+
+          {!canEdit && (
+            <p className="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11.5px] font-semibold text-amber-700 dark:text-amber-300">
+              Cama asignada a {slot.ownerName ?? "otro interno"}. Puedes consultarla, pero solo su
+              responsable o el administrador pueden editarla.
+            </p>
+          )}
 
           {canEdit && (
             <div className="mt-4 space-y-2 border-t border-border/60 pt-3">
@@ -712,7 +780,12 @@ function BedPanel({
               ? "Cama disponible: puedes registrar un ingreso académico en esta posición del croquis."
               : "Espacio de cama del croquis original sin numeración asignada."}
           </p>
-          {slot.dbBed && (
+          {slot.ownerId && !slot.mine && !isAdmin && (
+            <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-[11.5px] font-semibold text-amber-700 dark:text-amber-300">
+              Esta cama está asignada a {slot.ownerName ?? "otro interno"}.
+            </p>
+          )}
+          {slot.dbBed && (slot.mine || isAdmin || !slot.ownerId) && (
             <Btn variant="solid" accent={accent} onClick={onRegister}>
               <PlusIcon className="size-3.5" /> Registrar ingreso
             </Btn>
