@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from "react";
 import { Check, History, Search, UserRound, Users } from "lucide-react";
-import { Btn, Empty, Input } from "@/components/academy/ui";
+import { Btn, Empty } from "@/components/academy/ui";
 import { Modal } from "@/components/ward/ui";
 import type { WardBed, WardZone } from "@/lib/ward-os";
 import {
@@ -350,11 +350,11 @@ function InternPicker({
     <div className="rounded-2xl border border-border/60 bg-background/70 p-2">
       <div className="flex items-center gap-2 px-1">
         <Search className="size-3.5 text-muted-foreground" />
-        <Input
+        <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar interno..."
-          className="!border-0 !bg-transparent !px-0 !py-1 text-[12px] focus:!ring-0"
+          className="w-full bg-transparent py-1 text-[12px] outline-none"
         />
       </div>
       <div className="mt-1 max-h-40 space-y-1 overflow-y-auto pr-1">
