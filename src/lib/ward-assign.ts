@@ -165,8 +165,10 @@ export function useAssignBeds() {
       void qc.invalidateQueries({ queryKey: ASSIGN_KEYS.beds });
       void qc.invalidateQueries({ queryKey: ["ward", "assign-log"] });
     },
+    onError: (e) => wardError(e),
   });
 }
+
 
 /* ───────────────────────────── Derivados ───────────────────────────── */
 
