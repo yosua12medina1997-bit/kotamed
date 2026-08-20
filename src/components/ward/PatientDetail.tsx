@@ -2,7 +2,10 @@
  * Expediente académico del paciente hospitalizado: resumen, SOAP del día,
  * problemas clínicos, plan, pendientes, línea de tiempo y ruta de estudio.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
 import {
   Activity,
   BookOpen,
@@ -312,19 +315,47 @@ export function SoapEditor({ patient, accent }: { patient: WardPatient; accent: 
     plan_note: existing?.plan_note ?? "",
   }));
 
+  // Sincroniza el borrador cuando la evolución del día llega desde el servidor.
+  const loadedId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!existing || loadedId.current === existing.id) return;
+    loadedId.current = existing.id;
+    setDraft({
+      subjective: existing.subjective ?? {},
+      objective: existing.objective ?? {},
+      analysis: existing.analysis ?? "",
+      plan_note: existing.plan_note ?? "",
+    });
+  }, [existing]);
+
   async function submit(status: "borrador" | "firmada") {
-    await save.mutateAsync({
-      ...(existing?.id ? { id: existing.id } : {}),
+    const { data: auth } = await supabase.auth.getUser();
+    const uid = auth.user?.id ?? null;
+    if (!uid) {
+      toast.error("Tu sesión expiró. Vuelve a iniciar sesión para guardar la evolución.");
+      return;
+    }
+    const payload = {
       patient_id: patient.id,
       evo_date: today,
-      hosp_day: hospitalDay(patient.admitted_at),
+      hosp_day: Number.isFinite(hospitalDay(patient.admitted_at))
+        ? hospitalDay(patient.admitted_at)
+        : null,
       status,
       subjective: draft.subjective,
       objective: draft.objective,
       analysis: draft.analysis || null,
       plan_note: draft.plan_note || null,
-    });
+      author_id: uid,
+    };
+    try {
+      await save.mutateAsync(existing?.id ? { id: existing.id, ...payload } : payload);
+      toast.success(status === "firmada" ? "Evolución firmada" : "Borrador guardado");
+    } catch {
+      /* useWardSave ya muestra el motivo real con un toast */
+    }
   }
+
 
   return (
     <WardCard
