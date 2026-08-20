@@ -750,6 +750,7 @@ function Dashboard({
   patients,
   myPatients,
   pendingTasks,
+  myBedIds,
   pavilionCode,
   userName,
   onSelectPatient,
@@ -763,6 +764,7 @@ function Dashboard({
   patients: WardPatient[];
   myPatients: WardPatient[];
   pendingTasks: WardTask[];
+  myBedIds: Set<string>;
   pavilionCode?: string | null;
   userName: string;
   onSelectPatient: (id: string) => void;
@@ -772,12 +774,11 @@ function Dashboard({
 }) {
   const { data: links = [] } = useStudyLinks();
   const critical = patients.filter((p) => p.status === "critico" || p.status === "prioritario");
-  const myZone = zones.find((z) =>
-    beds.some((b) => b.zone_id === z.id && myPatients.some((p) => p.bed_id === b.id)),
+  /** Camas propias: asignación clínica formal + camas de mis pacientes. */
+  const myBeds = beds.filter(
+    (b) => myBedIds.has(b.id) || myPatients.some((p) => p.bed_id === b.id),
   );
-  const myBeds = beds
-    .filter((b) => myPatients.some((p) => p.bed_id === b.id))
-    .slice(0, 6);
+  const myZone = zones.find((z) => myBeds.some((b) => b.zone_id === z.id));
 
   const suggested = useMemo(() => {
     const keys = new Set<string>();
@@ -815,6 +816,13 @@ function Dashboard({
           hint={myZone?.label ?? "Sala por asignar"}
           accent={accent}
           icon={<MapPin className="size-4" />}
+        />
+        <KpiTile
+          label="Mis camas"
+          value={String(myBeds.length).padStart(2, "0")}
+          hint={`${beds.length} camas en el pabellón`}
+          accent="#a78bfa"
+          icon={<Crosshair className="size-4" />}
         />
         <KpiTile
           label="Mis pacientes"
@@ -902,6 +910,49 @@ function Dashboard({
         </WardCard>
 
         <div className="space-y-5">
+          {/* Mis camas hoy — responsabilidad clínica asignada */}
+          <WardCard
+            title="Mis camas hoy"
+            subtitle="Camas bajo tu responsabilidad clínica en este pabellón."
+            icon={<Crosshair className="size-4" style={{ color: accent }} />}
+            actions={<Btn onClick={onOpenCroquis}>Ver en croquis →</Btn>}
+          >
+            {myBeds.length === 0 ? (
+              <Empty text="Aún no tienes camas asignadas por el administrador." />
+            ) : (
+              <ul className="space-y-2">
+                {myBeds.map((b) => {
+                  const p = patients.find((x) => x.bed_id === b.id);
+                  const z = zones.find((x) => x.id === b.zone_id);
+                  return (
+                    <li key={b.id}>
+                      <button
+                        type="button"
+                        onClick={() => (p ? onSelectPatient(p.id) : onOpenCroquis())}
+                        className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-xl border border-border/50 bg-background/40 px-3 py-2 text-left transition hover:border-primary/40"
+                      >
+                        <span className="text-[12.5px] font-black tabular-nums">{b.number}</span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-[12px] font-semibold">
+                            {p ? patientLabel(p) : "Cama disponible"}
+                          </span>
+                          <span className="block truncate text-[10.5px] text-muted-foreground">
+                            {z?.label ?? "Sala"}
+                          </span>
+                        </span>
+                        {p ? <StatusDot status={p.status} /> : (
+                          <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                            libre
+                          </span>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </WardCard>
+
           {/* Ubicación de hoy — croquis resumido */}
           <WardCard
             title="Ubicación de hoy"
