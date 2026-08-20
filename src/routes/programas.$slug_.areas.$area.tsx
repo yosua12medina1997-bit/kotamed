@@ -110,7 +110,7 @@ function GenericAreaModule() {
             ? [
                 {
                   id: "ward-os",
-                  label: "🏥 Hospitalización Pediátrica",
+                  label: "🏥 Kota Ward",
                   icon: Hospital,
                   render: ({ isAdmin }: { isAdmin: boolean }) => (
                     <WardOS isAdmin={isAdmin} accent={meta.accent} />
