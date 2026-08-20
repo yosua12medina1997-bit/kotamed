@@ -36,6 +36,7 @@ import {
   type CroquisBed,
   type CroquisBlock,
 } from "@/lib/ward-croquis";
+import { initialsOf, internColor } from "@/lib/ward-assign";
 
 const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 3;
