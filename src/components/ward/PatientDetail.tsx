@@ -170,14 +170,47 @@ export function PatientDetail({
         </nav>
       </WardCard>
 
-      {tab === "resumen" && <Resumen patient={patient} accent={accent} />}
+      {tab === "resumen" && (
+        <>
+          <StageTracker {...ctx} />
+          <Resumen patient={patient} accent={accent} />
+        </>
+      )}
+      {tab === "historia" && <HistoriaClinica {...ctx} />}
+      {tab === "inicial" && <AtencionInicial {...ctx} />}
+      {tab === "examen" && <ExamenFisico {...ctx} />}
+      {tab === "monitor" && <Monitorizacion {...ctx} />}
+      {tab === "examenes" && <ExamenesAuxiliares {...ctx} />}
+      {tab === "tratamiento" && <Tratamiento {...ctx} />}
+      {tab === "balance" && <BalanceHidrico {...ctx} />}
+      {tab === "interconsultas" && <Interconsultas {...ctx} />}
+      {tab === "procedimientos" && <Procedimientos {...ctx} />}
+      {tab === "calculadora" && <WardCalculator patient={patient} accent={accent} />}
       {tab === "soap" && <SoapEditor patient={patient} accent={accent} />}
       {tab === "problemas" && <ProblemsAndPlan patient={patient} accent={accent} />}
-      {tab === "timeline" && <Timeline patient={patient} accent={accent} />}
+      {tab === "archivos" && (
+        <WardCard title="Archivos del expediente">
+          <FileDrop
+            patientId={patient.id}
+            refKind="all"
+            accent={accent}
+            userId={userId}
+            isAdmin={isAdmin}
+          />
+        </WardCard>
+      )}
+      {tab === "alta" && <ResumenYAlta {...ctx} />}
+      {tab === "timeline" && (
+        <>
+          <ClinicalTimeline {...ctx} />
+          <Timeline patient={patient} accent={accent} />
+        </>
+      )}
       {tab === "estudio" && <StudyRoute patient={patient} accent={accent} />}
     </div>
   );
 }
+
 
 /* ─────────────────────────────── Resumen ─────────────────────────────── */
 
