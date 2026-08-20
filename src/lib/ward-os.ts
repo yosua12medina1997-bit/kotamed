@@ -471,8 +471,10 @@ export function useWardSave(table: string, invalidate: unknown[][] = []) {
     mutationFn: async (payload: Record<string, unknown> & { id?: string }) => {
       const { id, ...rest } = payload;
       if (id) {
-        const { error } = await wdb.from(table).update(rest).eq("id", id);
+        const { data, error } = await wdb.from(table).update(rest).eq("id", id).select("id");
         if (error) throw error;
+        // RLS puede rechazar silenciosamente (0 filas afectadas).
+        if (!data || data.length === 0) throw new Error(PERMISSION_MSG);
         return id;
       }
       const { data: auth } = await supabase.auth.getUser();
@@ -487,6 +489,7 @@ export function useWardSave(table: string, invalidate: unknown[][] = []) {
     onSuccess: () => {
       for (const key of invalidate) void qc.invalidateQueries({ queryKey: key });
     },
+    onError: (e) => wardError(e),
   });
 }
 
@@ -494,15 +497,18 @@ export function useWardDelete(table: string, invalidate: unknown[][] = []) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await wdb.from(table).delete().eq("id", id);
+      const { data, error } = await wdb.from(table).delete().eq("id", id).select("id");
       if (error) throw error;
+      if (!data || data.length === 0) throw new Error(PERMISSION_MSG);
       return id;
     },
     onSuccess: () => {
       for (const key of invalidate) void qc.invalidateQueries({ queryKey: key });
     },
+    onError: (e) => wardError(e),
   });
 }
+
 
 export const WARD_KEYS = {
   pavilions: k("pavilions"),
