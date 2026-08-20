@@ -46,6 +46,7 @@ import {
   type WardTask,
   type WardZone,
 } from "@/lib/ward-os";
+import { Pendientes } from "./ClinicalOrders";
 import { PavilionMap } from "./PavilionMap";
 import { PatientDetail } from "./PatientDetail";
 import { PatientForm } from "./PatientForm";
@@ -57,6 +58,7 @@ type SectionId =
   | "pabellon"
   | "pacientes"
   | "ronda"
+  | "pendientes"
   | "competencias"
   | "casos"
   | "config";
@@ -66,6 +68,7 @@ const SECTIONS: { id: SectionId; label: string; icon: typeof MapPin; adminOnly?:
   { id: "pabellon", label: "Croquis del pabellón", icon: MapPin },
   { id: "pacientes", label: "Mis pacientes", icon: Users },
   { id: "ronda", label: "Modo Ronda", icon: Stethoscope },
+  { id: "pendientes", label: "Pendientes clínicos", icon: ListChecks },
   { id: "competencias", label: "Competencias", icon: GraduationCap },
   { id: "casos", label: "Casos de aprendizaje", icon: BookOpen },
   { id: "config", label: "Configurar pabellón", icon: Settings2, adminOnly: true },
@@ -243,6 +246,8 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
                 zones={zones}
                 beds={beds}
                 accent={accent}
+                userId={user?.id}
+                isAdmin={isAdmin}
                 onEdit={() => {
                   setEditing(patient);
                   setFormOpen(true);
@@ -271,6 +276,15 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             zones={zones}
             beds={beds}
             accent={accent}
+          />
+        )}
+
+        {section === "pendientes" && (
+          <Pendientes
+            accent={accent}
+            patients={patients}
+            patientId={selectedPatient}
+            onSelectPatient={openPatient}
           />
         )}
 

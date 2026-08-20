@@ -6,14 +6,24 @@ import { useMemo, useState } from "react";
 import {
   Activity,
   BookOpen,
+  Calculator,
   CalendarDays,
   ClipboardList,
+  Droplets,
+  FileText,
+  FlaskConical,
+  HeartPulse,
   ListChecks,
+  Paperclip,
   Pencil,
+  Pill,
   Plus,
   Save,
+  Siren,
   Stethoscope,
+  Syringe,
   Trash2,
+  Users,
 } from "lucide-react";
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "@/components/academy/ui";
 import {
@@ -37,15 +47,47 @@ import {
   type WardPatient,
   type WardZone,
 } from "@/lib/ward-os";
+import {
+  AtencionInicial,
+  ClinicalTimeline,
+  ExamenFisico,
+  HistoriaClinica,
+  Monitorizacion,
+  ResumenYAlta,
+  StageTracker,
+} from "./ClinicalRecord";
+import {
+  BalanceHidrico,
+  ExamenesAuxiliares,
+  Interconsultas,
+  Procedimientos,
+  Tratamiento,
+} from "./ClinicalOrders";
+import { FileDrop } from "./FileDrop";
+import { WardCalculator } from "./WardCalculator";
+
 import { StatusPill, WardCard } from "./ui";
 
 const TABS = [
   { id: "resumen", label: "Resumen", icon: Stethoscope },
+  { id: "historia", label: "Historia clínica", icon: ClipboardList },
+  { id: "inicial", label: "Atención inicial", icon: Siren },
+  { id: "examen", label: "Examen físico", icon: HeartPulse },
+  { id: "monitor", label: "Monitorización", icon: Activity },
+  { id: "examenes", label: "Exámenes auxiliares", icon: FlaskConical },
+  { id: "tratamiento", label: "Tratamiento", icon: Pill },
+  { id: "balance", label: "Balance hídrico", icon: Droplets },
+  { id: "interconsultas", label: "Interconsultas", icon: Users },
+  { id: "procedimientos", label: "Procedimientos", icon: Syringe },
+  { id: "calculadora", label: "Calculadora", icon: Calculator },
   { id: "soap", label: "Evolución SOAP", icon: ClipboardList },
   { id: "problemas", label: "Problemas y plan", icon: ListChecks },
+  { id: "archivos", label: "Archivos", icon: Paperclip },
+  { id: "alta", label: "Resumen y alta", icon: FileText },
   { id: "timeline", label: "Línea de tiempo", icon: CalendarDays },
   { id: "estudio", label: "Ruta de estudio", icon: BookOpen },
 ] as const;
+
 
 export function PatientDetail({
   patient,
@@ -53,14 +95,20 @@ export function PatientDetail({
   beds,
   accent,
   onEdit,
+  userId,
+  isAdmin,
 }: {
   patient: WardPatient;
   zones: WardZone[];
   beds: WardBed[];
   accent: string;
   onEdit: () => void;
+  userId?: string;
+  isAdmin?: boolean;
 }) {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("resumen");
+  const ctx = { patient, accent, userId, isAdmin };
+
   const bed = beds.find((b) => b.id === patient.bed_id);
   const zone = zones.find((z) => z.id === bed?.zone_id);
 
@@ -122,14 +170,47 @@ export function PatientDetail({
         </nav>
       </WardCard>
 
-      {tab === "resumen" && <Resumen patient={patient} accent={accent} />}
+      {tab === "resumen" && (
+        <>
+          <StageTracker {...ctx} />
+          <Resumen patient={patient} accent={accent} />
+        </>
+      )}
+      {tab === "historia" && <HistoriaClinica {...ctx} />}
+      {tab === "inicial" && <AtencionInicial {...ctx} />}
+      {tab === "examen" && <ExamenFisico {...ctx} />}
+      {tab === "monitor" && <Monitorizacion {...ctx} />}
+      {tab === "examenes" && <ExamenesAuxiliares {...ctx} />}
+      {tab === "tratamiento" && <Tratamiento {...ctx} />}
+      {tab === "balance" && <BalanceHidrico {...ctx} />}
+      {tab === "interconsultas" && <Interconsultas {...ctx} />}
+      {tab === "procedimientos" && <Procedimientos {...ctx} />}
+      {tab === "calculadora" && <WardCalculator patient={patient} accent={accent} />}
       {tab === "soap" && <SoapEditor patient={patient} accent={accent} />}
       {tab === "problemas" && <ProblemsAndPlan patient={patient} accent={accent} />}
-      {tab === "timeline" && <Timeline patient={patient} accent={accent} />}
+      {tab === "archivos" && (
+        <WardCard title="Archivos del expediente">
+          <FileDrop
+            patientId={patient.id}
+            refKind="all"
+            accent={accent}
+            userId={userId}
+            isAdmin={isAdmin}
+          />
+        </WardCard>
+      )}
+      {tab === "alta" && <ResumenYAlta {...ctx} />}
+      {tab === "timeline" && (
+        <>
+          <ClinicalTimeline {...ctx} />
+          <Timeline patient={patient} accent={accent} />
+        </>
+      )}
       {tab === "estudio" && <StudyRoute patient={patient} accent={accent} />}
     </div>
   );
 }
+
 
 /* ─────────────────────────────── Resumen ─────────────────────────────── */
 

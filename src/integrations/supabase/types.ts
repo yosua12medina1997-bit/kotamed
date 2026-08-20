@@ -3272,6 +3272,53 @@ export type Database = {
           },
         ]
       }
+      ward_balance: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          egresos: Json
+          id: string
+          ingresos: Json
+          note: string | null
+          on_date: string
+          patient_id: string
+          shift: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          egresos?: Json
+          id?: string
+          ingresos?: Json
+          note?: string | null
+          on_date?: string
+          patient_id: string
+          shift?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          egresos?: Json
+          id?: string
+          ingresos?: Json
+          note?: string | null
+          on_date?: string
+          patient_id?: string
+          shift?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_balance_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ward_beds: {
         Row: {
           active: boolean
@@ -3309,6 +3356,53 @@ export type Database = {
             columns: ["zone_id"]
             isOneToOne: false
             referencedRelation: "ward_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_calcs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          inputs: Json
+          note: string | null
+          patient_id: string | null
+          result: string | null
+          tool: string
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inputs?: Json
+          note?: string | null
+          patient_id?: string | null
+          result?: string | null
+          tool: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inputs?: Json
+          note?: string | null
+          patient_id?: string | null
+          result?: string | null
+          tool?: string
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_calcs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
             referencedColumns: ["id"]
           },
         ]
@@ -3387,6 +3481,100 @@ export type Database = {
           },
         ]
       }
+      ward_consults: {
+        Row: {
+          answered_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          patient_id: string
+          reason: string | null
+          requested_at: string
+          response: string | null
+          specialty: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          answered_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          patient_id: string
+          reason?: string | null
+          requested_at?: string
+          response?: string | null
+          specialty: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          answered_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          patient_id?: string
+          reason?: string | null
+          requested_at?: string
+          response?: string | null
+          specialty?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_consults_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          detail: string | null
+          id: string
+          kind: string
+          occurred_at: string
+          patient_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          detail?: string | null
+          id?: string
+          kind?: string
+          occurred_at?: string
+          patient_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          detail?: string | null
+          id?: string
+          kind?: string
+          occurred_at?: string
+          patient_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_events_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ward_evolutions: {
         Row: {
           analysis: string | null
@@ -3439,6 +3627,121 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ward_evolutions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_exams: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          flag: string
+          id: string
+          name: string
+          notes: string | null
+          patient_id: string
+          requested_at: string
+          result_text: string | null
+          status: string
+          taken_at: string | null
+          updated_at: string
+          values: Json
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          flag?: string
+          id?: string
+          name: string
+          notes?: string | null
+          patient_id: string
+          requested_at?: string
+          result_text?: string | null
+          status?: string
+          taken_at?: string | null
+          updated_at?: string
+          values?: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          flag?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          patient_id?: string
+          requested_at?: string
+          result_text?: string | null
+          status?: string
+          taken_at?: string | null
+          updated_at?: string
+          values?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_exams_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_files: {
+        Row: {
+          bucket: string
+          created_at: string
+          created_by: string | null
+          id: string
+          mime: string | null
+          name: string
+          note: string | null
+          path: string
+          patient_id: string
+          ref_id: string | null
+          ref_kind: string
+          size_bytes: number | null
+          updated_at: string
+        }
+        Insert: {
+          bucket?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mime?: string | null
+          name: string
+          note?: string | null
+          path: string
+          patient_id: string
+          ref_id?: string | null
+          ref_kind?: string
+          size_bytes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          bucket?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mime?: string | null
+          name?: string
+          note?: string | null
+          path?: string
+          patient_id?: string
+          ref_id?: string | null
+          ref_kind?: string
+          size_bytes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_files_patient_id_fkey"
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "ward_patients"
@@ -3514,8 +3817,68 @@ export type Database = {
           },
         ]
       }
+      ward_meds: {
+        Row: {
+          calc: Json
+          created_at: string
+          created_by: string | null
+          dose: string | null
+          frequency: string | null
+          id: string
+          name: string
+          notes: string | null
+          patient_id: string
+          route: string | null
+          started_at: string | null
+          status: string
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          calc?: Json
+          created_at?: string
+          created_by?: string | null
+          dose?: string | null
+          frequency?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          patient_id: string
+          route?: string | null
+          started_at?: string | null
+          status?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          calc?: Json
+          created_at?: string
+          created_by?: string | null
+          dose?: string | null
+          frequency?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          patient_id?: string
+          route?: string | null
+          started_at?: string | null
+          status?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_meds_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ward_patients: {
         Row: {
+          abcde: Json
           admitted_at: string
           age_label: string | null
           allergies: string | null
@@ -3525,22 +3888,30 @@ export type Database = {
           created_at: string
           created_by: string | null
           devices: string[]
+          discharge: Json
           discharged_at: string | null
+          exam: Json
           height_cm: number | null
+          history: Json
           id: string
           initials: string | null
           main_dx: string | null
           medications: string | null
           notes: string | null
+          origin: string | null
+          origin_at: string | null
           priority: string
           reason: string | null
           secondary_dx: string[]
           sex: string | null
+          stage: string | null
           status: string
+          summary_text: string | null
           updated_at: string
           weight_kg: number | null
         }
         Insert: {
+          abcde?: Json
           admitted_at?: string
           age_label?: string | null
           allergies?: string | null
@@ -3550,22 +3921,30 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           devices?: string[]
+          discharge?: Json
           discharged_at?: string | null
+          exam?: Json
           height_cm?: number | null
+          history?: Json
           id?: string
           initials?: string | null
           main_dx?: string | null
           medications?: string | null
           notes?: string | null
+          origin?: string | null
+          origin_at?: string | null
           priority?: string
           reason?: string | null
           secondary_dx?: string[]
           sex?: string | null
+          stage?: string | null
           status?: string
+          summary_text?: string | null
           updated_at?: string
           weight_kg?: number | null
         }
         Update: {
+          abcde?: Json
           admitted_at?: string
           age_label?: string | null
           allergies?: string | null
@@ -3575,18 +3954,25 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           devices?: string[]
+          discharge?: Json
           discharged_at?: string | null
+          exam?: Json
           height_cm?: number | null
+          history?: Json
           id?: string
           initials?: string | null
           main_dx?: string | null
           medications?: string | null
           notes?: string | null
+          origin?: string | null
+          origin_at?: string | null
           priority?: string
           reason?: string | null
           secondary_dx?: string[]
           sex?: string | null
+          stage?: string | null
           status?: string
+          summary_text?: string | null
           updated_at?: string
           weight_kg?: number | null
         }
@@ -3746,6 +4132,63 @@ export type Database = {
           },
         ]
       }
+      ward_procedures: {
+        Row: {
+          competency_id: string | null
+          created_at: string
+          created_by: string | null
+          done_at: string
+          id: string
+          indication: string | null
+          level: string
+          name: string
+          note: string | null
+          patient_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          competency_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          done_at?: string
+          id?: string
+          indication?: string | null
+          level?: string
+          name: string
+          note?: string | null
+          patient_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          competency_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          done_at?: string
+          id?: string
+          indication?: string | null
+          level?: string
+          name?: string
+          note?: string | null
+          patient_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_procedures_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "ward_competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ward_procedures_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ward_study_links: {
         Row: {
           created_at: string
@@ -3844,6 +4287,71 @@ export type Database = {
             columns: ["problem_id"]
             isOneToOne: false
             referencedRelation: "ward_problems"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ward_vitals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          fc: number | null
+          fr: number | null
+          glasgow: number | null
+          id: string
+          note: string | null
+          pa: string | null
+          pain: number | null
+          pam: number | null
+          patient_id: string
+          sato2: number | null
+          taken_at: string
+          temp: number | null
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          fc?: number | null
+          fr?: number | null
+          glasgow?: number | null
+          id?: string
+          note?: string | null
+          pa?: string | null
+          pain?: number | null
+          pam?: number | null
+          patient_id: string
+          sato2?: number | null
+          taken_at?: string
+          temp?: number | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          fc?: number | null
+          fr?: number | null
+          glasgow?: number | null
+          id?: string
+          note?: string | null
+          pa?: string | null
+          pain?: number | null
+          pam?: number | null
+          patient_id?: string
+          sato2?: number | null
+          taken_at?: string
+          temp?: number | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ward_vitals_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "ward_patients"
             referencedColumns: ["id"]
           },
         ]
