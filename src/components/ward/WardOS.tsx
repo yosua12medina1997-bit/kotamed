@@ -593,6 +593,9 @@ function ActivePatientBar({
   onSwitch,
   onNewEvolution,
   onTasks,
+  canDelete,
+  deleting,
+  onDelete,
 }: {
   patient: WardPatient;
   bedNumber: string | null;
@@ -602,7 +605,11 @@ function ActivePatientBar({
   onSwitch: () => void;
   onNewEvolution: () => void;
   onTasks: () => void;
+  canDelete?: boolean;
+  deleting?: boolean;
+  onDelete?: () => void;
 }) {
+
   return (
     <section
       className="rounded-3xl border border-border/50 bg-background/70 px-5 py-4 backdrop-blur"
