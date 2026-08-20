@@ -48,7 +48,7 @@ export const HISTORY_BLOCKS: { key: string; label: string; hint?: string }[] = [
   { key: "desarrollo", label: "Desarrollo psicomotor" },
   { key: "alimentacion", label: "Alimentación" },
   { key: "familiares", label: "Antecedentes familiares" },
-] as const;
+];
 
 export const EXAM_SYSTEMS = [
   "Estado general",
