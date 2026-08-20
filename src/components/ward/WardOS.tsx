@@ -1499,6 +1499,12 @@ function WardConfig({
                   </span>
                 </div>
               </div>
+
+              <ZoneAssignmentSummary
+                accent={accent}
+                zoneBeds={beds.filter((b) => b.zone_id === z.id)}
+                onOpen={() => setAssignZone(z)}
+              />
             </div>
           ))}
         </div>
