@@ -213,6 +213,10 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
   const { data: bedAssignments = [] } = useBedAssignments();
   const { data: roster = [] } = useWardRoster();
   const { data: tasks = [] } = useTasks();
+  const { data: myRoles = [] } = useMyRoles(user?.id);
+  const isSuperAdmin = myRoles.includes("super_admin");
+  const delPatient = useWardDelete("ward_patients", [WARD_KEYS.patients]);
+
 
   const zoneIds = useMemo(() => new Set(zones.map((z) => z.id)), [zones]);
   const pavilionBeds = useMemo(() => beds.filter((b) => zoneIds.has(b.zone_id)), [beds, zoneIds]);
