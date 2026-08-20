@@ -38,6 +38,22 @@ import {
 import { Btn, Chip, Empty, Field, Input, Select, Textarea } from "@/components/academy/ui";
 import { useSupabaseUser } from "@/lib/session";
 import {
+  editablePatientIds,
+  initialsOf,
+  internColor,
+  ownerByBed,
+  rosterMap,
+  useBedAssignments,
+  useWardRoster,
+} from "@/lib/ward-assign";
+import {
+  AssignmentsModal,
+  DistributionModal,
+  DistributionSummary,
+  InternLegend,
+  ZoneAssignmentSummary,
+} from "@/components/ward/BedAssignments";
+import {
   PATIENT_STATUS,
   WARD_KEYS,
   ZONE_KINDS,
@@ -192,6 +208,8 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
   const { data: beds = [] } = useBeds();
   const { data: patients = [] } = usePatients();
   const { data: assignments = [] } = useAssignments();
+  const { data: bedAssignments = [] } = useBedAssignments();
+  const { data: roster = [] } = useWardRoster();
   const { data: tasks = [] } = useTasks();
 
   const zoneIds = useMemo(() => new Set(zones.map((z) => z.id)), [zones]);
@@ -202,12 +220,30 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
     [patients, pavilionBedIds],
   );
 
+  /** Camas cuya responsabilidad clínica es del usuario actual. */
+  const myBedIds = useMemo(
+    () => new Set(bedAssignments.filter((a) => a.user_id === user?.id).map((a) => a.bed_id)),
+    [bedAssignments, user?.id],
+  );
+
   const myPatientIds = useMemo(() => {
     const ids = new Set<string>();
     for (const a of assignments) if (a.user_id === user?.id) ids.add(a.patient_id);
-    for (const p of patients) if (p.created_by && p.created_by === user?.id) ids.add(p.id);
+    for (const p of patients) {
+      if (p.created_by && p.created_by === user?.id) ids.add(p.id);
+      if (p.bed_id && myBedIds.has(p.bed_id)) ids.add(p.id);
+    }
     return ids;
-  }, [assignments, patients, user?.id]);
+  }, [assignments, myBedIds, patients, user?.id]);
+
+  /** Pacientes que el usuario puede editar (mismas reglas que la base de datos). */
+  const editableIds = useMemo(
+    () =>
+      isAdmin
+        ? null
+        : editablePatientIds(patients, bedAssignments, user?.id),
+    [bedAssignments, isAdmin, patients, user?.id],
+  );
 
   const myPatients = useMemo(
     () => pavilionPatients.filter((p) => myPatientIds.has(p.id)),
@@ -229,6 +265,7 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
     setSection(go);
   }
 
+  const canEditActive = !patient || isAdmin || (editableIds?.has(patient.id) ?? true);
   const ctx = { patient: patient as WardPatient, accent, userId: user?.id, isAdmin };
 
   return (
