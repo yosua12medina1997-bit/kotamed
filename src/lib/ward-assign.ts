@@ -5,7 +5,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { wdb, type WardPatient } from "@/lib/ward-os";
+import { wdb, wardError, type WardPatient } from "@/lib/ward-os";
 
 export interface WardBedAssignment {
   id: string;
