@@ -61,7 +61,6 @@ import {
   type WardTask,
   type WardZone,
 } from "@/lib/ward-os";
-import { Pendientes } from "./ClinicalOrders";
 import { PavilionMap } from "./PavilionMap";
 import {
   PatientResumen,
@@ -82,6 +81,7 @@ import {
   BalanceHidrico,
   ExamenesAuxiliares,
   Interconsultas,
+  Pendientes,
   Procedimientos,
   Tratamiento,
 } from "./ClinicalOrders";
