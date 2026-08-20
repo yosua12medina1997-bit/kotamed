@@ -1,6 +1,7 @@
 /** Formulario de ingreso / edición de paciente académico del pabellón. */
 import { useState } from "react";
 import { Save } from "lucide-react";
+import { toast } from "sonner";
 import { Btn, Field, Input, Select, Textarea } from "@/components/academy/ui";
 import {
   PATIENT_STATUS,
@@ -62,34 +63,40 @@ export function PatientForm({
   );
 
   async function submit() {
-    await save.mutateAsync({
-      ...(patient?.id ? { id: patient.id } : {}),
-      code: form.code || null,
-      initials: form.initials || null,
-      sex: form.sex || null,
-      age_label: form.age_label || null,
-      weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
-      admitted_at: form.admitted_at,
-      bed_id: form.bed_id || null,
-      reason: form.reason || null,
-      main_dx: form.main_dx || null,
-      secondary_dx: form.secondary_dx
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      background: form.background || null,
-      allergies: form.allergies || null,
-      medications: form.medications || null,
-      devices: form.devices
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-      status: form.status,
-      priority: form.priority,
-      notes: form.notes || null,
-    });
-    onClose();
+    try {
+      await save.mutateAsync({
+        ...(patient?.id ? { id: patient.id } : {}),
+        code: form.code || null,
+        initials: form.initials || null,
+        sex: form.sex || null,
+        age_label: form.age_label || null,
+        weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
+        admitted_at: form.admitted_at,
+        bed_id: form.bed_id || null,
+        reason: form.reason || null,
+        main_dx: form.main_dx || null,
+        secondary_dx: form.secondary_dx
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        background: form.background || null,
+        allergies: form.allergies || null,
+        medications: form.medications || null,
+        devices: form.devices
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        status: form.status,
+        priority: form.priority,
+        notes: form.notes || null,
+      });
+      toast.success(patient?.id ? "Paciente actualizado" : "Paciente registrado");
+      onClose();
+    } catch {
+      /* el motivo ya se muestra con un toast desde useWardSave */
+    }
   }
+
 
   return (
     <Modal

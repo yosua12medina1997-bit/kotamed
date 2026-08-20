@@ -7,9 +7,24 @@
  * usa un cliente sin tipar (mismo patrón que el HIS neonatal).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const wdb = supabase as any;
+
+export const PERMISSION_MSG =
+  "No se guardó: no tienes permisos sobre este registro (cama asignada a otro interno o se requiere rol administrador).";
+
+/** Muestra el motivo real del fallo de una mutación clínica. */
+export function wardError(e: unknown) {
+  const msg =
+    (e as { message?: string; hint?: string } | null)?.message ??
+    "No se pudo guardar. Inténtalo de nuevo.";
+  toast.error(msg);
+  // eslint-disable-next-line no-console
+  console.error("[Ward OS]", e);
+}
+
 
 /* ────────────────────────────── Modelos ────────────────────────────── */
 
@@ -471,8 +486,10 @@ export function useWardSave(table: string, invalidate: unknown[][] = []) {
     mutationFn: async (payload: Record<string, unknown> & { id?: string }) => {
       const { id, ...rest } = payload;
       if (id) {
-        const { error } = await wdb.from(table).update(rest).eq("id", id);
+        const { data, error } = await wdb.from(table).update(rest).eq("id", id).select("id");
         if (error) throw error;
+        // RLS puede rechazar silenciosamente (0 filas afectadas).
+        if (!data || data.length === 0) throw new Error(PERMISSION_MSG);
         return id;
       }
       const { data: auth } = await supabase.auth.getUser();
@@ -487,6 +504,7 @@ export function useWardSave(table: string, invalidate: unknown[][] = []) {
     onSuccess: () => {
       for (const key of invalidate) void qc.invalidateQueries({ queryKey: key });
     },
+    onError: (e) => wardError(e),
   });
 }
 
@@ -494,15 +512,18 @@ export function useWardDelete(table: string, invalidate: unknown[][] = []) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await wdb.from(table).delete().eq("id", id);
+      const { data, error } = await wdb.from(table).delete().eq("id", id).select("id");
       if (error) throw error;
+      if (!data || data.length === 0) throw new Error(PERMISSION_MSG);
       return id;
     },
     onSuccess: () => {
       for (const key of invalidate) void qc.invalidateQueries({ queryKey: key });
     },
+    onError: (e) => wardError(e),
   });
 }
+
 
 export const WARD_KEYS = {
   pavilions: k("pavilions"),
