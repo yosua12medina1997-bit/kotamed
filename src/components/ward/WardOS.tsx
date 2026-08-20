@@ -175,6 +175,10 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             myPatients={myPatients}
             myPatientIds={myPatientIds}
             pendingTasks={pendingTasks}
+            pavilionCode={pavilions.find((p) => p.id === activePavilion)?.code ?? null}
+            pavilionName={pavilions.find((p) => p.id === activePavilion)?.name ?? null}
+            userId={user?.id}
+
             onSelectPatient={openPatient}
             onNewPatient={() => {
               setEditing(null);
