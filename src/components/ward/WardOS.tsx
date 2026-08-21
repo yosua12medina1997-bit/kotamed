@@ -611,7 +611,18 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
   );
 }
 
+/* ───────────────────────── Etiqueta paciente demo ───────────────────────── */
+
+export function DemoTag() {
+  return (
+    <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[9.5px] font-black uppercase tracking-[0.14em] text-amber-600 dark:text-amber-400">
+      Demo · paciente de prueba
+    </span>
+  );
+}
+
 /* ─────────────────────── Barra de paciente activo ─────────────────────── */
+
 
 function ActivePatientBar({
   patient,
