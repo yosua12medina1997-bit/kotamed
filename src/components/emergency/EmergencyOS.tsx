@@ -5,6 +5,7 @@
  * modo entrega, asignación de internos por box y transferencia longitudinal a
  * Hospitalización Pediátrica (Kota Ward).
  */
+import { DemoTag } from "@/components/ward/WardOS";
 import { useMemo, useState } from "react";
 import {
   Activity,
