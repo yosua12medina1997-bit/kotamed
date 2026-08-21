@@ -1447,10 +1447,12 @@ function LearningCases({ accent, patients }: { accent: string; patients: WardPat
             loading={save.isPending}
             onClick={async () => {
               if (!form.title.trim()) return;
+              const { data: auth } = await supabase.auth.getUser();
               await save.mutateAsync({
                 ...form,
                 title: form.title.trim(),
                 patient_id: form.patient_id || null,
+                author_id: auth.user?.id ?? null,
               });
               setOpen(false);
             }}
