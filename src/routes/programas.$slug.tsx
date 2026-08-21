@@ -143,6 +143,7 @@ type AreaNode = {
   id: string;
   title: string;
   slug: string;
+  description?: string | null;
   sort_order: number;
   is_published: boolean;
 };
