@@ -94,6 +94,7 @@ import {
   useProgramCatalog,
 } from "@/lib/content-catalog";
 import { ModuleGate } from "@/components/access/ModuleGate";
+import { RotationModules } from "@/components/programs/RotationModules";
 
 export const Route = createFileRoute("/programas/$slug")({
   loader: ({ params }): { program: Program } => {
