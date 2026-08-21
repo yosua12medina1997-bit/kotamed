@@ -524,6 +524,7 @@ function ActivePatientBar({
             {shock ? "🔴 Shock Trauma" : "Observación"} · {boxCode ?? "Sin box"}
           </SoftBadge>
           {isRecheckDue(patient) && <SoftBadge color="#f59e0b">Reevaluación pendiente</SoftBadge>}
+          {isDemoPatient(patient) && <DemoTag />}
         </div>
         <div className="mt-1 flex flex-wrap items-baseline gap-3">
           <span className="text-xl font-black tracking-tight">{patientLabel(patient)}</span>
