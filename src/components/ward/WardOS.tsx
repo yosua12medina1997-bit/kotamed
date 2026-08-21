@@ -112,6 +112,7 @@ import { RoundMode } from "./RoundMode";
 import { Bar, KpiTile, Modal, StatusDot, StatusPill, WardCard } from "./ui";
 import { KotaLearning } from "@/components/learning/KotaLearning";
 import { ClinicalMap } from "@/components/learning/ClinicalMap";
+import { supabase } from "@/integrations/supabase/client";
 
 type SectionId =
   | "inicio"
