@@ -560,7 +560,11 @@ function AreasSection({
         )}
       </div>
 
-      {!editing && (
+      {!editing && isRotationHnseb && dbAreas.length > 0 && (
+        <RotationModules programSlug={routeProgramSlug} areas={dbAreas} isAdmin={isAdmin} />
+      )}
+
+      {!editing && !(isRotationHnseb && dbAreas.length > 0) && (
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {areas.map((area, i) => {
             const enamSlug = program.id === "residentado" ? matchEnamSlug(area) : null;
