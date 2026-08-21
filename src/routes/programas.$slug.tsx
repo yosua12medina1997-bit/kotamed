@@ -95,6 +95,11 @@ import {
 } from "@/lib/content-catalog";
 import { ModuleGate } from "@/components/access/ModuleGate";
 import { RotationModules } from "@/components/programs/RotationModules";
+import {
+  RotationLearningFlow,
+  RotationProgress,
+  RotationResources,
+} from "@/components/programs/RotationLearning";
 
 export const Route = createFileRoute("/programas/$slug")({
   loader: ({ params }): { program: Program } => {
@@ -231,6 +236,7 @@ function ProgramDetailInner() {
   const liveDescription = programNode?.description || program.description;
   const chapterFeatures = meta.chapterFeatures ?? program.chapterFeatures;
   const chapterTemplate = meta.chapterTemplate ?? CHAPTER_TEMPLATE.map((c) => c.title);
+  const isRotationHnsebPage = routeProgramSlug === "rotacion-pediatria-hnseb";
 
 
   return (
@@ -332,22 +338,61 @@ function ProgramDetailInner() {
               fallback={program.areas}
             />
 
-            {(chapterFeatures || isAdmin) && (
-              <ChapterFeaturesSection
-                accent={accent}
-                features={chapterFeatures ?? []}
-                programNodeId={programNode?.id}
-                metadata={meta}
-                isAdmin={!!isAdmin}
-              />
-            )}
+            {isRotationHnsebPage ? (
+              <>
+                <RotationResources
+                  features={
+                    chapterFeatures && chapterFeatures.length > 0
+                      ? chapterFeatures
+                      : [
+                          "Contenido teórico",
+                          "Casos clínicos",
+                          "Flashcards",
+                          "Banco de preguntas",
+                          "Simuladores",
+                          "Tutor IA",
+                        ]
+                  }
+                  programNodeId={programNode?.id}
+                  metadata={meta}
+                  isAdmin={!!isAdmin}
+                />
 
-            <ChapterTemplateSection
-              template={chapterTemplate}
-              programNodeId={programNode?.id}
-              metadata={meta}
-              isAdmin={!!isAdmin}
-            />
+                <RotationProgress
+                  modulesTotal={Math.max(areas.length, 1)}
+                  modulesDone={0}
+                  chaptersTotal={Math.max(areas.length * 6, 6)}
+                  stages={chapterTemplate}
+                />
+
+                <RotationLearningFlow
+                  template={chapterTemplate}
+                  defaults={CHAPTER_TEMPLATE.map((c) => c.title)}
+                  programNodeId={programNode?.id}
+                  metadata={meta}
+                  isAdmin={!!isAdmin}
+                />
+              </>
+            ) : (
+              <>
+                {(chapterFeatures || isAdmin) && (
+                  <ChapterFeaturesSection
+                    accent={accent}
+                    features={chapterFeatures ?? []}
+                    programNodeId={programNode?.id}
+                    metadata={meta}
+                    isAdmin={!!isAdmin}
+                  />
+                )}
+
+                <ChapterTemplateSection
+                  template={chapterTemplate}
+                  programNodeId={programNode?.id}
+                  metadata={meta}
+                  isAdmin={!!isAdmin}
+                />
+              </>
+            )}
           </div>
 
           <aside className="col-span-12 xl:col-span-4 space-y-6">
