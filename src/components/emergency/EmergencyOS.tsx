@@ -9,6 +9,7 @@ import { DemoTag } from "@/components/ward/WardOS";
 import { useMemo, useState } from "react";
 import {
   Activity,
+  Library,
   ArrowRight,
   Calculator,
   CheckSquare,
@@ -84,6 +85,7 @@ import {
 } from "./PatientWorkspace";
 import { EmergCard, EmergDot, EmergPill, EmergStat, Modal, Row, SoftBadge } from "./ui";
 import { KotaLearning } from "@/components/learning/KotaLearning";
+import { ClinicalMap } from "@/components/learning/ClinicalMap";
 
 type SectionId =
   | "panel"
@@ -104,6 +106,7 @@ type SectionId =
   | "p-calculadora"
   | "p-destino"
   | "aprendizaje"
+  | "mapa-clinico"
   | "pendientes"
   | "entrega"
   | "config";
@@ -147,7 +150,10 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   },
   {
     label: "Aprendizaje",
-    items: [{ id: "aprendizaje", label: "Kota Learning", icon: Sparkles }],
+    items: [
+      { id: "aprendizaje", label: "Kota Learning", icon: Sparkles },
+      { id: "mapa-clinico", label: "Kota Clinical Map", icon: Library },
+    ],
   },
   {
     label: "Sistema",
@@ -386,6 +392,30 @@ export function EmergencyOS({ isAdmin, accent }: { isAdmin: boolean; accent: str
             isAdmin={isAdmin}
             userId={user?.id}
             roles={myRoles}
+            patient={
+              patient
+                ? {
+                    id: patient.id,
+                    code: patient.code,
+                    initials: patient.initials,
+                    age_label: patient.age_label,
+                    sex: patient.sex,
+                    main_dx: patient.main_dx,
+                    reason: patient.reason,
+                    extra: patient.problems?.join(", ") ?? null,
+                  }
+                : null
+            }
+            onPickPatient={() => setSwitcher(true)}
+          />
+        )}
+
+        {section === "mapa-clinico" && (
+          <ClinicalMap
+            module="emergency"
+            accent={accent}
+            isAdmin={isAdmin}
+            userId={user?.id}
             patient={
               patient
                 ? {
