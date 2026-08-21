@@ -22,6 +22,7 @@ import {
   Repeat2,
   Replace,
   Settings2,
+  Sparkles,
   Stethoscope,
   Syringe,
   Trash2,
@@ -80,6 +81,7 @@ import {
   Tratamiento,
 } from "./PatientWorkspace";
 import { EmergCard, EmergDot, EmergPill, EmergStat, Modal, Row, SoftBadge } from "./ui";
+import { KotaLearning } from "@/components/learning/KotaLearning";
 
 type SectionId =
   | "panel"
@@ -99,6 +101,7 @@ type SectionId =
   | "p-procedimientos"
   | "p-calculadora"
   | "p-destino"
+  | "aprendizaje"
   | "pendientes"
   | "entrega"
   | "config";
@@ -139,6 +142,10 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { id: "pendientes", label: "Pendientes", icon: CheckSquare },
       { id: "entrega", label: "Modo entrega", icon: ListChecks },
     ],
+  },
+  {
+    label: "Aprendizaje",
+    items: [{ id: "aprendizaje", label: "Kota Learning", icon: Sparkles }],
   },
   {
     label: "Sistema",
@@ -369,6 +376,31 @@ export function EmergencyOS({ isAdmin, accent }: { isAdmin: boolean; accent: str
           ) : (
             <NoPatient accent={accent} onSelect={() => setSwitcher(true)} />
           ))}
+
+        {section === "aprendizaje" && (
+          <KotaLearning
+            module="emergency"
+            accent={accent}
+            isAdmin={isAdmin}
+            userId={user?.id}
+            roles={myRoles}
+            patient={
+              patient
+                ? {
+                    id: patient.id,
+                    code: patient.code,
+                    initials: patient.initials,
+                    age_label: patient.age_label,
+                    sex: patient.sex,
+                    main_dx: patient.main_dx,
+                    reason: patient.reason,
+                    extra: patient.problems?.join(", ") ?? null,
+                  }
+                : null
+            }
+            onPickPatient={() => setSwitcher(true)}
+          />
+        )}
 
         {section === "pendientes" && (
           <Pendientes

@@ -2833,6 +2833,202 @@ export type Database = {
           },
         ]
       }
+      kl_analyses: {
+        Row: {
+          blocks: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          module: string
+          patient_id: string
+          progress: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          blocks?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          module: string
+          patient_id: string
+          progress?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          module?: string
+          patient_id?: string
+          progress?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      kl_assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          module: string | null
+          note: string | null
+          required: boolean
+          resource_id: string
+          scope: string
+          scope_value: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          module?: string | null
+          note?: string | null
+          required?: boolean
+          resource_id: string
+          scope: string
+          scope_value: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          module?: string | null
+          note?: string | null
+          required?: boolean
+          resource_id?: string
+          scope?: string
+          scope_value?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kl_assignments_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "kl_resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kl_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          minutes: number
+          module: string | null
+          patient_id: string | null
+          resource_id: string
+          score: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          minutes?: number
+          module?: string | null
+          patient_id?: string | null
+          resource_id: string
+          score?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          minutes?: number
+          module?: string | null
+          patient_id?: string | null
+          resource_id?: string
+          score?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kl_progress_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "kl_resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kl_resources: {
+        Row: {
+          archived: boolean
+          body: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_label: string | null
+          id: string
+          kind: string
+          level: string | null
+          meta: Json
+          objectives: string[]
+          sort_order: number
+          specialty: string | null
+          storage_path: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          archived?: boolean
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_label?: string | null
+          id?: string
+          kind?: string
+          level?: string | null
+          meta?: Json
+          objectives?: string[]
+          sort_order?: number
+          specialty?: string | null
+          storage_path?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          archived?: boolean
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_label?: string | null
+          id?: string
+          kind?: string
+          level?: string | null
+          meta?: Json
+          objectives?: string[]
+          sort_order?: number
+          specialty?: string | null
+          storage_path?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       membership_plans: {
         Row: {
           color: string
