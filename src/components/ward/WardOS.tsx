@@ -112,6 +112,7 @@ import { RoundMode } from "./RoundMode";
 import { Bar, KpiTile, Modal, StatusDot, StatusPill, WardCard } from "./ui";
 import { KotaLearning } from "@/components/learning/KotaLearning";
 import { ClinicalMap } from "@/components/learning/ClinicalMap";
+import { supabase } from "@/integrations/supabase/client";
 
 type SectionId =
   | "inicio"
@@ -1447,10 +1448,12 @@ function LearningCases({ accent, patients }: { accent: string; patients: WardPat
             loading={save.isPending}
             onClick={async () => {
               if (!form.title.trim()) return;
+              const { data: auth } = await supabase.auth.getUser();
               await save.mutateAsync({
                 ...form,
                 title: form.title.trim(),
                 patient_id: form.patient_id || null,
+                author_id: auth.user?.id ?? null,
               });
               setOpen(false);
             }}
