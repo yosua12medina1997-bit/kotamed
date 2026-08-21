@@ -14,7 +14,8 @@ import { buildModuleMeta, defaultProgramModules, genericBlueprint } from "@/lib/
 import { getProgram } from "@/lib/pediatria-programs";
 import { NeonatalHospital } from "@/components/hospital/NeonatalHospital";
 import { WardOS } from "@/components/ward/WardOS";
-import { Baby, Hospital } from "lucide-react";
+import { EmergencyOS } from "@/components/emergency/EmergencyOS";
+import { Baby, Hospital, Siren } from "lucide-react";
 
 /** Programa personalizado con módulo de Hospitalización Neonatal. */
 const HOSPITAL_PROGRAM = "internado-medico-hospitalizacion";
@@ -106,7 +107,18 @@ function GenericAreaModule() {
         areasParams={{ slug }}
         areasLabel="Programa"
         extraSections={
-          /hospitaliza/i.test(area) && /pediatr/i.test(`${slug} ${area}`) && !/neonatolog/i.test(area)
+          /emergencia/i.test(area) && /pediatr/i.test(`${slug} ${area}`)
+            ? [
+                {
+                  id: "emergency-os",
+                  label: "🚨 Kota Emergency",
+                  icon: Siren,
+                  render: ({ isAdmin }: { isAdmin: boolean }) => (
+                    <EmergencyOS isAdmin={isAdmin} accent={meta.accent} />
+                  ),
+                },
+              ]
+            : /hospitaliza/i.test(area) && /pediatr/i.test(`${slug} ${area}`) && !/neonatolog/i.test(area)
             ? [
                 {
                   id: "ward-os",
