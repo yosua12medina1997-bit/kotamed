@@ -51,6 +51,7 @@ import {
   fmtHour,
   isRecheckDue,
   logEmergEvent,
+  isDemoPatient,
   patientLabel,
   useEmergBoxAssignments,
   useEmergBoxes,

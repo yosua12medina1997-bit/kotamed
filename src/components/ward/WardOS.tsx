@@ -61,6 +61,7 @@ import {
   ZONE_KINDS,
   dxKeysFor,
   hospitalDay,
+  isDemoPatient,
   patientLabel,
   useAssignments,
   useBeds,
