@@ -301,7 +301,11 @@ export function ClinicalMap({
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {patient ? (
+                  {!isAdmin ? (
+                    patient && patientLinks.some((l) => l.pathology_id === selected.id) ? (
+                      <Chip accent={accent}>Vinculada al paciente</Chip>
+                    ) : null
+                  ) : patient ? (
                     patientLinks.some((l) => l.pathology_id === selected.id) ? (
                       <Btn
                         onClick={() => {
@@ -327,6 +331,7 @@ export function ClinicalMap({
                       </Btn>
                     )
                   )}
+
                   {isAdmin && (
                     <>
                       <Btn onClick={() => duplicate.mutate(selected)} title="Duplicar">
