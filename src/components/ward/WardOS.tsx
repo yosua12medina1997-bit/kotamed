@@ -108,6 +108,7 @@ import { WardCalculator } from "./WardCalculator";
 import { PatientForm } from "./PatientForm";
 import { RoundMode } from "./RoundMode";
 import { Bar, KpiTile, Modal, StatusDot, StatusPill, WardCard } from "./ui";
+import { KotaLearning } from "@/components/learning/KotaLearning";
 
 type SectionId =
   | "inicio"
@@ -124,6 +125,7 @@ type SectionId =
   | "p-calculadora"
   | "ronda"
   | "pendientes"
+  | "aprendizaje"
   | "competencias"
   | "casos"
   | "config";
@@ -168,6 +170,7 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
   {
     label: "Aprendizaje",
     items: [
+      { id: "aprendizaje", label: "Kota Learning", icon: Sparkles },
       { id: "competencias", label: "Competencias", icon: GraduationCap },
       { id: "casos", label: "Casos de aprendizaje", icon: BookOpen },
     ],
@@ -534,6 +537,31 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             patients={patients}
             patientId={activePatientId}
             onSelectPatient={(id) => selectPatient(id)}
+          />
+        )}
+
+        {section === "aprendizaje" && (
+          <KotaLearning
+            module="ward"
+            accent={accent}
+            isAdmin={isAdmin}
+            userId={user?.id}
+            roles={myRoles}
+            patient={
+              patient
+                ? {
+                    id: patient.id,
+                    code: patient.code,
+                    initials: patient.initials,
+                    age_label: patient.age_label,
+                    sex: patient.sex,
+                    main_dx: patient.main_dx,
+                    reason: patient.reason,
+                    extra: patient.secondary_dx?.join(", ") ?? null,
+                  }
+                : null
+            }
+            onPickPatient={() => setSwitcherOpen(true)}
           />
         )}
 
