@@ -94,6 +94,7 @@ import {
   useProgramCatalog,
 } from "@/lib/content-catalog";
 import { ModuleGate } from "@/components/access/ModuleGate";
+import { RotationModules } from "@/components/programs/RotationModules";
 
 export const Route = createFileRoute("/programas/$slug")({
   loader: ({ params }): { program: Program } => {
@@ -143,6 +144,7 @@ type AreaNode = {
   id: string;
   title: string;
   slug: string;
+  description?: string | null;
   sort_order: number;
   is_published: boolean;
 };
@@ -185,7 +187,7 @@ function useAreas(programNodeId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("content_nodes")
-        .select("id,title,slug,sort_order,is_published")
+        .select("id,title,slug,sort_order,is_published,description")
         .eq("parent_id", programNodeId!)
         .eq("kind", "area")
         .order("sort_order", { ascending: true });
@@ -454,6 +456,7 @@ function AreasSection({
   const [editing, setEditing] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const hasDb = dbAreas.length > 0;
+  const isRotationHnseb = routeProgramSlug === "rotacion-pediatria-hnseb";
 
   const seed = useMutation({
     mutationFn: async () => {
@@ -559,7 +562,11 @@ function AreasSection({
         )}
       </div>
 
-      {!editing && (
+      {!editing && isRotationHnseb && dbAreas.length > 0 && (
+        <RotationModules programSlug={routeProgramSlug} areas={dbAreas} isAdmin={isAdmin} />
+      )}
+
+      {!editing && !(isRotationHnseb && dbAreas.length > 0) && (
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {areas.map((area, i) => {
             const enamSlug = program.id === "residentado" ? matchEnamSlug(area) : null;
