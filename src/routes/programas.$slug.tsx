@@ -455,6 +455,7 @@ function AreasSection({
   const [editing, setEditing] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const hasDb = dbAreas.length > 0;
+  const isRotationHnseb = routeProgramSlug === "rotacion-pediatria-hnseb";
 
   const seed = useMutation({
     mutationFn: async () => {
