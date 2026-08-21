@@ -22,6 +22,7 @@ import {
   Repeat2,
   Replace,
   Settings2,
+  Sparkles,
   Stethoscope,
   Syringe,
   Trash2,
