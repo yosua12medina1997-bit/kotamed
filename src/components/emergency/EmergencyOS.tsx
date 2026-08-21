@@ -750,7 +750,10 @@ function PatientRow({
         </span>
         <span className="min-w-0">
           <span className="block truncate text-[13px] font-black">{patientLabel(p)}</span>
-          <span className="block truncate text-[11px] text-muted-foreground">{p.age_label ?? "—"}</span>
+          <span className="block truncate text-[11px] text-muted-foreground">
+            {isDemoPatient(p) ? "DEMO · paciente de prueba · " : ""}
+            {p.age_label ?? "—"}
+          </span>
         </span>
         <span className="flex items-center gap-2">
           <EmergPill status={p.status} />
