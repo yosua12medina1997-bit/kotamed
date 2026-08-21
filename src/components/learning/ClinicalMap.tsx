@@ -102,7 +102,7 @@ export function ClinicalMap({
   const [severity, setSeverity] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<TabId>("resumen");
-  const [editorOpen, setEditorOpen] = useState(false);
+  const [editor, setEditor] = useState<null | "new" | "edit">(null);
 
   const { data: pathologies = [], isLoading } = useKcmPathologies();
   const { data: areaConfigs = [] } = useKcmAreaConfigs();
@@ -171,7 +171,7 @@ export function ClinicalMap({
               </div>
             )}
             {isAdmin && (
-              <Btn variant="solid" accent={accent} onClick={() => setEditorOpen(true)}>
+              <Btn variant="solid" accent={accent} onClick={() => setEditor("new")}>
                 <Plus className="size-3" /> Nueva patología
               </Btn>
             )}
@@ -332,7 +332,7 @@ export function ClinicalMap({
                       <Btn onClick={() => duplicate.mutate(selected)} title="Duplicar">
                         <Copy className="size-3" /> Duplicar
                       </Btn>
-                      <Btn onClick={() => setEditorOpen(true)}>
+                      <Btn onClick={() => setEditor("edit")}>
                         <Save className="size-3" /> Editar
                       </Btn>
                     </>
@@ -511,21 +511,17 @@ export function ClinicalMap({
         )}
       </div>
 
-      {editorOpen && isAdmin && (
+      {editor && isAdmin && (
         <PathologyEditor
+          key={editor === "edit" ? (selected?.id ?? "edit") : "new"}
           accent={accent}
           userId={userId}
-          pathology={tabWasNew(editorOpen, selected) ? selected : null}
-          onClose={() => setEditorOpen(false)}
+          pathology={editor === "edit" ? selected : null}
+          onClose={() => setEditor(null)}
         />
       )}
     </div>
   );
-}
-
-/** El editor abre en modo edición cuando hay una patología seleccionada. */
-function tabWasNew(_open: boolean, selected: KcmPathology | null) {
-  return !!selected;
 }
 
 function MetaRow({ label, value }: { label: string; value: string }) {
