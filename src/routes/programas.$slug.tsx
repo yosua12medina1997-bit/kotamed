@@ -185,7 +185,7 @@ function useAreas(programNodeId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("content_nodes")
-        .select("id,title,slug,sort_order,is_published")
+        .select("id,title,slug,sort_order,is_published,description")
         .eq("parent_id", programNodeId!)
         .eq("kind", "area")
         .order("sort_order", { ascending: true });
