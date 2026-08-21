@@ -95,6 +95,11 @@ import {
 } from "@/lib/content-catalog";
 import { ModuleGate } from "@/components/access/ModuleGate";
 import { RotationModules } from "@/components/programs/RotationModules";
+import {
+  RotationLearningFlow,
+  RotationProgress,
+  RotationResources,
+} from "@/components/programs/RotationLearning";
 
 export const Route = createFileRoute("/programas/$slug")({
   loader: ({ params }): { program: Program } => {
@@ -231,6 +236,7 @@ function ProgramDetailInner() {
   const liveDescription = programNode?.description || program.description;
   const chapterFeatures = meta.chapterFeatures ?? program.chapterFeatures;
   const chapterTemplate = meta.chapterTemplate ?? CHAPTER_TEMPLATE.map((c) => c.title);
+  const isRotationHnsebPage = routeProgramSlug === "rotacion-pediatria-hnseb";
 
 
   return (
