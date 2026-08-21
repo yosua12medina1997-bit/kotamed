@@ -7,6 +7,7 @@
 import { useMemo, useState } from "react";
 import {
   Activity,
+  Library,
   BedDouble,
   BookOpen,
   Calculator,
@@ -110,6 +111,7 @@ import { PatientForm } from "./PatientForm";
 import { RoundMode } from "./RoundMode";
 import { Bar, KpiTile, Modal, StatusDot, StatusPill, WardCard } from "./ui";
 import { KotaLearning } from "@/components/learning/KotaLearning";
+import { ClinicalMap } from "@/components/learning/ClinicalMap";
 
 type SectionId =
   | "inicio"
@@ -127,6 +129,7 @@ type SectionId =
   | "ronda"
   | "pendientes"
   | "aprendizaje"
+  | "mapa-clinico"
   | "competencias"
   | "casos"
   | "config";
@@ -172,6 +175,7 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
     label: "Aprendizaje",
     items: [
       { id: "aprendizaje", label: "Kota Learning", icon: Sparkles },
+      { id: "mapa-clinico", label: "Kota Clinical Map", icon: Library },
       { id: "competencias", label: "Competencias", icon: GraduationCap },
       { id: "casos", label: "Casos de aprendizaje", icon: BookOpen },
     ],
@@ -548,6 +552,30 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
             isAdmin={isAdmin}
             userId={user?.id}
             roles={myRoles}
+            patient={
+              patient
+                ? {
+                    id: patient.id,
+                    code: patient.code,
+                    initials: patient.initials,
+                    age_label: patient.age_label,
+                    sex: patient.sex,
+                    main_dx: patient.main_dx,
+                    reason: patient.reason,
+                    extra: patient.secondary_dx?.join(", ") ?? null,
+                  }
+                : null
+            }
+            onPickPatient={() => setSwitcherOpen(true)}
+          />
+        )}
+
+        {section === "mapa-clinico" && (
+          <ClinicalMap
+            module="ward"
+            accent={accent}
+            isAdmin={isAdmin}
+            userId={user?.id}
             patient={
               patient
                 ? {
