@@ -655,6 +655,7 @@ function ActivePatientBar({
               {pavilionCode ? ` · Pabellón ${pavilionCode}` : ""}
             </span>
             <StatusPill status={patient.status} />
+            {isDemoPatient(patient) && <DemoTag />}
           </div>
           <div className="mt-0.5 truncate text-[12px] text-muted-foreground">
             {[
