@@ -2833,6 +2833,241 @@ export type Database = {
           },
         ]
       }
+      kcm_area_config: {
+        Row: {
+          area: string
+          created_at: string
+          created_by: string | null
+          focus: string[]
+          id: string
+          note: string | null
+          pathology_id: string
+          steps: Json
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          created_by?: string | null
+          focus?: string[]
+          id?: string
+          note?: string | null
+          pathology_id: string
+          steps?: Json
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          created_by?: string | null
+          focus?: string[]
+          id?: string
+          note?: string | null
+          pathology_id?: string
+          steps?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kcm_area_config_pathology_id_fkey"
+            columns: ["pathology_id"]
+            isOneToOne: false
+            referencedRelation: "kcm_pathologies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kcm_pathologies: {
+        Row: {
+          active: boolean
+          age_range: string | null
+          archived: boolean
+          areas: string[]
+          category: string
+          code: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          frequency: string | null
+          icon: string | null
+          id: string
+          keywords: string[]
+          name: string
+          related_dx: string[]
+          related_slugs: string[]
+          severity: string
+          slug: string
+          sort_order: number
+          specialty: string | null
+          subcategory: string | null
+          synonyms: string[]
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          age_range?: string | null
+          archived?: boolean
+          areas?: string[]
+          category: string
+          code?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          frequency?: string | null
+          icon?: string | null
+          id?: string
+          keywords?: string[]
+          name: string
+          related_dx?: string[]
+          related_slugs?: string[]
+          severity?: string
+          slug: string
+          sort_order?: number
+          specialty?: string | null
+          subcategory?: string | null
+          synonyms?: string[]
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          age_range?: string | null
+          archived?: boolean
+          areas?: string[]
+          category?: string
+          code?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          frequency?: string | null
+          icon?: string | null
+          id?: string
+          keywords?: string[]
+          name?: string
+          related_dx?: string[]
+          related_slugs?: string[]
+          severity?: string
+          slug?: string
+          sort_order?: number
+          specialty?: string | null
+          subcategory?: string | null
+          synonyms?: string[]
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      kcm_patient_links: {
+        Row: {
+          area: string | null
+          created_at: string
+          created_by: string | null
+          hidden: boolean
+          id: string
+          module: string
+          note: string | null
+          pathology_id: string
+          patient_id: string
+          priority: number
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          area?: string | null
+          created_at?: string
+          created_by?: string | null
+          hidden?: boolean
+          id?: string
+          module: string
+          note?: string | null
+          pathology_id: string
+          patient_id: string
+          priority?: number
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          area?: string | null
+          created_at?: string
+          created_by?: string | null
+          hidden?: boolean
+          id?: string
+          module?: string
+          note?: string | null
+          pathology_id?: string
+          patient_id?: string
+          priority?: number
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kcm_patient_links_pathology_id_fkey"
+            columns: ["pathology_id"]
+            isOneToOne: false
+            referencedRelation: "kcm_pathologies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kcm_resource_links: {
+        Row: {
+          area: string | null
+          created_at: string
+          created_by: string | null
+          hidden: boolean
+          id: string
+          note: string | null
+          pathology_id: string
+          priority: number
+          resource_id: string
+          step_key: string | null
+        }
+        Insert: {
+          area?: string | null
+          created_at?: string
+          created_by?: string | null
+          hidden?: boolean
+          id?: string
+          note?: string | null
+          pathology_id: string
+          priority?: number
+          resource_id: string
+          step_key?: string | null
+        }
+        Update: {
+          area?: string | null
+          created_at?: string
+          created_by?: string | null
+          hidden?: boolean
+          id?: string
+          note?: string | null
+          pathology_id?: string
+          priority?: number
+          resource_id?: string
+          step_key?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kcm_resource_links_pathology_id_fkey"
+            columns: ["pathology_id"]
+            isOneToOne: false
+            referencedRelation: "kcm_pathologies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kcm_resource_links_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "kl_resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kl_analyses: {
         Row: {
           blocks: Json
