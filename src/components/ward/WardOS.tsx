@@ -1183,6 +1183,7 @@ function Census({
               <div className="min-w-0">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <span className="truncate text-sm font-black">{patientLabel(p)}</span>
+                  {isDemoPatient(p) && <DemoTag />}
                   {myPatientIds.has(p.id) && <Chip accent={accent}>mío</Chip>}
                   <Chip>{bed ? `Cama ${bed.number}` : "Sin cama"}</Chip>
                   {zone && <Chip>{zone.label}</Chip>}
