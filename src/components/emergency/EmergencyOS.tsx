@@ -5,6 +5,7 @@
  * modo entrega, asignación de internos por box y transferencia longitudinal a
  * Hospitalización Pediátrica (Kota Ward).
  */
+import { DemoTag } from "@/components/ward/WardOS";
 import { useMemo, useState } from "react";
 import {
   Activity,
@@ -51,6 +52,7 @@ import {
   fmtHour,
   isRecheckDue,
   logEmergEvent,
+  isDemoPatient,
   patientLabel,
   useEmergBoxAssignments,
   useEmergBoxes,
@@ -523,6 +525,7 @@ function ActivePatientBar({
             {shock ? "🔴 Shock Trauma" : "Observación"} · {boxCode ?? "Sin box"}
           </SoftBadge>
           {isRecheckDue(patient) && <SoftBadge color="#f59e0b">Reevaluación pendiente</SoftBadge>}
+          {isDemoPatient(patient) && <DemoTag />}
         </div>
         <div className="mt-1 flex flex-wrap items-baseline gap-3">
           <span className="text-xl font-black tracking-tight">{patientLabel(patient)}</span>
@@ -748,7 +751,10 @@ function PatientRow({
         </span>
         <span className="min-w-0">
           <span className="block truncate text-[13px] font-black">{patientLabel(p)}</span>
-          <span className="block truncate text-[11px] text-muted-foreground">{p.age_label ?? "—"}</span>
+          <span className="block truncate text-[11px] text-muted-foreground">
+            {isDemoPatient(p) ? "DEMO · paciente de prueba · " : ""}
+            {p.age_label ?? "—"}
+          </span>
         </span>
         <span className="flex items-center gap-2">
           <EmergPill status={p.status} />

@@ -278,6 +278,11 @@ export function patientLabel(p: WardPatient): string {
   return p.initials?.trim() || p.code?.trim() || "Paciente";
 }
 
+/** Paciente ficticio de demostración (datos no reales). */
+export function isDemoPatient(p: { code?: string | null } | null | undefined): boolean {
+  return (p?.code ?? "").toUpperCase().startsWith("DEMO-");
+}
+
 /* ─────────────────────────────── Hooks ─────────────────────────────── */
 
 const k = (...parts: unknown[]) => ["ward", ...parts];

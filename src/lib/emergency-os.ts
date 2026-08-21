@@ -267,6 +267,11 @@ export function patientLabel(p: EmergPatient): string {
   return p.initials?.trim() || p.code?.trim() || "Paciente";
 }
 
+/** Paciente ficticio de demostración (datos no reales). */
+export function isDemoPatient(p: { code?: string | null } | null | undefined): boolean {
+  return (p?.code ?? "").toUpperCase().startsWith("DEMO-");
+}
+
 export function fmtHour(iso: string | null | undefined): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });

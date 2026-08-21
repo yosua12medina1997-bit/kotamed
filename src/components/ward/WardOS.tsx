@@ -61,6 +61,7 @@ import {
   ZONE_KINDS,
   dxKeysFor,
   hospitalDay,
+  isDemoPatient,
   patientLabel,
   useAssignments,
   useBeds,
@@ -610,7 +611,18 @@ export function WardOS({ isAdmin, accent }: { isAdmin: boolean; accent: string }
   );
 }
 
+/* ───────────────────────── Etiqueta paciente demo ───────────────────────── */
+
+export function DemoTag() {
+  return (
+    <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[9.5px] font-black uppercase tracking-[0.14em] text-amber-600 dark:text-amber-400">
+      Demo · paciente de prueba
+    </span>
+  );
+}
+
 /* ─────────────────────── Barra de paciente activo ─────────────────────── */
+
 
 function ActivePatientBar({
   patient,
@@ -654,6 +666,7 @@ function ActivePatientBar({
               {pavilionCode ? ` · Pabellón ${pavilionCode}` : ""}
             </span>
             <StatusPill status={patient.status} />
+            {isDemoPatient(patient) && <DemoTag />}
           </div>
           <div className="mt-0.5 truncate text-[12px] text-muted-foreground">
             {[
@@ -1181,6 +1194,7 @@ function Census({
               <div className="min-w-0">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <span className="truncate text-sm font-black">{patientLabel(p)}</span>
+                  {isDemoPatient(p) && <DemoTag />}
                   {myPatientIds.has(p.id) && <Chip accent={accent}>mío</Chip>}
                   <Chip>{bed ? `Cama ${bed.number}` : "Sin cama"}</Chip>
                   {zone && <Chip>{zone.label}</Chip>}
