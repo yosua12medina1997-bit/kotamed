@@ -96,28 +96,11 @@ function ContenidoPage() {
     if (isAdmin === false) navigate({ to: "/dashboard", replace: true });
   }, [isAdmin, navigate]);
 
-  const nodesQ = useQuery({
-    queryKey: ["content-nodes"],
-    enabled: !!isAdmin,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_nodes")
-        .select("id,parent_id,kind,title,slug,description,sort_order,is_published,created_at")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as ContentNode[];
-    },
-  });
+  const nodesQ = useAllContentNodes(!!isAdmin);
 
-  const tree = useMemo(() => {
-    const byParent = new Map<string | null, ContentNode[]>();
-    (nodesQ.data ?? []).forEach((n) => {
-      const arr = byParent.get(n.parent_id) ?? [];
-      arr.push(n);
-      byParent.set(n.parent_id, arr);
-    });
-    return byParent;
+  const idx = useMemo(() => buildAuditIndex((nodesQ.data ?? []) as AuditNode[]), [nodesQ.data]);
+  const tree = idx.childrenOf as unknown as Map<string | null, ContentNode[]>;
+
   }, [nodesQ.data]);
 
   const createMut = useMutation({
