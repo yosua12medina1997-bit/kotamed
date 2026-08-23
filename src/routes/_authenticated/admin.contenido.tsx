@@ -101,7 +101,7 @@ function ContenidoPage() {
   const idx = useMemo(() => buildAuditIndex((nodesQ.data ?? []) as AuditNode[]), [nodesQ.data]);
   const tree = idx.childrenOf as unknown as Map<string | null, ContentNode[]>;
 
-  }, [nodesQ.data]);
+
 
   const createMut = useMutation({
     mutationFn: async (input: {
