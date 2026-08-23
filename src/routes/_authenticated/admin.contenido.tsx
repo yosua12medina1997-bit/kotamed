@@ -157,7 +157,9 @@ function ContenidoPage() {
       title?: string;
       slug?: string;
       description?: string | null;
+      parent_id?: string | null;
       is_published?: boolean;
+
       sort_order?: number;
     }) => {
       setMutationError(null);
