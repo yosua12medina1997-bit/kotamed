@@ -96,29 +96,12 @@ function ContenidoPage() {
     if (isAdmin === false) navigate({ to: "/dashboard", replace: true });
   }, [isAdmin, navigate]);
 
-  const nodesQ = useQuery({
-    queryKey: ["content-nodes"],
-    enabled: !!isAdmin,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_nodes")
-        .select("id,parent_id,kind,title,slug,description,sort_order,is_published,created_at")
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as ContentNode[];
-    },
-  });
+  const nodesQ = useAllContentNodes(!!isAdmin);
 
-  const tree = useMemo(() => {
-    const byParent = new Map<string | null, ContentNode[]>();
-    (nodesQ.data ?? []).forEach((n) => {
-      const arr = byParent.get(n.parent_id) ?? [];
-      arr.push(n);
-      byParent.set(n.parent_id, arr);
-    });
-    return byParent;
-  }, [nodesQ.data]);
+  const idx = useMemo(() => buildAuditIndex((nodesQ.data ?? []) as AuditNode[]), [nodesQ.data]);
+  const tree = idx.childrenOf as unknown as Map<string | null, ContentNode[]>;
+
+
 
   const createMut = useMutation({
     mutationFn: async (input: {
@@ -174,7 +157,9 @@ function ContenidoPage() {
       title?: string;
       slug?: string;
       description?: string | null;
+      parent_id?: string | null;
       is_published?: boolean;
+
       sort_order?: number;
     }) => {
       setMutationError(null);
@@ -214,74 +199,529 @@ function ContenidoPage() {
     );
   }
 
-  const roots = tree.get(null) ?? [];
+  const c = idx.counts;
+  const CATEGORIES: { key: Category; label: string; icon: typeof Layers; count: number }[] = [
+    { key: "all", label: "Todos", icon: Layers, count: c.total ?? 0 },
+    { key: "programs", label: "Programas académicos", icon: GraduationCap, count: c.academicPrograms ?? 0 },
+    { key: "library", label: "Biblioteca médica", icon: Library, count: c.libraries ?? 0 },
+    { key: "courses", label: "Cursos y especialidades", icon: Stethoscope, count: c.rootCourses ?? 0 },
+    { key: "sciences", label: "Ciencias médicas", icon: FlaskConical, count: c.sciences ?? 0 },
+    { key: "unclassified", label: "Sin clasificar", icon: AlertTriangle, count: c.unclassified ?? 0 },
+    { key: "drafts", label: "Borradores", icon: EyeOff, count: c.draft ?? 0 },
+    { key: "published", label: "Publicados", icon: Eye, count: c.published ?? 0 },
+  ];
+
+  const passes = (n: AuditNode) => {
+    if (kindFilter !== "all" && n.kind !== kindFilter) return false;
+    if (stateFilter === "draft" && n.is_published) return false;
+    if (stateFilter === "published" && !n.is_published) return false;
+    if (visFilter === "unclassified" && !idx.unclassified.some((u) => u.id === n.id)) return false;
+    if (visFilter === "ok" && idx.unclassified.some((u) => u.id === n.id)) return false;
+    return true;
+  };
+
+  const results = search.trim() ? searchNodes(idx, search).filter(passes) : [];
+  const selected = selectedId ? idx.byId.get(selectedId) : undefined;
+
+  const cardsFor = (): AuditNode[] => {
+    const base =
+      category === "programs"
+        ? idx.programs
+        : category === "library"
+          ? idx.libraries
+          : category === "courses"
+            ? idx.courses
+            : category === "sciences"
+              ? idx.sciences
+              : idx.roots;
+    return base.filter(passes);
+  };
+
+  const flatFor = (): AuditNode[] => {
+    const base =
+      category === "unclassified"
+        ? idx.unclassified
+        : category === "drafts"
+          ? idx.nodes.filter((n) => !n.is_published)
+          : idx.nodes.filter((n) => n.is_published);
+    const list = base.filter(passes);
+    return showAll ? list : list.slice(0, 200);
+  };
+
+  const isFlat = category === "unclassified" || category === "drafts" || category === "published";
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-10 px-6">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-background text-foreground py-8 px-4 md:px-6">
+      <div className="max-w-[1400px] mx-auto">
         <Link
           to="/admin"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground mb-6"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground mb-5"
         >
           <ArrowLeft className="size-3.5" strokeWidth={2.5} /> Volver a admin
         </Link>
 
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-6">
           <span className="size-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
             <Shield className="size-5" strokeWidth={2.25} />
           </span>
           <div>
             <h1 className="text-2xl font-extrabold tracking-tight">Editor de contenido</h1>
             <p className="text-sm text-muted-foreground">
-              Crea y organiza cursos, programas, áreas, subáreas, capítulos y lecciones.
+              Visualiza y gestiona el 100 % del ecosistema académico: cursos, programas, bibliotecas, áreas,
+              capítulos y lecciones.
             </p>
           </div>
         </div>
 
-        <section className="glass rounded-3xl p-4 md:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-              Árbol de contenido
-            </h2>
-            <AddInline
-              parentId={null}
-              allowedKinds={CHILD_KINDS.root}
-              onCreate={(v) => createMut.mutateAsync(v)}
-            />
-          </div>
-
-          {(mutationError || nodesQ.error) && (
-            <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
-              {mutationError || (nodesQ.error instanceof Error ? nodesQ.error.message : "No se pudo cargar el contenido.")}
+        {/* Dashboard resumen */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-2 mb-5">
+          {[
+            ["Cursos", c.course ?? 0],
+            ["Programas", c.program ?? 0],
+            ["Bibliotecas", c.libraries ?? 0],
+            ["Áreas", c.area ?? 0],
+            ["Subáreas", c.subarea ?? 0],
+            ["Capítulos", c.chapter ?? 0],
+            ["Lecciones", c.lesson ?? 0],
+            ["Borradores", c.draft ?? 0],
+            ["Sin clasificar", c.unclassified ?? 0],
+          ].map(([label, value]) => (
+            <div key={String(label)} className="glass rounded-2xl px-3 py-2.5">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground truncate">
+                {label}
+              </div>
+              <div className="text-xl font-extrabold tracking-tight">{value}</div>
             </div>
-          )}
+          ))}
+        </div>
 
-          {nodesQ.isLoading ? (
-            <Loader2 className="size-5 animate-spin text-muted-foreground" />
-          ) : roots.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Aún no hay cursos. Añade el primero (por ejemplo, "Pediatría").
-            </p>
-          ) : (
-            <ul className="space-y-1.5">
-              {roots.map((n) => (
-                <TreeItem
-                  key={n.id}
-                  node={n}
-                  tree={tree}
-                  depth={0}
-                  onCreate={(v) => createMut.mutateAsync(v)}
-                  onUpdate={(v) => updateMut.mutateAsync(v)}
-                  onDelete={(id) => deleteMut.mutateAsync(id)}
-                />
+        {/* Buscador global + filtros */}
+        <div className="glass rounded-2xl p-3 mb-5 flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-[240px] bg-white border border-border rounded-xl px-3 py-2">
+            <Search className="size-4 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar contenido… (nombre, slug, tipo, ruta)"
+              className="flex-1 bg-transparent text-sm outline-none"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="text-muted-foreground hover:text-foreground">
+                <X className="size-3.5" />
+              </button>
+            )}
+          </div>
+          <select
+            value={kindFilter}
+            onChange={(e) => setKindFilter(e.target.value as typeof kindFilter)}
+            className="bg-white border border-border rounded-xl px-2.5 py-2 text-xs font-semibold outline-none"
+          >
+            <option value="all">Tipo: todos</option>
+            {KIND_ORDER.map((k) => (
+              <option key={k} value={k}>{KIND_LABEL[k]}</option>
+            ))}
+          </select>
+          <select
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value as typeof stateFilter)}
+            className="bg-white border border-border rounded-xl px-2.5 py-2 text-xs font-semibold outline-none"
+          >
+            <option value="all">Estado: todos</option>
+            <option value="draft">Borrador</option>
+            <option value="published">Publicado</option>
+          </select>
+          <select
+            value={visFilter}
+            onChange={(e) => setVisFilter(e.target.value as typeof visFilter)}
+            className="bg-white border border-border rounded-xl px-2.5 py-2 text-xs font-semibold outline-none"
+          >
+            <option value="all">Visibilidad: todos</option>
+            <option value="ok">Correctamente organizados</option>
+            <option value="unclassified">Sin clasificar / huérfanos</option>
+          </select>
+        </div>
+
+        {(mutationError || nodesQ.error) && (
+          <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">
+            {mutationError ||
+              (nodesQ.error instanceof Error ? nodesQ.error.message : "No se pudo cargar el contenido.")}
+          </div>
+        )}
+
+        <div className="grid lg:grid-cols-[260px_1fr] gap-4">
+          {/* Panel lateral */}
+          <aside className="glass rounded-3xl p-3 h-max lg:sticky lg:top-6">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-2 pb-2">
+              Categorías
+            </div>
+            <nav className="grid gap-1">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.key}
+                  onClick={() => {
+                    setCategory(cat.key);
+                    setSelectedId(null);
+                    setShowAll(false);
+                  }}
+                  className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-left text-xs font-bold transition-colors ${
+                    category === cat.key
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-black/[0.04] hover:text-foreground"
+                  }`}
+                >
+                  <cat.icon className="size-3.5 shrink-0" />
+                  <span className="flex-1 truncate">{cat.label}</span>
+                  <span
+                    className={`text-[10px] font-mono ${
+                      category === cat.key ? "opacity-80" : "text-muted-foreground"
+                    }`}
+                  >
+                    {cat.count}
+                  </span>
+                </button>
               ))}
-            </ul>
+            </nav>
+
+            <div className="mt-3 border-t border-border pt-3 px-1">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground pb-2">
+                Acciones rápidas
+              </div>
+              <AddInline
+                parentId={null}
+                allowedKinds={CHILD_KINDS.root}
+                onCreate={(v) => createMut.mutateAsync(v)}
+              />
+            </div>
+          </aside>
+
+          {/* Panel principal */}
+          <section className="glass rounded-3xl p-4 md:p-5 min-h-[400px]">
+            {nodesQ.isLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="size-4 animate-spin" /> Cargando todo el contenido…
+              </div>
+            ) : search.trim() ? (
+              <>
+                <Breadcrumbs items={[`Búsqueda: "${search.trim()}"`]} />
+                <p className="text-xs text-muted-foreground mb-3">{results.length} resultado(s)</p>
+                <FlatList
+                  idx={idx}
+                  nodes={results.slice(0, showAll ? results.length : 200)}
+                  onOpen={(n) => {
+                    setSearch("");
+                    setCategory("all");
+                    setSelectedId(n.id);
+                  }}
+                />
+                {!showAll && results.length > 200 && (
+                  <ShowMore total={results.length} onShowAll={() => setShowAll(true)} />
+                )}
+              </>
+            ) : selected ? (
+              <>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <Breadcrumbs
+                    items={[
+                      "Inicio",
+                      ...(idx.pathOf.get(selected.id) ?? []).map((p) => p.title),
+                      selected.title,
+                    ]}
+                  />
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-muted-foreground hover:text-foreground"
+                  >
+                    <ArrowLeft className="size-3.5" /> Volver
+                  </button>
+                </div>
+                <ul className="space-y-1.5">
+                  <TreeItem
+                    key={selected.id}
+                    node={selected as unknown as ContentNode}
+                    tree={tree}
+                    depth={0}
+                    onCreate={(v) => createMut.mutateAsync(v)}
+                    onUpdate={(v) => updateMut.mutateAsync(v)}
+                    onDelete={(id) => deleteMut.mutateAsync(id)}
+                  />
+                </ul>
+              </>
+            ) : isFlat ? (
+              <>
+                <Breadcrumbs items={["Inicio", CATEGORIES.find((x) => x.key === category)!.label]} />
+                {category === "unclassified" && (
+                  <p className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800">
+                    ⚠️ Contenido existente con relaciones atípicas o sin padre. Nada se modifica automáticamente:
+                    usa “Organizar” y confirma explícitamente si deseas reubicarlo.
+                  </p>
+                )}
+                <FlatList
+                  idx={idx}
+                  nodes={flatFor()}
+                  organize={category === "unclassified"}
+                  onOrganize={(n) => setOrganizing(n)}
+                  onOpen={(n) => {
+                    setCategory("all");
+                    setSelectedId(n.id);
+                  }}
+                />
+                {!showAll && (
+                  <ShowMore
+                    total={
+                      category === "unclassified"
+                        ? idx.unclassified.length
+                        : category === "drafts"
+                          ? (c.draft ?? 0)
+                          : (c.published ?? 0)
+                    }
+                    onShowAll={() => setShowAll(true)}
+                  />
+                )}
+              </>
+            ) : (
+              <>
+                <Breadcrumbs items={["Inicio", CATEGORIES.find((x) => x.key === category)!.label]} />
+                <CardGrid idx={idx} nodes={cardsFor()} onOpen={(n) => setSelectedId(n.id)} />
+              </>
+            )}
+          </section>
+        </div>
+      </div>
+
+      {organizing && (
+        <OrganizeDialog
+          node={organizing}
+          idx={idx}
+          onClose={() => setOrganizing(null)}
+          onConfirm={async (parentId) => {
+            await updateMut.mutateAsync({ id: organizing.id, parent_id: parentId });
+            setOrganizing(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+type Category =
+  | "all"
+  | "programs"
+  | "library"
+  | "courses"
+  | "sciences"
+  | "unclassified"
+  | "drafts"
+  | "published";
+
+function Breadcrumbs({ items }: { items: string[] }) {
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-bold text-muted-foreground mb-3">
+      {items.map((it, i) => (
+        <span key={`${it}-${i}`} className="flex items-center gap-1.5">
+          {i > 0 && <ChevronRight className="size-3" />}
+          <span className={i === items.length - 1 ? "text-foreground" : ""}>{it}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function StateBadge({ published }: { published: boolean }) {
+  return published ? (
+    <span className="text-[9px] uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">
+      Publicado
+    </span>
+  ) : (
+    <span className="text-[9px] uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+      Borrador
+    </span>
+  );
+}
+
+function CardGrid({
+  idx,
+  nodes,
+  onOpen,
+}: {
+  idx: AuditIndex;
+  nodes: AuditNode[];
+  onOpen: (n: AuditNode) => void;
+}) {
+  if (nodes.length === 0) {
+    return <p className="text-sm text-muted-foreground">No hay elementos en esta categoría con los filtros actuales.</p>;
+  }
+  return (
+    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+      {nodes.map((n) => {
+        const s = subtreeStats(idx, n.id);
+        const path = idx.pathOf.get(n.id) ?? [];
+        return (
+          <button
+            key={n.id}
+            onClick={() => onOpen(n)}
+            className="text-left rounded-2xl border border-border bg-white p-4 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md border bg-primary/10 text-primary border-primary/20">
+                {KIND_LABEL[n.kind as NodeKind]}
+              </span>
+              <StateBadge published={n.is_published} />
+            </div>
+            <div className="text-sm font-extrabold tracking-tight line-clamp-2">{n.title}</div>
+            <div className="text-[11px] text-muted-foreground font-mono truncate">/{n.slug}</div>
+            {path.length > 0 && (
+              <div className="text-[10px] text-muted-foreground/80 truncate mt-1">
+                {path.map((p) => p.title).join(" > ")}
+              </div>
+            )}
+            <div className="flex items-center gap-2 mt-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              <span>{s.areas} áreas</span>
+              <span>·</span>
+              <span>{s.chapters} cap.</span>
+              <span>·</span>
+              <span>{s.lessons} lec.</span>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function FlatList({
+  idx,
+  nodes,
+  organize,
+  onOrganize,
+  onOpen,
+}: {
+  idx: AuditIndex;
+  nodes: AuditNode[];
+  organize?: boolean;
+  onOrganize?: (n: AuditNode) => void;
+  onOpen: (n: AuditNode) => void;
+}) {
+  if (nodes.length === 0) {
+    return <p className="text-sm text-muted-foreground">Sin elementos con los filtros actuales.</p>;
+  }
+  return (
+    <ul className="divide-y divide-border rounded-2xl border border-border bg-white overflow-hidden">
+      {nodes.map((n) => (
+        <li key={n.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-black/[0.02]">
+          <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md border bg-black/[0.04] text-muted-foreground border-border shrink-0">
+            {KIND_LABEL[n.kind as NodeKind]}
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold truncate">{n.title}</div>
+            <div className="text-[10px] text-muted-foreground truncate">
+              <span className="font-mono">/{n.slug}</span> · {pathLabel(idx, n)} ·{" "}
+              {new Date(n.created_at).toLocaleDateString("es-PE")}
+            </div>
+          </div>
+          <StateBadge published={n.is_published} />
+          {organize && (
+            <button
+              onClick={() => onOrganize?.(n)}
+              className="text-[10px] font-bold px-2 py-1 rounded-lg border border-border text-muted-foreground hover:text-foreground"
+            >
+              Organizar
+            </button>
           )}
-        </section>
+          <button
+            onClick={() => onOpen(n)}
+            className="text-[10px] font-bold px-2 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20"
+          >
+            Ver contenido
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ShowMore({ total, onShowAll }: { total: number; onShowAll: () => void }) {
+  if (total <= 200) return null;
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <button
+        onClick={onShowAll}
+        className="px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+      >
+        Mostrar todo ({total})
+      </button>
+      <span className="text-[11px] text-muted-foreground">Mostrando los primeros 200 por rendimiento.</span>
+    </div>
+  );
+}
+
+/** Reubicación manual y explícita de contenido sin clasificar (no automática). */
+function OrganizeDialog({
+  node,
+  idx,
+  onClose,
+  onConfirm,
+}: {
+  node: AuditNode;
+  idx: AuditIndex;
+  onClose: () => void;
+  onConfirm: (parentId: string | null) => Promise<void>;
+}) {
+  const [target, setTarget] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  const candidates = idx.nodes
+    .filter((n) => n.id !== node.id && (CHILD_KINDS[n.kind as NodeKind] ?? []).includes(node.kind as NodeKind))
+    .slice(0, 500);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/70 backdrop-blur-sm">
+      <div className="glass rounded-3xl w-full max-w-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-extrabold tracking-tight">Organizar contenido</h3>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-black/[0.05]">
+            <X className="size-4" />
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-3">
+          Vas a reubicar <b>{node.title}</b> (<span className="font-mono">/{node.slug}</span>). No se cambian su
+          nombre, su slug ni su ID; sólo su elemento padre. Requiere tu confirmación explícita.
+        </p>
+        <select
+          value={target}
+          onChange={(e) => setTarget(e.target.value)}
+          className="w-full bg-white border border-border rounded-xl px-3 py-2 text-sm mb-4"
+        >
+          <option value="">Selecciona el nuevo elemento padre…</option>
+          {candidates.map((n) => (
+            <option key={n.id} value={n.id}>
+              [{KIND_LABEL[n.kind as NodeKind]}] {pathLabel(idx, n)}
+            </option>
+          ))}
+        </select>
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="px-3 py-1.5 rounded-xl text-xs font-bold text-muted-foreground">
+            Cancelar
+          </button>
+          <button
+            disabled={!target || busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await onConfirm(target);
+              } finally {
+                setBusy(false);
+              }
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+            Confirmar reubicación
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
 
 function TreeItem({
   node,
