@@ -25,7 +25,24 @@ import {
   Image as ImageIcon,
   ExternalLink,
   Download,
+  Search,
+  Layers,
+  Library,
+  GraduationCap,
+  Stethoscope,
+  FlaskConical,
+  AlertTriangle,
 } from "lucide-react";
+import {
+  useAllContentNodes,
+  buildAuditIndex,
+  searchNodes,
+  subtreeStats,
+  pathLabel,
+  type AuditNode,
+  type AuditIndex,
+} from "@/lib/content-audit";
+
 
 export const Route = createFileRoute("/_authenticated/admin/contenido")({
   head: () => ({
