@@ -20,15 +20,27 @@ export type EnrollableNode = {
 /** Todos los nodos del árbol académico disponibles para matricular. */
 export function useEnrollableNodes() {
   return useQuery({
-    queryKey: ["enrollable-nodes"],
+    queryKey: ["enrollable-nodes", "all"],
     staleTime: 15_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_nodes")
-        .select("id,parent_id,kind,title,slug,sort_order")
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as EnrollableNode[];
+      const all: EnrollableNode[] = [];
+      const pageSize = 1000;
+
+      for (let page = 0; page < 60; page++) {
+        const { data, error } = await supabase
+          .from("content_nodes")
+          .select("id,parent_id,kind,title,slug,sort_order")
+          .order("sort_order", { ascending: true })
+          .order("id", { ascending: true })
+          .range(page * pageSize, page * pageSize + pageSize - 1);
+        if (error) throw error;
+
+        const rows = (data ?? []) as EnrollableNode[];
+        all.push(...rows);
+        if (rows.length < pageSize) break;
+      }
+
+      return all;
     },
   });
 }
