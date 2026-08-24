@@ -25,7 +25,24 @@ import {
   Image as ImageIcon,
   ExternalLink,
   Download,
+  Search,
+  Layers,
+  Library,
+  GraduationCap,
+  Stethoscope,
+  FlaskConical,
+  AlertTriangle,
 } from "lucide-react";
+import {
+  useAllContentNodes,
+  buildAuditIndex,
+  searchNodes,
+  subtreeStats,
+  pathLabel,
+  type AuditNode,
+  type AuditIndex,
+} from "@/lib/content-audit";
+
 
 export const Route = createFileRoute("/_authenticated/admin/contenido")({
   head: () => ({
@@ -101,6 +118,14 @@ function ContenidoPage() {
   const idx = useMemo(() => buildAuditIndex((nodesQ.data ?? []) as AuditNode[]), [nodesQ.data]);
   const tree = idx.childrenOf as unknown as Map<string | null, ContentNode[]>;
 
+  const [category, setCategory] = useState<Category>("programs");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [kindFilter, setKindFilter] = useState<NodeKind | "all">("all");
+  const [stateFilter, setStateFilter] = useState<"all" | "draft" | "published">("all");
+  const [visFilter, setVisFilter] = useState<"all" | "ok" | "unclassified">("all");
+  const [showAll, setShowAll] = useState(false);
+  const [organizing, setOrganizing] = useState<AuditNode | null>(null);
 
 
   const createMut = useMutation({
