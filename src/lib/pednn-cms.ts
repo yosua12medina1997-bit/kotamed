@@ -16,6 +16,8 @@
 import { useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { publishNodeBranch } from "@/lib/content-publish";
+
 import { useSupabaseUser } from "@/lib/session";
 import {
   PEDIATRIA_NEONATOLOGIA_BLUEPRINT,
