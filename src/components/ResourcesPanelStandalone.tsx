@@ -7,7 +7,9 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { publishNodeBranch } from "@/lib/content-publish";
 import { useSupabaseUser } from "@/lib/session";
+
 import {
   Download,
   ExternalLink,
