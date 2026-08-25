@@ -18,21 +18,34 @@ export type CatalogNode = {
   is_published: boolean;
 };
 
-/** Todos los nodos de contenido visibles (admins ven también los borradores por RLS). */
+/**
+ * Todos los nodos de contenido visibles (admins ven también los borradores por
+ * RLS). Se pagina para que catálogos grandes (>1000 nodos) no pierdan programas.
+ */
 export function useContentNodes() {
   return useQuery({
     queryKey: ["content-catalog-nodes"],
     staleTime: 15_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_nodes")
-        .select("id,parent_id,kind,title,slug,description,sort_order,is_published")
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as CatalogNode[];
+      const page = 1000;
+      const all: CatalogNode[] = [];
+      for (let from = 0; from < 20_000; from += page) {
+        const { data, error } = await supabase
+          .from("content_nodes")
+          .select("id,parent_id,kind,title,slug,description,sort_order,is_published")
+          .order("sort_order", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, from + page - 1);
+        if (error) throw error;
+        const batch = (data ?? []) as CatalogNode[];
+        all.push(...batch);
+        if (batch.length < page) break;
+      }
+      return all;
     },
   });
 }
+
 
 export type CatalogProgram = Program & {
   nodeId?: string;
@@ -42,11 +55,15 @@ export type CatalogProgram = Program & {
 
 const ACCENTS: Program["accent"][] = ["teal", "indigo", "violet", "rose", "amber"];
 
-export function buildProgramCatalog(nodes: CatalogNode[] | undefined): CatalogProgram[] {
+export function buildProgramCatalog(
+  nodes: CatalogNode[] | undefined,
+  opts?: { includeIsolated?: boolean },
+): CatalogProgram[] {
   const list = nodes ?? [];
   const byId = new Map(list.map((n) => [n.id, n]));
   /** Los programas de bibliotecas internas (p. ej. Pediatría & Neonatología) son aislados. */
   const isIsolated = (n: CatalogNode) => {
+    if (opts?.includeIsolated) return false;
     let cur = n.parent_id ? byId.get(n.parent_id) : undefined;
     let guard = 0;
     while (cur && guard++ < 10) {
@@ -56,6 +73,7 @@ export function buildProgramCatalog(nodes: CatalogNode[] | undefined): CatalogPr
     return false;
   };
   const programNodes = list.filter((n) => n.kind === "program" && !isIsolated(n));
+
 
   const areasOf = (nodeId: string) =>
     list
@@ -107,11 +125,16 @@ export function buildProgramCatalog(nodes: CatalogNode[] | undefined): CatalogPr
   return [...merged, ...extras];
 }
 
-/** Programas listos para pintar en dashboard e índice. */
-export function useProgramCatalog() {
+/**
+ * Programas listos para pintar en dashboard e índice.
+ * `includeIsolated` (para administradores) también muestra los programas que
+ * viven dentro de bibliotecas internas, de modo que no se oculte ninguno.
+ */
+export function useProgramCatalog(opts?: { includeIsolated?: boolean }) {
   const q = useContentNodes();
-  return { ...q, programs: buildProgramCatalog(q.data) };
+  return { ...q, programs: buildProgramCatalog(q.data, opts) };
 }
+
 
 /**
  * Orden oficial del recorrido académico KotaMed.

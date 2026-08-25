@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { publishNodeBranch } from "@/lib/content-publish";
+
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import { moduleRowsForProgram } from "@/lib/program-modules";
 import {
@@ -191,6 +193,9 @@ function ContenidoPage() {
       const { id, ...rest } = input;
       const { error } = await supabase.from("content_nodes").update(rest).eq("id", id);
       if (error) throw error;
+      // Publicar en cadena: sin padres publicados el alumno no vería el nodo.
+      if (rest.is_published === true) await publishNodeBranch(id);
+
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["content-nodes"] });
