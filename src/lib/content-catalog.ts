@@ -18,21 +18,34 @@ export type CatalogNode = {
   is_published: boolean;
 };
 
-/** Todos los nodos de contenido visibles (admins ven también los borradores por RLS). */
+/**
+ * Todos los nodos de contenido visibles (admins ven también los borradores por
+ * RLS). Se pagina para que catálogos grandes (>1000 nodos) no pierdan programas.
+ */
 export function useContentNodes() {
   return useQuery({
     queryKey: ["content-catalog-nodes"],
     staleTime: 15_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_nodes")
-        .select("id,parent_id,kind,title,slug,description,sort_order,is_published")
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as CatalogNode[];
+      const page = 1000;
+      const all: CatalogNode[] = [];
+      for (let from = 0; from < 20_000; from += page) {
+        const { data, error } = await supabase
+          .from("content_nodes")
+          .select("id,parent_id,kind,title,slug,description,sort_order,is_published")
+          .order("sort_order", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, from + page - 1);
+        if (error) throw error;
+        const batch = (data ?? []) as CatalogNode[];
+        all.push(...batch);
+        if (batch.length < page) break;
+      }
+      return all;
     },
   });
 }
+
 
 export type CatalogProgram = Program & {
   nodeId?: string;
