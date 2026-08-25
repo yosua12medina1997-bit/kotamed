@@ -290,7 +290,7 @@ export function useSaveHeroConfig() {
       const { error } = await db
         .from("ui_menu_prefs")
         .upsert(
-          { scope: HERO_SCOPE, config, updated_by: auth.user?.id ?? null },
+          { scope: HERO_SCOPE, config, is_public: true, updated_by: auth.user?.id ?? null },
           { onConflict: "scope" },
         );
       if (error) throw error;

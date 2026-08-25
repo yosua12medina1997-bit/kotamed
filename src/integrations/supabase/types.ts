@@ -4110,6 +4110,7 @@ export type Database = {
           config: Json
           created_at: string
           id: string
+          is_public: boolean
           scope: string
           updated_at: string
           updated_by: string | null
@@ -4118,6 +4119,7 @@ export type Database = {
           config?: Json
           created_at?: string
           id?: string
+          is_public?: boolean
           scope: string
           updated_at?: string
           updated_by?: string | null
@@ -4126,6 +4128,7 @@ export type Database = {
           config?: Json
           created_at?: string
           id?: string
+          is_public?: boolean
           scope?: string
           updated_at?: string
           updated_by?: string | null
