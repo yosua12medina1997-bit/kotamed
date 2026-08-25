@@ -205,7 +205,7 @@ export function useSaveCcConfig() {
       const { data: auth } = await supabase.auth.getUser();
       const { error } = await db
         .from("ui_menu_prefs")
-        .upsert({ scope: CC_SCOPE, config, updated_by: auth.user?.id ?? null }, { onConflict: "scope" });
+        .upsert({ scope: CC_SCOPE, config, is_public: true, updated_by: auth.user?.id ?? null }, { onConflict: "scope" });
       if (error) throw error;
       return config;
     },
