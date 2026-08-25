@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { publishNodeBranch } from "@/lib/content-publish";
+
 import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import { moduleRowsForProgram } from "@/lib/program-modules";
 import {
