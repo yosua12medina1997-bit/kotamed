@@ -13,7 +13,7 @@ export async function publishNodeBranch(nodeId: string) {
   let guard = 0;
 
   while (current && guard++ < 20) {
-    const { data, error } = await supabase
+    const { data, error }: { data: { id: string; parent_id: string | null; is_published: boolean } | null; error: unknown } = await supabase
       .from("content_nodes")
       .select("id,parent_id,is_published")
       .eq("id", current)
