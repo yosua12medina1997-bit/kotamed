@@ -55,11 +55,15 @@ export type CatalogProgram = Program & {
 
 const ACCENTS: Program["accent"][] = ["teal", "indigo", "violet", "rose", "amber"];
 
-export function buildProgramCatalog(nodes: CatalogNode[] | undefined): CatalogProgram[] {
+export function buildProgramCatalog(
+  nodes: CatalogNode[] | undefined,
+  opts?: { includeIsolated?: boolean },
+): CatalogProgram[] {
   const list = nodes ?? [];
   const byId = new Map(list.map((n) => [n.id, n]));
   /** Los programas de bibliotecas internas (p. ej. Pediatría & Neonatología) son aislados. */
   const isIsolated = (n: CatalogNode) => {
+    if (opts?.includeIsolated) return false;
     let cur = n.parent_id ? byId.get(n.parent_id) : undefined;
     let guard = 0;
     while (cur && guard++ < 10) {
@@ -69,6 +73,7 @@ export function buildProgramCatalog(nodes: CatalogNode[] | undefined): CatalogPr
     return false;
   };
   const programNodes = list.filter((n) => n.kind === "program" && !isIsolated(n));
+
 
   const areasOf = (nodeId: string) =>
     list
