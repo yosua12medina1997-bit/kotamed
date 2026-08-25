@@ -284,6 +284,9 @@ export function useCmsMutations(scope: CmsScope) {
         .update(input.patch as never)
         .eq("id", input.id);
       if (error) throw error;
+      // Publicar en cadena para que el alumno vea el tema recién publicado.
+      if (input.patch.is_published === true) await publishNodeBranch(input.id);
+
     },
     onSuccess: invalidate,
   });
