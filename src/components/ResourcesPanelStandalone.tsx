@@ -129,7 +129,11 @@ export function ResourcesPanelStandalone({
         .update(input.patch as never)
         .eq("id", input.id);
       if (error) throw error;
+      // Al publicar un recurso, el nodo y sus padres deben quedar publicados
+      // para que el estudiante pueda verlo.
+      if (input.patch.is_published === true) await publishNodeBranch(nodeId);
     },
+
     onSuccess: () => qc.invalidateQueries({ queryKey: ["content-resources", nodeId] }),
     onError: (e) => setError(e instanceof Error ? e.message : "No se pudo guardar."),
   });
