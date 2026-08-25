@@ -191,6 +191,9 @@ function ContenidoPage() {
       const { id, ...rest } = input;
       const { error } = await supabase.from("content_nodes").update(rest).eq("id", id);
       if (error) throw error;
+      // Publicar en cadena: sin padres publicados el alumno no vería el nodo.
+      if (rest.is_published === true) await publishNodeBranch(id);
+
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["content-nodes"] });
