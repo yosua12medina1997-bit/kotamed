@@ -125,11 +125,16 @@ export function buildProgramCatalog(
   return [...merged, ...extras];
 }
 
-/** Programas listos para pintar en dashboard e índice. */
-export function useProgramCatalog() {
+/**
+ * Programas listos para pintar en dashboard e índice.
+ * `includeIsolated` (para administradores) también muestra los programas que
+ * viven dentro de bibliotecas internas, de modo que no se oculte ninguno.
+ */
+export function useProgramCatalog(opts?: { includeIsolated?: boolean }) {
   const q = useContentNodes();
-  return { ...q, programs: buildProgramCatalog(q.data) };
+  return { ...q, programs: buildProgramCatalog(q.data, opts) };
 }
+
 
 /**
  * Orden oficial del recorrido académico KotaMed.
