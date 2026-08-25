@@ -236,7 +236,10 @@ function EnrolledView({
   isAdmin: boolean;
   manual?: { node: { slug: string; title: string } | null; expires_at: string | null }[];
 }) {
-  const { programs } = useProgramCatalog();
+  // El administrador ve absolutamente todos los programas, incluidos los que
+  // viven dentro de bibliotecas internas y los que están en borrador.
+  const { programs } = useProgramCatalog({ includeIsolated: isAdmin });
+
   return (
 
 
