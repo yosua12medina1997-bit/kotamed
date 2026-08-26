@@ -318,38 +318,18 @@ export function PediatriaNeoContenido({
         </button>
       )}
 
-      {/* Categorías / subcategorías / temas */}
-      <div className="mt-6 space-y-3">
-        {children.map((cat) => (
-          <BranchCard
-            key={cat.id}
-            node={cat}
-            siblings={children}
-            accent={accent}
-            isAdmin={!!isAdmin}
-            scope={cmsScope}
-            forceOpen={query.trim().length > 0}
-            onOpenPharma={() => setPharmaOpen(true)}
-          />
-        ))}
-        {children.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border/60 bg-background/40 p-8 text-center text-sm text-muted-foreground">
-            {query.trim()
-              ? `Sin coincidencias para "${query}".`
-              : isAdmin
-                ? "Este bloque aún no tiene categorías. Crea la primera abajo."
-                : "Contenido en preparación."}
-          </div>
-        )}
-        {isAdmin && block && (
-          <AddChildForm
-            parent={block}
-            siblings={block.children.length}
-            scope={cmsScope}
-            accent={accent}
-          />
-        )}
-      </div>
+      {/* Explorar categorías → categoría → temas */}
+      <CategoryBrowser
+        block={block}
+        children={children}
+        accent={accent}
+        isAdmin={!!isAdmin}
+        scope={cmsScope}
+        searching={query.trim().length > 0}
+        query={query}
+        onOpenPharma={() => setPharmaOpen(true)}
+      />
+
 
       <div className="mt-8 rounded-2xl border border-border/50 bg-background/40 p-4 text-xs text-muted-foreground leading-relaxed">
         <div className="flex items-center gap-2 mb-1">
@@ -395,6 +375,378 @@ export function PediatriaNeoContenido({
 function childrenOf(node: CmsNode, isAdmin?: boolean | null) {
   return isAdmin ? node.children : node.children.filter((c) => c.is_published);
 }
+
+function isTopicKind(n: CmsNode) {
+  return n.kind === "chapter" || n.kind === "lesson";
+}
+
+function isBranchKind(n: CmsNode) {
+  return n.kind === "area" || n.kind === "subarea";
+}
+
+/** Todos los temas de una rama (recursivo), respetando permisos. */
+function collectTopics(node: CmsNode, isAdmin: boolean): CmsNode[] {
+  const out: CmsNode[] = [];
+  const walk = (n: CmsNode) => {
+    for (const c of childrenOf(n, isAdmin)) {
+      if (isTopicKind(c)) out.push(c);
+      walk(c);
+    }
+  };
+  walk(node);
+  return out;
+}
+
+/** Portada del tema: imagen definida en el CMS o primera diapositiva visual. */
+function topicCover(node: CmsNode): string | null {
+  const meta = node.metadata ?? {};
+  const direct = (meta.cover ?? meta.coverUrl ?? meta.image) as string | undefined;
+  if (typeof direct === "string" && direct.trim()) return direct;
+  const deck = readDeck(meta);
+  return deck?.slides[0]?.url || null;
+}
+
+/**
+ * Navegación jerárquica clara: explorar categorías → seleccionar categoría →
+ * ver todos los temas en tarjetas → abrir tema.
+ */
+function CategoryBrowser({
+  block,
+  children,
+  accent,
+  isAdmin,
+  scope,
+  searching,
+  query,
+  onOpenPharma,
+}: {
+  block: CmsNode | null;
+  children: CmsNode[];
+  accent: string;
+  isAdmin: boolean;
+  scope: CmsScope;
+  searching: boolean;
+  query: string;
+  onOpenPharma: () => void;
+}) {
+  const [catId, setCatId] = useState<string | null>(null);
+  const categories = useMemo(() => children.filter(isBranchKind), [children]);
+  const looseTopics = useMemo(() => children.filter(isTopicKind), [children]);
+
+  useEffect(() => {
+    if (catId && !categories.some((c) => c.id === catId)) setCatId(null);
+  }, [categories, catId]);
+
+  const activeCat = categories.find((c) => c.id === catId) ?? null;
+
+  if (searching) {
+    const hits = block ? collectTopics(block, isAdmin) : [];
+    const q = query.trim().toLowerCase();
+    const filtered = hits.filter(
+      (t) =>
+        t.title.toLowerCase().includes(q) || (t.description ?? "").toLowerCase().includes(q),
+    );
+    return (
+      <div className="mt-6">
+        <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          {filtered.length} temas para “{query}”
+        </p>
+        <TopicGrid topics={filtered} accent={accent} isAdmin={isAdmin} scope={scope} />
+      </div>
+    );
+  }
+
+  if (activeCat) {
+    const kids = childrenOf(activeCat, isAdmin);
+    const subs = kids.filter(isBranchKind);
+    const topics = kids.filter(isTopicKind);
+    return (
+      <div className="mt-6">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <button
+            onClick={() => setCatId(null)}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 font-bold hover:border-primary/40"
+          >
+            <ChevronRight className="size-3.5 rotate-180" /> Categorías
+          </button>
+          <span className="text-muted-foreground">/</span>
+          <span className="font-extrabold">{activeCat.title}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            · {collectTopics(activeCat, isAdmin).length} temas
+          </span>
+          {slugify(activeCat.title).includes("farmacolog") && (
+            <button
+              onClick={onOpenPharma}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
+            >
+              <Calculator className="size-3.5" style={{ color: accent }} /> Abrir calculadora
+            </button>
+          )}
+        </div>
+
+        {activeCat.description && (
+          <p className="mt-2 text-xs text-muted-foreground">{activeCat.description}</p>
+        )}
+
+        {isAdmin && (
+          <div className="mt-3">
+            <NodeToolbar node={activeCat} siblings={categories} scope={scope} accent={accent} />
+          </div>
+        )}
+
+        <div className="mt-5">
+          <TopicGrid topics={topics} accent={accent} isAdmin={isAdmin} scope={scope} />
+        </div>
+
+        {subs.length > 0 && (
+          <div className="mt-5 space-y-3">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+              Subcategorías
+            </p>
+            {subs.map((s) => (
+              <BranchCard
+                key={s.id}
+                node={s}
+                siblings={subs}
+                accent={accent}
+                isAdmin={isAdmin}
+                scope={scope}
+                forceOpen={false}
+                onOpenPharma={onOpenPharma}
+              />
+            ))}
+          </div>
+        )}
+
+        {isAdmin && (
+          <div className="mt-4">
+            <AddChildForm
+              parent={activeCat}
+              siblings={activeCat.children.length}
+              scope={scope}
+              accent={accent}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6">
+      {categories.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((cat) => {
+            const total = collectTopics(cat, isAdmin).length;
+            const cover = topicCover(cat) ?? topicCover(collectTopics(cat, isAdmin)[0] ?? cat);
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setCatId(cat.id)}
+                className="group overflow-hidden rounded-2xl border border-border/50 bg-background/40 text-left backdrop-blur transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+              >
+                <div
+                  className="relative h-24 w-full overflow-hidden"
+                  style={{ background: `linear-gradient(135deg, ${accent}, transparent)` }}
+                >
+                  {cover && (
+                    <img
+                      src={cover}
+                      alt={cat.title}
+                      loading="lazy"
+                      className="h-full w-full object-cover opacity-80 transition group-hover:scale-105 group-hover:opacity-100"
+                    />
+                  )}
+                  <span className="absolute left-3 top-3 inline-flex size-8 items-center justify-center rounded-lg bg-black/35 text-white backdrop-blur">
+                    <ListChecks className="size-4" strokeWidth={2.5} />
+                  </span>
+                  {!cat.is_published && (
+                    <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
+                      <EyeOff className="size-3" /> oculto
+                    </span>
+                  )}
+                </div>
+                <div className="p-4">
+                  <p className="text-sm font-extrabold tracking-tight">{cat.title}</p>
+                  {cat.description && (
+                    <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
+                      {cat.description}
+                    </p>
+                  )}
+                  <p className="mt-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    {total} temas
+                    <ChevronRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {looseTopics.length > 0 && (
+        <div className="mt-5">
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            Temas directos
+          </p>
+          <TopicGrid topics={looseTopics} accent={accent} isAdmin={isAdmin} scope={scope} />
+        </div>
+      )}
+
+      {categories.length === 0 && looseTopics.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border/60 bg-background/40 p-8 text-center text-sm text-muted-foreground">
+          {isAdmin
+            ? "Este bloque aún no tiene categorías. Crea la primera abajo."
+            : "Contenido en preparación."}
+        </div>
+      )}
+
+      {isAdmin && block && (
+        <div className="mt-4">
+          <AddChildForm
+            parent={block}
+            siblings={block.children.length}
+            scope={scope}
+            accent={accent}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TopicGrid({
+  topics,
+  accent,
+  isAdmin,
+  scope,
+}: {
+  topics: CmsNode[];
+  accent: string;
+  isAdmin: boolean;
+  scope: CmsScope;
+}) {
+  if (topics.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border/60 bg-background/40 p-6 text-center text-xs text-muted-foreground">
+        Aún no hay temas en esta categoría.
+      </div>
+    );
+  }
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {topics.map((t, i) => (
+        <TopicCard
+          key={t.id}
+          node={t}
+          index={i + 1}
+          siblings={topics}
+          accent={accent}
+          isAdmin={isAdmin}
+          scope={scope}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Tarjeta de tema: portada, título, descripción, indicador y “Abrir tema”. */
+function TopicCard({
+  node,
+  index,
+  siblings,
+  accent,
+  isAdmin,
+  scope,
+}: {
+  node: CmsNode;
+  index: number;
+  siblings: CmsNode[];
+  accent: string;
+  isAdmin: boolean;
+  scope: CmsScope;
+}) {
+  const [open, setOpen] = useState(false);
+  const deck = readDeck(node.metadata);
+  const hasDeck = !!deck && deck.slides.length > 0;
+  const hasText = !!node.metadata?.topic;
+  const cover = topicCover(node);
+  const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border/50 bg-background/40 backdrop-blur transition hover:border-primary/30">
+      <div
+        className="relative h-28 w-full overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${accent}, transparent)` }}
+      >
+        {cover && (
+          <img
+            src={cover}
+            alt={node.title}
+            loading="lazy"
+            className="h-full w-full object-cover opacity-85"
+          />
+        )}
+        <span className="absolute left-3 top-3 rounded-lg bg-black/40 px-2 py-0.5 text-[10px] font-extrabold text-white backdrop-blur">
+          Tema {index}
+        </span>
+        {!node.is_published && (
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
+            <EyeOff className="size-3" /> oculto
+          </span>
+        )}
+      </div>
+      <div className="p-4">
+        <p className="text-sm font-extrabold leading-snug tracking-tight">{node.title}</p>
+        {node.description && (
+          <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{node.description}</p>
+        )}
+        <div className="mt-2 flex flex-wrap gap-1.5 text-[9px] font-bold uppercase tracking-widest">
+          {hasDeck && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-0.5 text-muted-foreground">
+              <ImageIcon className="size-3" /> {deck!.slides.length} diapositivas
+            </span>
+          )}
+          {hasText && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-0.5 text-muted-foreground">
+              <FileText className="size-3" /> contenido
+            </span>
+          )}
+          {items.length > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-border/60 px-2 py-0.5 text-muted-foreground">
+              {items.length} subtemas
+            </span>
+          )}
+          {!hasDeck && !hasText && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-dashed border-border/60 px-2 py-0.5 text-muted-foreground">
+              en preparación
+            </span>
+          )}
+        </div>
+        <button
+          onClick={() => setOpen((p) => !p)}
+          className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-extrabold text-white shadow-sm transition hover:opacity-90"
+          style={{ background: accent }}
+        >
+          <Play className="size-3" /> {open ? "Cerrar tema" : "Abrir tema"}
+        </button>
+      </div>
+      {open && (
+        <div className="border-t border-border/40">
+          <TopicDetail
+            node={node}
+            siblings={siblings}
+            accent={accent}
+            isAdmin={isAdmin}
+            scope={scope}
+            autoOpen
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 /** Categoría o subcategoría: agrupa subcategorías y temas. */
 function BranchCard({
@@ -578,12 +930,15 @@ function TopicDetail({
   accent,
   isAdmin,
   scope,
+  autoOpen,
 }: {
   node: CmsNode;
   siblings: CmsNode[];
   accent: string;
   isAdmin: boolean;
   scope: CmsScope;
+  /** Abre automáticamente el contenido (diapositivas o texto) al montar. */
+  autoOpen?: boolean;
 }) {
   const [tab, setTab] = useState<"secciones" | "recursos">("recursos");
   const [presenterOpen, setPresenterOpen] = useState(false);
@@ -642,6 +997,16 @@ function TopicDetail({
     }
     setPresenterOpen(true);
   };
+
+  // Al pulsar “Abrir tema” en la tarjeta, mostrar el contenido de inmediato.
+  useEffect(() => {
+    if (!autoOpen) return;
+    if (deckReady || deckForAdmin) setDeckOpen(true);
+    else if (storedTopic) setPresenterOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
+
+
 
   return (
     <div className="px-4 pb-4 pt-1">
