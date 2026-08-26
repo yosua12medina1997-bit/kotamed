@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Baby,
   BookMarked,
@@ -34,21 +35,15 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin, useMyRoles, useSupabaseUser } from "@/lib/session";
+import { useIsAdmin, useSupabaseUser } from "@/lib/session";
 import {
   PEDIATRIA_NEONATOLOGIA_BLUEPRINT,
   type BlueprintBlock,
 } from "@/lib/pediatria-neonatologia-blueprint";
 import type { EnamAreaMeta } from "@/lib/enam-modules";
-import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
-import { TopicPresenter } from "@/components/topic/TopicPresenter";
-import { TopicEditor } from "@/components/topic/TopicEditor";
-import { DeckViewer } from "@/components/topic/DeckViewer";
-import { DeckEditor } from "@/components/topic/DeckEditor";
-import { DECK_STATUS_LABEL, isDeckVisible, readDeck, type TopicDeck } from "@/lib/topic-deck";
+import { readDeck } from "@/lib/topic-deck";
 
 import { PharmaWorkspace } from "@/components/pharma/PharmaWorkspace";
 import {
@@ -62,7 +57,6 @@ import {
   type CmsNode,
   type CmsScope,
 } from "@/lib/pednn-cms";
-import type { Topic } from "@/lib/topic-schema";
 
 /** Espacio de almacenamiento del contenido (permite reutilizar la vista). */
 export interface ContenidoScope {
