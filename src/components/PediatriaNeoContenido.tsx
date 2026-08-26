@@ -582,12 +582,21 @@ function TopicDetail({
   const [tab, setTab] = useState<"secciones" | "recursos">("recursos");
   const [presenterOpen, setPresenterOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [deckOpen, setDeckOpen] = useState(false);
+  const [deckEditorOpen, setDeckEditorOpen] = useState(false);
   const qc = useQueryClient();
   const mut = useCmsMutations(scope);
+  const user = useSupabaseUser();
+  const { data: myRoles = [] } = useMyRoles(user?.id);
+  const isSuperAdmin = myRoles.includes("super_admin");
 
   const storedTopic: Topic | null = (node.metadata?.topic as Topic | undefined) ?? null;
+  const [deck, setDeck] = useState<TopicDeck | null>(() => readDeck(node.metadata));
+  const deckReady = isDeckVisible(deck);
+  const deckForAdmin = isSuperAdmin && !!deck && deck.slides.length > 0;
   const sections: string[] = Array.isArray(node.metadata?.sections) ? node.metadata.sections : [];
   const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
+
 
   const saveTopicMut = useMutation({
     mutationFn: async (t: Topic) => {
