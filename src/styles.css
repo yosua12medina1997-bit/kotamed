@@ -267,3 +267,118 @@
 }
 @utility lab-muted-text { color: var(--lab-muted); }
 @utility lab-accent-text { color: var(--lab-accent); }
+
+/* ================= KOTAMED NEXUS — Adaptive Medical Learning Environment ================= */
+.nexus {
+  --nexus-teal: #21b7b5;
+  --nexus-cyan: #27c7d8;
+  --nexus-blue: #2f80ed;
+  position: relative;
+  isolation: isolate;
+  background: var(--nexus-bg);
+  color: var(--nexus-text);
+  transition:
+    background-color 1400ms ease,
+    color 1200ms ease;
+}
+.nexus-light {
+  --nexus-bg: #f6f9fc;
+  --nexus-surface: #ffffff;
+  --nexus-surface-2: #fbfdff;
+  --nexus-text: #102238;
+  --nexus-muted: #64748b;
+  --nexus-border: #e5ecf2;
+  --nexus-shadow: 0 18px 44px -28px rgba(16, 34, 56, 0.28);
+}
+.nexus-dark {
+  --nexus-bg: #030816;
+  --nexus-surface: #0b1728;
+  --nexus-surface-2: #0d1b2e;
+  --nexus-text: #f4f7fa;
+  --nexus-muted: #94a3b8;
+  --nexus-border: rgba(255, 255, 255, 0.08);
+  --nexus-shadow: 0 24px 60px -34px rgba(0, 0, 0, 0.85);
+}
+.nexus-ambient-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--nexus-ambient);
+  filter: brightness(var(--nexus-brightness, 1)) saturate(var(--nexus-saturation, 1));
+  transition: background 1600ms ease, filter 1600ms ease;
+}
+.nexus-sidebar {
+  background: var(--nexus-surface);
+  border-right: 1px solid var(--nexus-border);
+  backdrop-filter: blur(18px);
+}
+.nexus-dark .nexus-sidebar { background: #071426; }
+.nexus-topbar {
+  background: color-mix(in srgb, var(--nexus-bg) 78%, transparent);
+  border-bottom: 1px solid var(--nexus-border);
+  backdrop-filter: blur(18px) saturate(130%);
+}
+.nexus-panel {
+  background: var(--nexus-surface);
+  border: 1px solid var(--nexus-border);
+  color: var(--nexus-text);
+  backdrop-filter: blur(20px) saturate(140%);
+}
+@utility nexus-card {
+  background: var(--nexus-surface);
+  border: 1px solid var(--nexus-border);
+  box-shadow: var(--nexus-shadow);
+  transition: transform 500ms var(--ease-out-expo), box-shadow 500ms ease, border-color 400ms ease;
+}
+.nexus-search {
+  background: var(--nexus-surface);
+  border: 1px solid var(--nexus-border);
+}
+.nexus-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.85rem;
+  background: var(--nexus-surface);
+  border: 1px solid var(--nexus-border);
+  color: var(--nexus-text);
+  transition: border-color 300ms ease, transform 300ms ease;
+}
+.nexus-icon-btn:hover { border-color: color-mix(in srgb, var(--nexus-teal) 55%, transparent); }
+.nexus-nav { color: var(--nexus-text); opacity: 0.72; }
+.nexus-nav:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--nexus-teal) 8%, transparent);
+}
+.nexus-nav-active {
+  color: var(--nexus-teal);
+  background: color-mix(in srgb, var(--nexus-teal) 12%, transparent);
+}
+.nexus-node {
+  background: var(--nexus-surface);
+  border: 1px solid var(--nexus-border);
+  color: var(--nexus-text);
+  box-shadow: var(--nexus-shadow);
+  backdrop-filter: blur(14px);
+}
+.nexus-node:hover, .nexus-node-active {
+  border-color: color-mix(in srgb, var(--nexus-cyan) 60%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--nexus-cyan) 35%, transparent),
+    0 18px 40px -26px color-mix(in srgb, var(--nexus-cyan) 60%, transparent);
+}
+@keyframes nexus-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+.nexus-breathe { animation: nexus-breathe 5.5s ease-in-out infinite; }
+@keyframes nexus-pulse-ring {
+  0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0.45; }
+  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+.nexus-pulse {
+  border: 1px solid color-mix(in srgb, var(--nexus-cyan) 55%, transparent);
+  animation: nexus-pulse-ring 3.2s ease-out;
+}
