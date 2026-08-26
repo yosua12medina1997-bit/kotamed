@@ -22,7 +22,9 @@ import {
   ListChecks,
   Loader2,
   Pencil,
+  Image as ImageIcon,
   Play,
+
   Plus,
   Save,
   Search,
