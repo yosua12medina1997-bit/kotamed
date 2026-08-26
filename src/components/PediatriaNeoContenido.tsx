@@ -37,7 +37,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { useIsAdmin, useMyRoles, useSupabaseUser } from "@/lib/session";
 import {
   PEDIATRIA_NEONATOLOGIA_BLUEPRINT,
   type BlueprintBlock,
