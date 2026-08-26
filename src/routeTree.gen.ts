@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProgramasIndexRouteImport } from './routes/programas.index'
+import { Route as TemaTopicIdRouteImport } from './routes/tema.$topicId'
 import { Route as ProgramasKotamedApexRouteImport } from './routes/programas.kotamed-apex'
 import { Route as ProgramasSlugRouteImport } from './routes/programas.$slug'
 import { Route as PSlugRouteImport } from './routes/p.$slug'
@@ -61,6 +62,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProgramasIndexRoute = ProgramasIndexRouteImport.update({
   id: '/programas/',
   path: '/programas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemaTopicIdRoute = TemaTopicIdRouteImport.update({
+  id: '/tema/$topicId',
+  path: '/tema/$topicId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgramasKotamedApexRoute = ProgramasKotamedApexRouteImport.update({
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/kotamed-apex': typeof ProgramasKotamedApexRoute
+  '/tema/$topicId': typeof TemaTopicIdRoute
   '/programas/': typeof ProgramasIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/kotamed-apex': typeof ProgramasKotamedApexRoute
+  '/tema/$topicId': typeof TemaTopicIdRoute
   '/programas': typeof ProgramasIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -273,6 +281,7 @@ export interface FileRoutesById {
   '/p/$slug': typeof PSlugRoute
   '/programas/$slug': typeof ProgramasSlugRoute
   '/programas/kotamed-apex': typeof ProgramasKotamedApexRoute
+  '/tema/$topicId': typeof TemaTopicIdRoute
   '/programas/': typeof ProgramasIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -305,6 +314,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/programas/$slug'
     | '/programas/kotamed-apex'
+    | '/tema/$topicId'
     | '/programas/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/programas/$slug'
     | '/programas/kotamed-apex'
+    | '/tema/$topicId'
     | '/programas'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/p/$slug'
     | '/programas/$slug'
     | '/programas/kotamed-apex'
+    | '/tema/$topicId'
     | '/programas/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -393,6 +405,7 @@ export interface RootRouteChildren {
   PSlugRoute: typeof PSlugRoute
   ProgramasSlugRoute: typeof ProgramasSlugRoute
   ProgramasKotamedApexRoute: typeof ProgramasKotamedApexRoute
+  TemaTopicIdRoute: typeof TemaTopicIdRoute
   ProgramasIndexRoute: typeof ProgramasIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -439,6 +452,13 @@ declare module '@tanstack/react-router' {
       path: '/programas'
       fullPath: '/programas/'
       preLoaderRoute: typeof ProgramasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tema/$topicId': {
+      id: '/tema/$topicId'
+      path: '/tema/$topicId'
+      fullPath: '/tema/$topicId'
+      preLoaderRoute: typeof TemaTopicIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programas/kotamed-apex': {
@@ -660,6 +680,7 @@ const rootRouteChildren: RootRouteChildren = {
   PSlugRoute: PSlugRoute,
   ProgramasSlugRoute: ProgramasSlugRoute,
   ProgramasKotamedApexRoute: ProgramasKotamedApexRoute,
+  TemaTopicIdRoute: TemaTopicIdRoute,
   ProgramasIndexRoute: ProgramasIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
