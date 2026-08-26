@@ -90,6 +90,7 @@ import { InternadoEditor } from "@/components/cms/InternadoEditor";
 import { EnamEditor } from "@/components/cms/EnamEditor";
 
 import { ProgramHubEditor } from "@/components/cms/ProgramHubEditor";
+import { NexusDashboardEditor } from "@/components/cms/NexusDashboardEditor";
 
 import { ContentBuilder } from "@/components/cms/ContentBuilder";
 import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
@@ -129,6 +130,7 @@ type StudioView =
   | "enam"
 
   | "programas"
+  | "panel-alumno"
   | "sitio";
 
 const MODULES: { id: StudioView; label: string; hint: string; icon: React.ElementType }[] = [
@@ -144,6 +146,7 @@ const MODULES: { id: StudioView; label: string; hint: string; icon: React.Elemen
   { id: "internado", label: "Internado Médico", hint: "Página pública /p/internado", icon: Sparkles },
   { id: "enam", label: "Preparación ENAM", hint: "Página pública /p/enam", icon: Sparkles },
 
+  { id: "panel-alumno", label: "Panel del alumno", hint: "Dashboard Nexus /dashboard", icon: LayoutDashboard },
   { id: "programas", label: "Programas (Hub)", hint: "Página pública /programas", icon: Sparkles },
   { id: "constructor", label: "Constructor de contenido", hint: "Programas, bloques, temas y recursos", icon: Layers },
   { id: "colecciones", label: "Colecciones", hint: "Contenido reutilizable", icon: Recycle },
@@ -764,6 +767,11 @@ function CmsStudioPage() {
       ) : view === "internado" ? (
         <div className="p-3">
           <InternadoEditor />
+        </div>
+
+      ) : view === "panel-alumno" ? (
+        <div className="p-3">
+          <NexusDashboardEditor />
         </div>
 
       ) : view === "programas" ? (

@@ -60,6 +60,24 @@ export function useIsAdmin(userId: string | undefined) {
   });
 }
 
+/** Solo el Super Admin ve absolutamente todo el catálogo académico. */
+export function useIsSuperAdmin(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["is-super-admin", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId!)
+        .eq("role", "super_admin")
+        .maybeSingle();
+      if (error) throw error;
+      return !!data;
+    },
+  });
+}
+
 /** Solo Super Admin y Administrador Académico pueden gestionar matriculación manual. */
 export const ENROLLMENT_ADMIN_ROLES = ["super_admin", "academic_admin"] as const;
 
