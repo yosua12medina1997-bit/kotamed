@@ -35,11 +35,11 @@ import {
   type Enrollment,
 } from "@/lib/session";
 import { useQueryClient } from "@tanstack/react-query";
-import { useProgramCatalog, type CatalogProgram } from "@/lib/content-catalog";
+import { useProgramCatalog } from "@/lib/content-catalog";
 import { useMyAdmission } from "@/lib/admission";
 import { useMyProgramEnrollments } from "@/lib/enrollments";
 import { NexusShell } from "@/components/nexus/NexusShell";
-import { MedicalCore, type CoreNode } from "@/components/nexus/MedicalCore";
+import { AnatomicalCore } from "@/components/nexus/AnatomicalCore";
 import { useNexusEnv } from "@/lib/nexus-theme";
 import {
   DEFAULT_NEXUS_DASHBOARD,
@@ -151,6 +151,7 @@ function DashboardPage() {
           manual={manualQ.data ?? []}
           greeting={env.greeting}
           coreIntensity={env.coreIntensity}
+          envBase={env.base}
           reducedMotion={env.reducedMotion}
           lowPower={env.lowPower}
         />
@@ -162,6 +163,7 @@ function DashboardPage() {
           displayName={displayName}
           greeting={env.greeting}
           coreIntensity={env.coreIntensity}
+          envBase={env.base}
           reducedMotion={env.reducedMotion}
           lowPower={env.lowPower}
         />
@@ -228,8 +230,6 @@ function Ring({ value, size = 76 }: { value: number; size?: number }) {
   );
 }
 
-const NODE_ANGLES = [0, 72, 144, 216, 288];
-
 const ACTION_ICONS: Record<DashboardAction["icon"], React.ReactNode> = {
   book: <BookOpen className="size-4" />,
   case: <Stethoscope className="size-4" />,
@@ -238,17 +238,6 @@ const ACTION_ICONS: Record<DashboardAction["icon"], React.ReactNode> = {
   library: <Library className="size-4" />,
   spark: <Sparkles className="size-4" />,
 };
-
-function coreNodesFrom(programs: CatalogProgram[], max = 5): CoreNode[] {
-  const step = 360 / Math.max(1, Math.min(8, max));
-  return programs.slice(0, Math.max(3, Math.min(8, max))).map((p, i) => ({
-    label: p.title.length > 22 ? `${p.title.slice(0, 20)}…` : p.title,
-    hint: p.areas.length > 0 ? `${p.areas.length} áreas` : undefined,
-    to: "/programas/$slug",
-    params: { slug: p.slug },
-    angle: max === 5 ? NODE_ANGLES[i] ?? i * step : i * step,
-  }));
-}
 
 /* ------------------------------------------------------------- vista alumno */
 
@@ -260,6 +249,7 @@ function EnrolledView({
   manual = [],
   greeting,
   coreIntensity,
+  envBase,
   reducedMotion,
   lowPower,
 }: {
@@ -270,6 +260,7 @@ function EnrolledView({
   manual?: { node: { slug: string; title: string } | null; expires_at: string | null }[];
   greeting: string;
   coreIntensity: number;
+  envBase: "light" | "dark";
   reducedMotion: boolean;
   lowPower: boolean;
 }) {
@@ -376,12 +367,13 @@ function EnrolledView({
 
             {/* MEDICAL CORE */}
             {cfg.showCore && (
-            <div className="flex items-center justify-center py-6">
-              <MedicalCore
-                nodes={coreNodesFrom(programs, cfg.coreMaxNodes)}
+            <div className="flex items-center justify-center py-4">
+              <AnatomicalCore
                 intensity={coreIntensity}
+                base={envBase}
                 reducedMotion={reducedMotion}
                 lowPower={lowPower}
+                contextLabel={focus ? focus.title : undefined}
               />
             </div>
             )}
@@ -585,6 +577,7 @@ function LockedView({
   displayName,
   greeting,
   coreIntensity,
+  envBase,
   reducedMotion,
   lowPower,
 }: {
@@ -594,6 +587,7 @@ function LockedView({
   displayName: string;
   greeting: string;
   coreIntensity: number;
+  envBase: "light" | "dark";
   reducedMotion: boolean;
   lowPower: boolean;
 }) {
@@ -673,13 +667,9 @@ function LockedView({
         </div>
 
         <div className="flex items-center justify-center">
-          <MedicalCore
-            nodes={programs.slice(0, 5).map((p, i) => ({
-              label: p.title.length > 22 ? `${p.title.slice(0, 20)}…` : p.title,
-              hint: "Premium",
-              angle: NODE_ANGLES[i] ?? i * 72,
-            }))}
+          <AnatomicalCore
             intensity={coreIntensity}
+            base={envBase}
             reducedMotion={reducedMotion}
             lowPower={lowPower}
           />
