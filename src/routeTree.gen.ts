@@ -21,6 +21,7 @@ import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as ContenidoProgramRouteImport } from './routes/contenido.$program'
 import { Route as ApiCmsImageRouteImport } from './routes/api/cms-image'
 import { Route as AcademiaCienciasClinicasRouteImport } from './routes/academia.ciencias-clinicas'
+import { Route as AuthenticatedMisCursosRouteImport } from './routes/_authenticated/mis-cursos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBienvenidaRouteImport } from './routes/_authenticated/bienvenida'
 import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
@@ -100,6 +101,11 @@ const AcademiaCienciasClinicasRoute =
     path: '/academia/ciencias-clinicas',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedMisCursosRoute = AuthenticatedMisCursosRouteImport.update({
+  id: '/mis-cursos',
+  path: '/mis-cursos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/mis-cursos': typeof AuthenticatedMisCursosRoute
   '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/contenido/$program': typeof ContenidoProgramRoute
@@ -242,6 +249,7 @@ export interface FileRoutesByTo {
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/mis-cursos': typeof AuthenticatedMisCursosRoute
   '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/contenido/$program': typeof ContenidoProgramRoute
@@ -275,6 +283,7 @@ export interface FileRoutesById {
   '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
   '/_authenticated/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/mis-cursos': typeof AuthenticatedMisCursosRoute
   '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/contenido/$program': typeof ContenidoProgramRoute
@@ -308,6 +317,7 @@ export interface FileRouteTypes {
     | '/anatomy-lab'
     | '/bienvenida'
     | '/dashboard'
+    | '/mis-cursos'
     | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/contenido/$program'
@@ -339,6 +349,7 @@ export interface FileRouteTypes {
     | '/anatomy-lab'
     | '/bienvenida'
     | '/dashboard'
+    | '/mis-cursos'
     | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/contenido/$program'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/_authenticated/anatomy-lab'
     | '/_authenticated/bienvenida'
     | '/_authenticated/dashboard'
+    | '/_authenticated/mis-cursos'
     | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/contenido/$program'
@@ -502,6 +514,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/academia/ciencias-clinicas'
       preLoaderRoute: typeof AcademiaCienciasClinicasRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/mis-cursos': {
+      id: '/_authenticated/mis-cursos'
+      path: '/mis-cursos'
+      fullPath: '/mis-cursos'
+      preLoaderRoute: typeof AuthenticatedMisCursosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -653,6 +672,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAnatomyLabRoute: typeof AuthenticatedAnatomyLabRoute
   AuthenticatedBienvenidaRoute: typeof AuthenticatedBienvenidaRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMisCursosRoute: typeof AuthenticatedMisCursosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -661,6 +681,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAnatomyLabRoute: AuthenticatedAnatomyLabRoute,
   AuthenticatedBienvenidaRoute: AuthenticatedBienvenidaRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMisCursosRoute: AuthenticatedMisCursosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
