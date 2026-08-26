@@ -318,38 +318,18 @@ export function PediatriaNeoContenido({
         </button>
       )}
 
-      {/* Categorías / subcategorías / temas */}
-      <div className="mt-6 space-y-3">
-        {children.map((cat) => (
-          <BranchCard
-            key={cat.id}
-            node={cat}
-            siblings={children}
-            accent={accent}
-            isAdmin={!!isAdmin}
-            scope={cmsScope}
-            forceOpen={query.trim().length > 0}
-            onOpenPharma={() => setPharmaOpen(true)}
-          />
-        ))}
-        {children.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border/60 bg-background/40 p-8 text-center text-sm text-muted-foreground">
-            {query.trim()
-              ? `Sin coincidencias para "${query}".`
-              : isAdmin
-                ? "Este bloque aún no tiene categorías. Crea la primera abajo."
-                : "Contenido en preparación."}
-          </div>
-        )}
-        {isAdmin && block && (
-          <AddChildForm
-            parent={block}
-            siblings={block.children.length}
-            scope={cmsScope}
-            accent={accent}
-          />
-        )}
-      </div>
+      {/* Explorar categorías → categoría → temas */}
+      <CategoryBrowser
+        block={block}
+        children={children}
+        accent={accent}
+        isAdmin={!!isAdmin}
+        scope={cmsScope}
+        searching={query.trim().length > 0}
+        query={query}
+        onOpenPharma={() => setPharmaOpen(true)}
+      />
+
 
       <div className="mt-8 rounded-2xl border border-border/50 bg-background/40 p-4 text-xs text-muted-foreground leading-relaxed">
         <div className="flex items-center gap-2 mb-1">
