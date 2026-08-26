@@ -282,16 +282,16 @@ export function DeckEditor({
           </button>
         </div>
       </div>
-
-      {preview && (
-        <DeckViewer
-          deck={deck}
-          title={nodeTitle}
-          accent={accent}
-          badge="Previsualización"
-          onClose={() => setPreview(false)}
-        />
-      )}
     </div>
+
+    {preview && (
+      <DeckViewer
+        deck={deck}
+        title={nodeTitle}
+        accent={accent}
+        badge="Previsualización"
+        onClose={() => setPreview(false)}
+      />
+    )}
   );
 }
