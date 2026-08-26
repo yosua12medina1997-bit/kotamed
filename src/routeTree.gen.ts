@@ -24,6 +24,7 @@ import { Route as AcademiaCienciasClinicasRouteImport } from './routes/academia.
 import { Route as AuthenticatedMisCursosRouteImport } from './routes/_authenticated/mis-cursos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBienvenidaRouteImport } from './routes/_authenticated/bienvenida'
+import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
 import { Route as AuthenticatedAdmisionRouteImport } from './routes/_authenticated/admision'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -114,6 +115,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedBienvenidaRoute = AuthenticatedBienvenidaRouteImport.update({
   id: '/bienvenida',
   path: '/bienvenida',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
+  id: '/biblioteca',
+  path: '/biblioteca',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAnatomyLabRoute = AuthenticatedAnatomyLabRouteImport.update({
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/mis-cursos': typeof AuthenticatedMisCursosRoute
@@ -247,6 +254,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/mis-cursos': typeof AuthenticatedMisCursosRoute
@@ -281,6 +289,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/admision': typeof AuthenticatedAdmisionRoute
   '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/mis-cursos': typeof AuthenticatedMisCursosRoute
@@ -315,6 +324,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admision'
     | '/anatomy-lab'
+    | '/biblioteca'
     | '/bienvenida'
     | '/dashboard'
     | '/mis-cursos'
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admision'
     | '/anatomy-lab'
+    | '/biblioteca'
     | '/bienvenida'
     | '/dashboard'
     | '/mis-cursos'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/admision'
     | '/_authenticated/anatomy-lab'
+    | '/_authenticated/biblioteca'
     | '/_authenticated/bienvenida'
     | '/_authenticated/dashboard'
     | '/_authenticated/mis-cursos'
@@ -536,6 +548,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBienvenidaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/biblioteca': {
+      id: '/_authenticated/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof AuthenticatedBibliotecaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/anatomy-lab': {
       id: '/_authenticated/anatomy-lab'
       path: '/anatomy-lab'
@@ -670,6 +689,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAdmisionRoute: typeof AuthenticatedAdmisionRoute
   AuthenticatedAnatomyLabRoute: typeof AuthenticatedAnatomyLabRoute
+  AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedBienvenidaRoute: typeof AuthenticatedBienvenidaRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMisCursosRoute: typeof AuthenticatedMisCursosRoute
@@ -679,6 +699,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAdmisionRoute: AuthenticatedAdmisionRoute,
   AuthenticatedAnatomyLabRoute: AuthenticatedAnatomyLabRoute,
+  AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedBienvenidaRoute: AuthenticatedBienvenidaRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMisCursosRoute: AuthenticatedMisCursosRoute,
