@@ -29,6 +29,7 @@ import {
   useMyEnrollments,
   useMyProfile,
   useMyRoles,
+  useIsSuperAdmin,
   useSupabaseUser,
   ROLE_LABELS,
   type Enrollment,
@@ -40,6 +41,13 @@ import { useMyProgramEnrollments } from "@/lib/enrollments";
 import { NexusShell } from "@/components/nexus/NexusShell";
 import { MedicalCore, type CoreNode } from "@/components/nexus/MedicalCore";
 import { useNexusEnv } from "@/lib/nexus-theme";
+import {
+  DEFAULT_NEXUS_DASHBOARD,
+  fillTemplate,
+  useNexusDashboardConfig,
+  type DashboardAction,
+  type NexusDashboardConfig,
+} from "@/lib/nexus-dashboard-cms";
 import { useEffect } from "react";
 
 /** Accesos incluidos en la experiencia Free (sin matrícula). */
@@ -78,6 +86,7 @@ function DashboardPage() {
   const qc = useQueryClient();
   const env = useNexusEnv();
   const { data: isAdmin } = useIsAdmin(user?.id);
+  const { data: isSuperAdmin } = useIsSuperAdmin(user?.id);
   const { data: profile } = useMyProfile(user?.id);
   const { data: roles } = useMyRoles(user?.id);
   const enrollmentsQ = useMyEnrollments(user?.id);
@@ -138,6 +147,7 @@ function DashboardPage() {
           active={active}
           displayName={displayName}
           isAdmin={!!isAdmin}
+          isSuperAdmin={!!isSuperAdmin}
           manual={manualQ.data ?? []}
           greeting={env.greeting}
           coreIntensity={env.coreIntensity}
@@ -220,13 +230,23 @@ function Ring({ value, size = 76 }: { value: number; size?: number }) {
 
 const NODE_ANGLES = [0, 72, 144, 216, 288];
 
-function coreNodesFrom(programs: CatalogProgram[]): CoreNode[] {
-  return programs.slice(0, 5).map((p, i) => ({
+const ACTION_ICONS: Record<DashboardAction["icon"], React.ReactNode> = {
+  book: <BookOpen className="size-4" />,
+  case: <Stethoscope className="size-4" />,
+  brain: <Brain className="size-4" />,
+  calc: <Calculator className="size-4" />,
+  library: <Library className="size-4" />,
+  spark: <Sparkles className="size-4" />,
+};
+
+function coreNodesFrom(programs: CatalogProgram[], max = 5): CoreNode[] {
+  const step = 360 / Math.max(1, Math.min(8, max));
+  return programs.slice(0, Math.max(3, Math.min(8, max))).map((p, i) => ({
     label: p.title.length > 22 ? `${p.title.slice(0, 20)}…` : p.title,
     hint: p.areas.length > 0 ? `${p.areas.length} áreas` : undefined,
     to: "/programas/$slug",
     params: { slug: p.slug },
-    angle: NODE_ANGLES[i] ?? i * 72,
+    angle: max === 5 ? NODE_ANGLES[i] ?? i * step : i * step,
   }));
 }
 
@@ -236,6 +256,7 @@ function EnrolledView({
   active,
   displayName,
   isAdmin,
+  isSuperAdmin,
   manual = [],
   greeting,
   coreIntensity,
@@ -245,17 +266,20 @@ function EnrolledView({
   active: Enrollment[];
   displayName: string;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   manual?: { node: { slug: string; title: string } | null; expires_at: string | null }[];
   greeting: string;
   coreIntensity: number;
   reducedMotion: boolean;
   lowPower: boolean;
 }) {
-  // El administrador ve absolutamente todos los programas, incluidos los que
+  // Solo el Super Admin ve absolutamente todos los programas, incluidos los que
   // viven dentro de bibliotecas internas y los que están en borrador.
-  const { programs } = useProgramCatalog({ includeIsolated: isAdmin });
+  const { data: cfgData } = useNexusDashboardConfig();
+  const cfg: NexusDashboardConfig = cfgData ?? DEFAULT_NEXUS_DASHBOARD;
+  const { programs } = useProgramCatalog({ includeIsolated: isSuperAdmin });
 
-  const mine = isAdmin
+  const mine = isSuperAdmin
     ? programs.map((p) => ({ slug: p.slug, expires_at: null as string | null }))
     : [
         ...active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at })),
@@ -287,30 +311,32 @@ function EnrolledView({
         <div className="space-y-6">
           <header>
             <h1 className="text-[28px] font-black tracking-tight sm:text-[34px]">
-              {greeting}, {displayName} <span className="align-middle">👋</span>
+              {fillTemplate(cfg.headline, { saludo: greeting, nombre: displayName })}{" "}
+              <span className="align-middle">👋</span>
             </h1>
             <p className="mt-1.5 text-sm opacity-60">
               {myPrograms.length > 0
                 ? `Tienes ${myPrograms.length} programa${myPrograms.length === 1 ? "" : "s"} activo${myPrograms.length === 1 ? "" : "s"} y ${totalAreas} área${totalAreas === 1 ? "" : "s"} por explorar.`
-                : "Tu entorno de inteligencia médica está listo."}
+                : cfg.subtitle}
             </p>
           </header>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
             {/* Continúa donde lo dejaste */}
+            {cfg.showContinue && (
             <Panel className="flex flex-col p-6">
               <span className="inline-flex w-fit items-center gap-2 rounded-xl bg-[color:var(--nexus-teal)]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-[color:var(--nexus-teal)]">
-                <Play className="size-3" strokeWidth={3} /> Continúa donde lo dejaste
+                <Play className="size-3" strokeWidth={3} /> {cfg.continueEyebrow}
               </span>
               <h2 className="mt-4 text-[22px] font-black leading-tight tracking-tight">
-                {focus?.title ?? "Comienza tu primer módulo"}
+                {focus?.title ?? cfg.continueEmptyTitle}
               </h2>
               <p className="mt-1 text-xs font-semibold opacity-55">{focus?.subtitle}</p>
               <div className="mt-5 flex items-center gap-4">
                 <Ring value={focus ? 0 : 0} size={64} />
                 <div className="min-w-0 flex-1">
                   <div className="text-[10px] font-black uppercase tracking-[0.18em] opacity-55">
-                    Completado
+                    {cfg.completedLabel}
                   </div>
                   <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--nexus-border)]">
                     <div className="h-full w-[6%] rounded-full bg-[color:var(--nexus-cyan)]" />
@@ -335,42 +361,46 @@ function EnrolledView({
                   className="mt-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[color:var(--nexus-teal)] px-5 py-3.5 pt-3.5 text-sm font-black text-white transition hover:-translate-y-0.5"
                   style={{ marginTop: "1.75rem" }}
                 >
-                  Continuar aprendiendo <ArrowRight className="size-4" strokeWidth={2.6} />
+                  {cfg.continueCta} <ArrowRight className="size-4" strokeWidth={2.6} />
                 </Link>
               ) : (
                 <Link
                   to="/programas"
                   className="mt-7 inline-flex items-center justify-center gap-2 rounded-2xl bg-[color:var(--nexus-teal)] px-5 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5"
                 >
-                  Explorar programas <ArrowRight className="size-4" strokeWidth={2.6} />
+                  {cfg.continueEmptyCta} <ArrowRight className="size-4" strokeWidth={2.6} />
                 </Link>
               )}
             </Panel>
+            )}
 
             {/* MEDICAL CORE */}
+            {cfg.showCore && (
             <div className="flex items-center justify-center py-6">
               <MedicalCore
-                nodes={coreNodesFrom(programs)}
+                nodes={coreNodesFrom(programs, cfg.coreMaxNodes)}
                 intensity={coreIntensity}
                 reducedMotion={reducedMotion}
                 lowPower={lowPower}
               />
             </div>
+            )}
           </div>
 
           {/* Mis cursos en progreso */}
+          {cfg.showCourses && (
           <section>
             <div className="mb-3 flex items-center justify-between">
-              <Eyebrow>Mis cursos en progreso</Eyebrow>
+              <Eyebrow>{cfg.coursesTitle}</Eyebrow>
               <Link
                 to="/programas"
                 className="inline-flex items-center gap-1.5 text-[11px] font-black text-[color:var(--nexus-teal)]"
               >
-                Ver todos mis cursos <ArrowRight className="size-3.5" />
+                {cfg.coursesLinkLabel} <ArrowRight className="size-3.5" />
               </Link>
             </div>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {myPrograms.slice(0, 3).map((p) => (
+              {myPrograms.slice(0, cfg.coursesMax).map((p) => (
                 <Link
                   key={p.slug}
                   to="/programas/$slug"
@@ -401,12 +431,14 @@ function EnrolledView({
               ))}
             </div>
           </section>
+          )}
         </div>
 
         {/* Columna lateral */}
         <aside className="space-y-5">
+          {cfg.showProgress && (
           <Panel className="p-6">
-            <Eyebrow>Tu progreso general</Eyebrow>
+            <Eyebrow>{cfg.progressTitle}</Eyebrow>
             <div className="mt-5 flex items-center gap-5">
               <Ring value={myPrograms.length > 0 ? Math.min(96, myPrograms.length * 12) : 0} />
               <ul className="space-y-2 text-[11px] font-bold">
@@ -422,7 +454,7 @@ function EnrolledView({
             <div className="mt-5 flex items-center justify-between border-t border-[color:var(--nexus-border)] pt-4">
               <div>
                 <div className="text-[9px] font-black uppercase tracking-[0.2em] opacity-50">
-                  Nivel actual
+                  {cfg.levelLabel}
                 </div>
                 <div className="mt-1 text-sm font-black">
                   {isAdmin ? "Acceso total" : myPrograms.length > 1 ? "Avanzado" : "En ruta"}
@@ -432,36 +464,34 @@ function EnrolledView({
                 to="/programas"
                 className="inline-flex items-center gap-1.5 rounded-xl border border-[color:var(--nexus-border)] px-3 py-2 text-[11px] font-black"
               >
-                Ver mi progreso <ArrowRight className="size-3.5" />
+                {cfg.progressCta} <ArrowRight className="size-3.5" />
               </Link>
             </div>
           </Panel>
+          )}
 
+          {cfg.showToday && (
           <Panel className="p-6">
-            <Eyebrow>Hoy para ti</Eyebrow>
+            <Eyebrow>{cfg.todayTitle}</Eyebrow>
             <div className="mt-4 space-y-2">
-              <Action
-                icon={<BookOpen className="size-4" />}
-                title="Continuar clase"
-                hint={focus?.title ?? "Elige un programa"}
-                to={focus ? "/programas/$slug" : "/programas"}
-                params={focus ? { slug: focus.slug } : undefined}
-              />
-              <Action
-                icon={<Stethoscope className="size-4" />}
-                title="Resolver un caso"
-                hint="Casos clínicos guiados"
-                to="/programas/kotamed-apex"
-              />
-              <Action
-                icon={<Brain className="size-4" />}
-                title="Repasar flashcards"
-                hint="Repaso espaciado"
-                to="/programas"
-              />
+              {cfg.todayActions.map((a, i) => {
+                const dynamic = !a.to.trim();
+                return (
+                  <Action
+                    key={`${a.title}-${i}`}
+                    icon={ACTION_ICONS[a.icon] ?? ACTION_ICONS.book}
+                    title={a.title}
+                    hint={dynamic ? focus?.title ?? "Elige un programa" : a.hint}
+                    to={dynamic ? (focus ? "/programas/$slug" : "/programas") : a.to}
+                    params={dynamic && focus ? { slug: focus.slug } : undefined}
+                  />
+                );
+              })}
             </div>
           </Panel>
+          )}
 
+          {cfg.showAi && (
           <Panel className="relative overflow-hidden p-6">
             <div
               aria-hidden
@@ -472,17 +502,16 @@ function EnrolledView({
                 filter: "blur(18px)",
               }}
             />
-            <h3 className="text-lg font-black tracking-tight">KOTA AI</h3>
-            <p className="mt-1 text-[11px] font-semibold opacity-60">
-              Tu asistente médico inteligente
-            </p>
+            <h3 className="text-lg font-black tracking-tight">{cfg.aiTitle}</h3>
+            <p className="mt-1 text-[11px] font-semibold opacity-60">{cfg.aiSubtitle}</p>
             <Link
-              to="/anatomy-lab"
+              to={cfg.aiTo || "/anatomy-lab"}
               className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[color:var(--nexus-border)] bg-[color:var(--nexus-teal)]/10 px-4 py-3 text-xs font-black text-[color:var(--nexus-teal)] transition hover:-translate-y-0.5"
             >
-              Pregúntame cualquier cosa <ArrowRight className="size-3.5" />
+              {cfg.aiCta} <ArrowRight className="size-3.5" />
             </Link>
           </Panel>
+          )}
 
           {isAdmin && (
             <Panel className="p-5">
