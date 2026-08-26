@@ -998,6 +998,16 @@ function TopicDetail({
     setPresenterOpen(true);
   };
 
+  // Al pulsar “Abrir tema” en la tarjeta, mostrar el contenido de inmediato.
+  useEffect(() => {
+    if (!autoOpen) return;
+    if (deckReady || deckForAdmin) setDeckOpen(true);
+    else if (storedTopic) setPresenterOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
+
+
+
   return (
     <div className="px-4 pb-4 pt-1">
       <div className="mb-3 flex flex-wrap items-center gap-2">
