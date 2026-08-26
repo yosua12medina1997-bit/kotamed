@@ -856,14 +856,7 @@ function BranchCard({
           )}
           <ul className="divide-y divide-border/40">
             {topics.map((topic) => (
-              <TopicRow
-                key={topic.id}
-                node={topic}
-                siblings={topics}
-                accent={accent}
-                isAdmin={isAdmin}
-                scope={scope}
-              />
+              <TopicRow key={topic.id} node={topic} accent={accent} />
             ))}
             {isAdmin && (
               <li className="bg-background/30 px-4 py-2.5">
