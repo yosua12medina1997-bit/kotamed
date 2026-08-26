@@ -22,7 +22,9 @@ import {
   ListChecks,
   Loader2,
   Pencil,
+  Image as ImageIcon,
   Play,
+
   Plus,
   Save,
   Search,
@@ -35,7 +37,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { useIsAdmin, useMyRoles, useSupabaseUser } from "@/lib/session";
 import {
   PEDIATRIA_NEONATOLOGIA_BLUEPRINT,
   type BlueprintBlock,
@@ -44,6 +46,10 @@ import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
 import { TopicPresenter } from "@/components/topic/TopicPresenter";
 import { TopicEditor } from "@/components/topic/TopicEditor";
+import { DeckViewer } from "@/components/topic/DeckViewer";
+import { DeckEditor } from "@/components/topic/DeckEditor";
+import { DECK_STATUS_LABEL, isDeckVisible, readDeck, type TopicDeck } from "@/lib/topic-deck";
+
 import { PharmaWorkspace } from "@/components/pharma/PharmaWorkspace";
 import {
   KIND_LABEL,
@@ -582,12 +588,21 @@ function TopicDetail({
   const [tab, setTab] = useState<"secciones" | "recursos">("recursos");
   const [presenterOpen, setPresenterOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
+  const [deckOpen, setDeckOpen] = useState(false);
+  const [deckEditorOpen, setDeckEditorOpen] = useState(false);
   const qc = useQueryClient();
   const mut = useCmsMutations(scope);
+  const user = useSupabaseUser();
+  const { data: myRoles = [] } = useMyRoles(user?.id);
+  const isSuperAdmin = myRoles.includes("super_admin");
 
   const storedTopic: Topic | null = (node.metadata?.topic as Topic | undefined) ?? null;
+  const [deck, setDeck] = useState<TopicDeck | null>(() => readDeck(node.metadata));
+  const deckReady = isDeckVisible(deck);
+  const deckForAdmin = isSuperAdmin && !!deck && deck.slides.length > 0;
   const sections: string[] = Array.isArray(node.metadata?.sections) ? node.metadata.sections : [];
   const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
+
 
   const saveTopicMut = useMutation({
     mutationFn: async (t: Topic) => {
@@ -612,6 +627,11 @@ function TopicDetail({
     );
 
   const openPresenter = () => {
+    // Prioridad: diapositivas visuales publicadas > contenido textual.
+    if (deckReady || deckForAdmin) {
+      setDeckOpen(true);
+      return;
+    }
     if (!storedTopic) {
       toast.info(
         isAdmin
@@ -633,7 +653,30 @@ function TopicDetail({
         >
           <Play className="size-3" /> Abrir tema
         </button>
+        {(deckReady || deckForAdmin) && (
+          <span className="inline-flex items-center gap-1 rounded-lg border border-border/60 px-2 py-1 text-[10px] font-bold text-muted-foreground">
+            <ImageIcon className="size-3" /> {deck?.slides.length} diapositivas
+            {!deckReady && " · borrador"}
+          </span>
+        )}
+        {(deckReady || deckForAdmin) && storedTopic && (
+          <button
+            onClick={() => setPresenterOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
+          >
+            Material complementario
+          </button>
+        )}
+        {isSuperAdmin && (
+          <button
+            onClick={() => setDeckEditorOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/[0.08] px-2.5 py-1.5 text-[11px] font-bold text-amber-600 hover:bg-amber-500/15"
+          >
+            <ImageIcon className="size-3" /> Contenido visual del tema
+          </button>
+        )}
         {isAdmin && (
+
           <button
             onClick={() => setEditorOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/[0.06] px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10"
@@ -726,6 +769,30 @@ function TopicDetail({
           saving={saveTopicMut.isPending}
         />
       )}
+      {deckOpen && deck && deck.slides.length > 0 && (
+        <DeckViewer
+          deck={deck}
+          title={node.title}
+          accent={accent}
+          badge={deck.status !== "published" ? DECK_STATUS_LABEL[deck.status] : undefined}
+          onClose={() => setDeckOpen(false)}
+        />
+      )}
+      {deckEditorOpen && isSuperAdmin && (
+        <DeckEditor
+          nodeId={node.id}
+          nodeTitle={node.title}
+          metadata={node.metadata}
+          initialDeck={deck}
+          accent={accent}
+          onClose={() => setDeckEditorOpen(false)}
+          onSaved={(d) => {
+            setDeck(d);
+            void qc.invalidateQueries();
+          }}
+        />
+      )}
+
     </div>
   );
 }
