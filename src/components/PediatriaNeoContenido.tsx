@@ -46,6 +46,10 @@ import type { EnamAreaMeta } from "@/lib/enam-modules";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
 import { TopicPresenter } from "@/components/topic/TopicPresenter";
 import { TopicEditor } from "@/components/topic/TopicEditor";
+import { DeckViewer } from "@/components/topic/DeckViewer";
+import { DeckEditor } from "@/components/topic/DeckEditor";
+import { DECK_STATUS_LABEL, isDeckVisible, readDeck, type TopicDeck } from "@/lib/topic-deck";
+
 import { PharmaWorkspace } from "@/components/pharma/PharmaWorkspace";
 import {
   KIND_LABEL,
