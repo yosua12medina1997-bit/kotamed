@@ -16,6 +16,7 @@ import {
   type DeckStatus,
   type TopicDeck,
 } from "@/lib/topic-deck";
+import { publishNodeBranch } from "@/lib/content-publish";
 
 interface Props {
   nodeId: string;
@@ -104,6 +105,8 @@ export function DeckEditor({
     setBusy(true);
     try {
       const saved = await saveDeck(nodeId, metadata, { ...deck, status });
+      // Al publicar, el tema y sus ancestros quedan visibles para los alumnos.
+      if (status === "published") await publishNodeBranch(nodeId);
       setDeck(saved);
       onSaved(saved);
       toast.success(
