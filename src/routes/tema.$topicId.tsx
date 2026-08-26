@@ -43,6 +43,7 @@ import { TopicEditor } from "@/components/topic/TopicEditor";
 import { ResourcesPanelStandalone } from "@/components/ResourcesPanelStandalone";
 import { ImagePicker } from "@/components/cms/ImagePicker";
 import type { Topic } from "@/lib/topic-schema";
+import { useTrackActivity } from "@/lib/learning-activity";
 
 export const Route = createFileRoute("/tema/$topicId")({
   head: () => ({
@@ -103,6 +104,21 @@ function TopicPage() {
   const notes = resources.filter((r) => r.kind === "text");
   const docs = resources.filter((r) => r.kind === "file");
   const links = resources.filter((r) => r.kind === "link");
+
+  const track = useTrackActivity();
+  useEffect(() => {
+    if (!topic || !user?.id) return;
+    track.mutate({
+      nodeId: topic.id,
+      topicId: topic.id,
+      label: topic.title,
+      kind: "tema",
+      path: `/tema/${topic.id}`,
+      progressPct: 10,
+    });
+    // Solo al abrir el tema.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topic?.id, user?.id]);
 
   const siblings = q.data?.siblings ?? [];
   const idx = siblings.findIndex((s) => s.id === topic?.id);

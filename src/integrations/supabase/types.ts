@@ -3264,6 +3264,249 @@ export type Database = {
         }
         Relationships: []
       }
+      learning_activity: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string | null
+          label: string | null
+          last_seen_at: string
+          node_id: string | null
+          path: string | null
+          program_slug: string | null
+          progress_pct: number
+          topic_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string | null
+          label?: string | null
+          last_seen_at?: string
+          node_id?: string | null
+          path?: string | null
+          program_slug?: string | null
+          progress_pct?: number
+          topic_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string | null
+          label?: string | null
+          last_seen_at?: string
+          node_id?: string | null
+          path?: string | null
+          program_slug?: string | null
+          progress_pct?: number
+          topic_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_activity_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "content_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      library_categories: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_published: boolean
+          name: string
+          parent_id: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_published?: boolean
+          name: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_published?: boolean
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "library_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      library_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          resource_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          resource_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          resource_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_favorites_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "library_resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      library_resources: {
+        Row: {
+          access_level: string
+          author: string | null
+          bibliographic_source: string | null
+          category_id: string | null
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          doi: string | null
+          external_url: string | null
+          file_url: string | null
+          id: string
+          is_featured: boolean
+          published_at: string | null
+          publisher: string | null
+          related_nodes: string[]
+          resource_type: string
+          sort_order: number
+          specialty: string | null
+          status: string
+          subcategory_id: string | null
+          subtitle: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+          video_url: string | null
+          view_count: number
+          year: number | null
+        }
+        Insert: {
+          access_level?: string
+          author?: string | null
+          bibliographic_source?: string | null
+          category_id?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          doi?: string | null
+          external_url?: string | null
+          file_url?: string | null
+          id?: string
+          is_featured?: boolean
+          published_at?: string | null
+          publisher?: string | null
+          related_nodes?: string[]
+          resource_type?: string
+          sort_order?: number
+          specialty?: string | null
+          status?: string
+          subcategory_id?: string | null
+          subtitle?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+          video_url?: string | null
+          view_count?: number
+          year?: number | null
+        }
+        Update: {
+          access_level?: string
+          author?: string | null
+          bibliographic_source?: string | null
+          category_id?: string | null
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          doi?: string | null
+          external_url?: string | null
+          file_url?: string | null
+          id?: string
+          is_featured?: boolean
+          published_at?: string | null
+          publisher?: string | null
+          related_nodes?: string[]
+          resource_type?: string
+          sort_order?: number
+          specialty?: string | null
+          status?: string
+          subcategory_id?: string | null
+          subtitle?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          view_count?: number
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_resources_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "library_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "library_resources_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "library_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_plans: {
         Row: {
           color: string

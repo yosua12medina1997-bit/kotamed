@@ -21,8 +21,10 @@ import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as ContenidoProgramRouteImport } from './routes/contenido.$program'
 import { Route as ApiCmsImageRouteImport } from './routes/api/cms-image'
 import { Route as AcademiaCienciasClinicasRouteImport } from './routes/academia.ciencias-clinicas'
+import { Route as AuthenticatedMisCursosRouteImport } from './routes/_authenticated/mis-cursos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedBienvenidaRouteImport } from './routes/_authenticated/bienvenida'
+import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedAnatomyLabRouteImport } from './routes/_authenticated/anatomy-lab'
 import { Route as AuthenticatedAdmisionRouteImport } from './routes/_authenticated/admision'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -100,6 +102,11 @@ const AcademiaCienciasClinicasRoute =
     path: '/academia/ciencias-clinicas',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedMisCursosRoute = AuthenticatedMisCursosRouteImport.update({
+  id: '/mis-cursos',
+  path: '/mis-cursos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -108,6 +115,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedBienvenidaRoute = AuthenticatedBienvenidaRouteImport.update({
   id: '/bienvenida',
   path: '/bienvenida',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
+  id: '/biblioteca',
+  path: '/biblioteca',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAnatomyLabRoute = AuthenticatedAnatomyLabRouteImport.update({
@@ -209,8 +221,10 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/mis-cursos': typeof AuthenticatedMisCursosRoute
   '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/contenido/$program': typeof ContenidoProgramRoute
@@ -240,8 +254,10 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admision': typeof AuthenticatedAdmisionRoute
   '/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/mis-cursos': typeof AuthenticatedMisCursosRoute
   '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/contenido/$program': typeof ContenidoProgramRoute
@@ -273,8 +289,10 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/admision': typeof AuthenticatedAdmisionRoute
   '/_authenticated/anatomy-lab': typeof AuthenticatedAnatomyLabRoute
+  '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/bienvenida': typeof AuthenticatedBienvenidaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/mis-cursos': typeof AuthenticatedMisCursosRoute
   '/academia/ciencias-clinicas': typeof AcademiaCienciasClinicasRoute
   '/api/cms-image': typeof ApiCmsImageRoute
   '/contenido/$program': typeof ContenidoProgramRoute
@@ -306,8 +324,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admision'
     | '/anatomy-lab'
+    | '/biblioteca'
     | '/bienvenida'
     | '/dashboard'
+    | '/mis-cursos'
     | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/contenido/$program'
@@ -337,8 +357,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admision'
     | '/anatomy-lab'
+    | '/biblioteca'
     | '/bienvenida'
     | '/dashboard'
+    | '/mis-cursos'
     | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/contenido/$program'
@@ -369,8 +391,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/admision'
     | '/_authenticated/anatomy-lab'
+    | '/_authenticated/biblioteca'
     | '/_authenticated/bienvenida'
     | '/_authenticated/dashboard'
+    | '/_authenticated/mis-cursos'
     | '/academia/ciencias-clinicas'
     | '/api/cms-image'
     | '/contenido/$program'
@@ -503,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademiaCienciasClinicasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/mis-cursos': {
+      id: '/_authenticated/mis-cursos'
+      path: '/mis-cursos'
+      fullPath: '/mis-cursos'
+      preLoaderRoute: typeof AuthenticatedMisCursosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -515,6 +546,13 @@ declare module '@tanstack/react-router' {
       path: '/bienvenida'
       fullPath: '/bienvenida'
       preLoaderRoute: typeof AuthenticatedBienvenidaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/biblioteca': {
+      id: '/_authenticated/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof AuthenticatedBibliotecaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/anatomy-lab': {
@@ -651,16 +689,20 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAdmisionRoute: typeof AuthenticatedAdmisionRoute
   AuthenticatedAnatomyLabRoute: typeof AuthenticatedAnatomyLabRoute
+  AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedBienvenidaRoute: typeof AuthenticatedBienvenidaRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMisCursosRoute: typeof AuthenticatedMisCursosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAdmisionRoute: AuthenticatedAdmisionRoute,
   AuthenticatedAnatomyLabRoute: AuthenticatedAnatomyLabRoute,
+  AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedBienvenidaRoute: AuthenticatedBienvenidaRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMisCursosRoute: AuthenticatedMisCursosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

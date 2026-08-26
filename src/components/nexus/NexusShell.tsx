@@ -8,18 +8,12 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Bell,
   BookOpen,
-  ClipboardList,
-  GraduationCap,
   Home,
-  Library,
   Moon,
   Search,
   Settings,
   Shield,
-  Sparkles,
-  Stethoscope,
   Sun,
-  BarChart3,
   UserRound,
   LogOut,
   ChevronDown,
@@ -27,16 +21,9 @@ import {
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import { ProfileDialog } from "@/components/profile/ProfileDialog";
 import type { Appearance, NexusEnv } from "@/lib/nexus-theme";
+import { NAV_ICONS, useNexusNav, visibleNavItems } from "@/lib/nexus-nav-cms";
+import { useIsSuperAdmin } from "@/lib/session";
 
-const NAV = [
-  { label: "Inicio", to: "/dashboard", icon: Home },
-  { label: "Mis cursos", to: "/programas", icon: GraduationCap },
-  { label: "Clínica", to: "/programas/internado/areas", icon: Stethoscope },
-  { label: "Kota AI", to: "/anatomy-lab", icon: Sparkles },
-  { label: "Evaluaciones", to: "/programas/kotamed-apex", icon: ClipboardList },
-  { label: "Biblioteca", to: "/programas", icon: Library },
-  { label: "Mi progreso", to: "/dashboard", icon: BarChart3 },
-] as const;
 
 export function NexusShell({
   env,
@@ -61,6 +48,13 @@ export function NexusShell({
 }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [profileOpen, setProfileOpen] = useState(false);
+  const { data: nav } = useNexusNav();
+  const isSuperAdmin = useIsSuperAdmin(userId || undefined).data ?? false;
+  const navItems = visibleNavItems(nav?.items ?? [], {
+    enrolled: true,
+    isAdmin: !!isAdmin,
+    isSuperAdmin,
+  });
 
   return (
     <div
@@ -88,22 +82,29 @@ export function NexusShell({
           </Link>
 
           <nav className="mt-8 space-y-1">
-            {NAV.map((item) => {
+            {navItems.map((item) => {
               const active = pathname === item.to;
+              const Icon = NAV_ICONS[item.icon] ?? Home;
+              const cls = `flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-[13px] font-bold transition ${
+                active ? "nexus-nav-active" : "nexus-nav"
+              }`;
+              if (item.newTab || /^https?:\/\//.test(item.to)) {
+                return (
+                  <a key={item.id} href={item.to} target="_blank" rel="noreferrer" className={cls}>
+                    <Icon className="size-[18px]" strokeWidth={2.1} />
+                    {item.label}
+                  </a>
+                );
+              }
               return (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-[13px] font-bold transition ${
-                    active ? "nexus-nav-active" : "nexus-nav"
-                  }`}
-                >
-                  <item.icon className="size-[18px]" strokeWidth={2.1} />
+                <Link key={item.id} to={item.to as never} className={cls}>
+                  <Icon className="size-[18px]" strokeWidth={2.1} />
                   {item.label}
                 </Link>
               );
             })}
           </nav>
+
 
           <div className="mt-8 border-t border-[color:var(--nexus-border)] pt-5">
             <div className="text-[9px] font-bold uppercase tracking-[0.24em] opacity-45">
@@ -141,7 +142,7 @@ export function NexusShell({
             <label className="nexus-search hidden flex-1 items-center gap-3 rounded-2xl px-4 py-2.5 md:flex">
               <Search className="size-4 opacity-55" strokeWidth={2.2} />
               <input
-                placeholder="Buscar cursos, temas, clases, casos..."
+                placeholder={nav?.searchPlaceholder ?? "Buscar cursos, temas, clases, casos..."}
                 className="w-full bg-transparent text-[13px] font-medium outline-none placeholder:opacity-45"
               />
               <kbd className="rounded-lg border border-[color:var(--nexus-border)] px-1.5 py-0.5 text-[10px] font-bold opacity-55">
@@ -335,7 +336,7 @@ function UserChip({
             <UserRound className="size-4" /> Mi perfil
           </button>
           <Link
-            to="/programas"
+            to="/mis-cursos"
             className="nexus-nav flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold"
             onClick={() => setOpen(false)}
           >

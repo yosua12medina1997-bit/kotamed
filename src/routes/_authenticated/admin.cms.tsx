@@ -91,6 +91,8 @@ import { EnamEditor } from "@/components/cms/EnamEditor";
 
 import { ProgramHubEditor } from "@/components/cms/ProgramHubEditor";
 import { NexusDashboardEditor } from "@/components/cms/NexusDashboardEditor";
+import { NexusNavEditor } from "@/components/cms/NexusNavEditor";
+import { LibraryStudio } from "@/components/cms/LibraryStudio";
 
 import { ContentBuilder } from "@/components/cms/ContentBuilder";
 import { CollectionsEditor } from "@/components/cms/CollectionsEditor";
@@ -131,6 +133,8 @@ type StudioView =
 
   | "programas"
   | "panel-alumno"
+  | "nav-alumno"
+  | "biblioteca"
   | "sitio";
 
 const MODULES: { id: StudioView; label: string; hint: string; icon: React.ElementType }[] = [
@@ -147,6 +151,8 @@ const MODULES: { id: StudioView; label: string; hint: string; icon: React.Elemen
   { id: "enam", label: "Preparación ENAM", hint: "Página pública /p/enam", icon: Sparkles },
 
   { id: "panel-alumno", label: "Panel del alumno", hint: "Dashboard Nexus /dashboard", icon: LayoutDashboard },
+  { id: "nav-alumno", label: "Menú del alumno", hint: "Accesos y rutas del panel", icon: Compass },
+  { id: "biblioteca", label: "Biblioteca Universal", hint: "Categorías y recursos /biblioteca", icon: Recycle },
   { id: "programas", label: "Programas (Hub)", hint: "Página pública /programas", icon: Sparkles },
   { id: "constructor", label: "Constructor de contenido", hint: "Programas, bloques, temas y recursos", icon: Layers },
   { id: "colecciones", label: "Colecciones", hint: "Contenido reutilizable", icon: Recycle },
@@ -772,6 +778,16 @@ function CmsStudioPage() {
       ) : view === "panel-alumno" ? (
         <div className="p-3">
           <NexusDashboardEditor />
+        </div>
+
+      ) : view === "nav-alumno" ? (
+        <div className="p-3">
+          <NexusNavEditor />
+        </div>
+
+      ) : view === "biblioteca" ? (
+        <div className="p-3">
+          <LibraryStudio />
         </div>
 
       ) : view === "programas" ? (
