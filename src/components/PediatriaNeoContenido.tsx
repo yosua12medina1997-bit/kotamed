@@ -621,6 +621,11 @@ function TopicDetail({
     );
 
   const openPresenter = () => {
+    // Prioridad: diapositivas visuales publicadas > contenido textual.
+    if (deckReady || deckForAdmin) {
+      setDeckOpen(true);
+      return;
+    }
     if (!storedTopic) {
       toast.info(
         isAdmin
@@ -642,7 +647,30 @@ function TopicDetail({
         >
           <Play className="size-3" /> Abrir tema
         </button>
+        {(deckReady || deckForAdmin) && (
+          <span className="inline-flex items-center gap-1 rounded-lg border border-border/60 px-2 py-1 text-[10px] font-bold text-muted-foreground">
+            <ImageIcon className="size-3" /> {deck?.slides.length} diapositivas
+            {!deckReady && " · borrador"}
+          </span>
+        )}
+        {(deckReady || deckForAdmin) && storedTopic && (
+          <button
+            onClick={() => setPresenterOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
+          >
+            Material complementario
+          </button>
+        )}
+        {isSuperAdmin && (
+          <button
+            onClick={() => setDeckEditorOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/[0.08] px-2.5 py-1.5 text-[11px] font-bold text-amber-600 hover:bg-amber-500/15"
+          >
+            <ImageIcon className="size-3" /> Contenido visual del tema
+          </button>
+        )}
         {isAdmin && (
+
           <button
             onClick={() => setEditorOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/[0.06] px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10"
