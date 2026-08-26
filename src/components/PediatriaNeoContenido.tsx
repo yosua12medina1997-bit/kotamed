@@ -650,7 +650,7 @@ function TopicGrid({
   );
 }
 
-/** Tarjeta de tema: portada, título, descripción, indicador y “Abrir tema”. */
+/** Tarjeta de tema: portada grande, metadatos y navegación a su página propia. */
 function TopicCard({
   node,
   index,
@@ -666,7 +666,6 @@ function TopicCard({
   isAdmin: boolean;
   scope: CmsScope;
 }) {
-  const [open, setOpen] = useState(false);
   const deck = readDeck(node.metadata);
   const hasDeck = !!deck && deck.slides.length > 0;
   const hasText = !!node.metadata?.topic;
@@ -674,30 +673,45 @@ function TopicCard({
   const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/50 bg-background/40 backdrop-blur transition hover:border-primary/30">
-      <div
-        className="relative h-28 w-full overflow-hidden"
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-background/40 backdrop-blur transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xl">
+      <Link
+        to="/tema/$topicId"
+        params={{ topicId: node.id }}
+        className="relative block h-40 w-full overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${accent}, transparent)` }}
       >
-        {cover && (
+        {cover ? (
           <img
             src={cover}
             alt={node.title}
             loading="lazy"
-            className="h-full w-full object-cover opacity-85"
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <span
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(120% 120% at 20% 0%, ${accent} 0%, transparent 65%)`,
+            }}
           />
         )}
-        <span className="absolute left-3 top-3 rounded-lg bg-black/40 px-2 py-0.5 text-[10px] font-extrabold text-white backdrop-blur">
+        <span className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <span className="absolute left-3 top-3 rounded-lg bg-black/45 px-2 py-0.5 text-[10px] font-extrabold text-white backdrop-blur">
           Tema {index}
         </span>
         {!node.is_published && (
-          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
             <EyeOff className="size-3" /> oculto
           </span>
         )}
-      </div>
-      <div className="p-4">
-        <p className="text-sm font-extrabold leading-snug tracking-tight">{node.title}</p>
+        {!cover && (
+          <span className="absolute inset-x-4 bottom-3 line-clamp-2 text-sm font-extrabold text-white">
+            {node.title}
+          </span>
+        )}
+      </Link>
+      <div className="flex flex-1 flex-col p-4">
+        <h3 className="text-sm font-extrabold leading-snug tracking-tight">{node.title}</h3>
         {node.description && (
           <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{node.description}</p>
         )}
@@ -723,27 +737,24 @@ function TopicCard({
             </span>
           )}
         </div>
-        <button
-          onClick={() => setOpen((p) => !p)}
-          className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-extrabold text-white shadow-sm transition hover:opacity-90"
-          style={{ background: accent }}
-        >
-          <Play className="size-3" /> {open ? "Cerrar tema" : "Abrir tema"}
-        </button>
-      </div>
-      {open && (
-        <div className="border-t border-border/40">
-          <TopicDetail
-            node={node}
-            siblings={siblings}
-            accent={accent}
-            isAdmin={isAdmin}
-            scope={scope}
-            autoOpen
-          />
+        <div className="mt-auto pt-3">
+          {isAdmin && (
+            <div className="mb-2">
+              <NodeToolbar node={node} siblings={siblings} scope={scope} accent={accent} />
+            </div>
+          )}
+          <Link
+            to="/tema/$topicId"
+            params={{ topicId: node.id }}
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-extrabold text-white shadow-sm transition hover:opacity-90"
+            style={{ background: accent }}
+          >
+            <Play className="size-3" /> Abrir tema
+            <ChevronRight className="size-3" />
+          </Link>
         </div>
-      )}
-    </div>
+      </div>
+    </article>
   );
 }
 
@@ -877,26 +888,14 @@ function BranchCard({
   );
 }
 
-function TopicRow({
-  node,
-  siblings,
-  accent,
-  isAdmin,
-  scope,
-}: {
-  node: CmsNode;
-  siblings: CmsNode[];
-  accent: string;
-  isAdmin: boolean;
-  scope: CmsScope;
-}) {
-  const [open, setOpen] = useState(false);
+function TopicRow({ node, accent }: { node: CmsNode; accent: string }) {
   const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
 
   return (
     <li className="bg-background/20">
-      <button
-        onClick={() => setOpen((p) => !p)}
+      <Link
+        to="/tema/$topicId"
+        params={{ topicId: node.id }}
         className="w-full min-w-0 flex items-center gap-3 px-4 py-2.5 text-left hover:bg-background/40 transition"
       >
         <span className="size-1.5 rounded-full shrink-0" style={{ background: accent }} />
@@ -907,376 +906,10 @@ function TopicRow({
             {items.length} subtemas
           </span>
         )}
-        <ChevronRight
-          className={`size-3.5 text-muted-foreground transition ${open ? "rotate-90" : ""}`}
-        />
-      </button>
-      {open && (
-        <TopicDetail
-          node={node}
-          siblings={siblings}
-          accent={accent}
-          isAdmin={isAdmin}
-          scope={scope}
-        />
-      )}
+        <ChevronRight className="size-3.5 text-muted-foreground" />
+      </Link>
     </li>
   );
-}
-
-function TopicDetail({
-  node,
-  siblings,
-  accent,
-  isAdmin,
-  scope,
-  autoOpen,
-}: {
-  node: CmsNode;
-  siblings: CmsNode[];
-  accent: string;
-  isAdmin: boolean;
-  scope: CmsScope;
-  /** Abre automáticamente el contenido (diapositivas o texto) al montar. */
-  autoOpen?: boolean;
-}) {
-  const [tab, setTab] = useState<"secciones" | "recursos">("recursos");
-  const [presenterOpen, setPresenterOpen] = useState(false);
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [deckOpen, setDeckOpen] = useState(false);
-  const [deckEditorOpen, setDeckEditorOpen] = useState(false);
-  const qc = useQueryClient();
-  const mut = useCmsMutations(scope);
-  const user = useSupabaseUser();
-  const { data: myRoles = [] } = useMyRoles(user?.id);
-  const isSuperAdmin = myRoles.includes("super_admin");
-
-  const storedTopic: Topic | null = (node.metadata?.topic as Topic | undefined) ?? null;
-  const [deck, setDeck] = useState<TopicDeck | null>(() => readDeck(node.metadata));
-  const deckReady = isDeckVisible(deck);
-  const deckForAdmin = isSuperAdmin && !!deck && deck.slides.length > 0;
-  const sections: string[] = Array.isArray(node.metadata?.sections) ? node.metadata.sections : [];
-  const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
-
-
-  const saveTopicMut = useMutation({
-    mutationFn: async (t: Topic) => {
-      const { error } = await supabase
-        .from("content_nodes")
-        .update({ metadata: { ...node.metadata, topic: t } as never })
-        .eq("id", node.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: [scope.namespace, "cms-tree"] });
-      toast.success("Tema guardado");
-      setEditorOpen(false);
-    },
-    onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar"),
-  });
-
-  const setSections = (next: string[]) =>
-    mut.update.mutate(
-      { id: node.id, patch: { metadata: { ...node.metadata, sections: next } } },
-      { onError: (e: any) => toast.error(e?.message ?? "No se pudo guardar") },
-    );
-
-  const openPresenter = () => {
-    // Prioridad: diapositivas visuales publicadas > contenido textual.
-    if (deckReady || deckForAdmin) {
-      setDeckOpen(true);
-      return;
-    }
-    if (!storedTopic) {
-      toast.info(
-        isAdmin
-          ? "Este tema aún no tiene contenido. Ábrelo con IA para generarlo."
-          : "Este tema aún no tiene contenido publicado.",
-      );
-      return;
-    }
-    setPresenterOpen(true);
-  };
-
-  // Al pulsar “Abrir tema” en la tarjeta, mostrar el contenido de inmediato.
-  useEffect(() => {
-    if (!autoOpen) return;
-    if (deckReady || deckForAdmin) setDeckOpen(true);
-    else if (storedTopic) setPresenterOpen(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoOpen]);
-
-
-
-  return (
-    <div className="px-4 pb-4 pt-1">
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <button
-          onClick={openPresenter}
-          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold text-white shadow-sm"
-          style={{ background: accent }}
-        >
-          <Play className="size-3" /> Abrir tema
-        </button>
-        {(deckReady || deckForAdmin) && (
-          <span className="inline-flex items-center gap-1 rounded-lg border border-border/60 px-2 py-1 text-[10px] font-bold text-muted-foreground">
-            <ImageIcon className="size-3" /> {deck?.slides.length} diapositivas
-            {!deckReady && " · borrador"}
-          </span>
-        )}
-        {(deckReady || deckForAdmin) && storedTopic && (
-          <button
-            onClick={() => setPresenterOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-[11px] font-bold hover:border-primary/40"
-          >
-            Material complementario
-          </button>
-        )}
-        {isSuperAdmin && (
-          <button
-            onClick={() => setDeckEditorOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/[0.08] px-2.5 py-1.5 text-[11px] font-bold text-amber-600 hover:bg-amber-500/15"
-          >
-            <ImageIcon className="size-3" /> Contenido visual del tema
-          </button>
-        )}
-        {isAdmin && (
-
-          <button
-            onClick={() => setEditorOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/[0.06] px-2.5 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/10"
-          >
-            <Sparkles className="size-3" /> Editar con IA
-          </button>
-        )}
-        {(["recursos", "secciones"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition ${
-              tab === t
-                ? "bg-foreground text-background border-foreground"
-                : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t === "recursos" ? "Recursos" : "Secciones"}
-          </button>
-        ))}
-      </div>
-
-      {isAdmin && (
-        <div className="mb-3">
-          <NodeToolbar node={node} siblings={siblings} scope={scope} accent={accent} />
-        </div>
-      )}
-
-      {storedTopic && (
-        <div className="mb-3 rounded-xl border border-border/50 bg-background/40 px-3 py-2 text-[11px] text-muted-foreground">
-          <span className="font-bold text-foreground">{storedTopic.slides.length}</span>{" "}
-          diapositivas · última actualización{" "}
-          {storedTopic.meta?.updatedAt
-            ? new Date(storedTopic.meta.updatedAt).toLocaleDateString()
-            : "—"}
-        </div>
-      )}
-
-      {tab === "recursos" ? (
-        <div className="rounded-xl border border-primary/20 bg-primary/[0.03] p-3">
-          <ResourcesPanelStandalone
-            nodeId={node.id}
-            nodeTitle={node.title}
-            readOnly={!isAdmin}
-          />
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          <ListEditor
-            title="Subtemas"
-            values={items}
-            accent={accent}
-            isAdmin={isAdmin}
-            icon={<ChevronRight className="size-3.5" style={{ color: accent }} />}
-            onChange={(next) =>
-              mut.update.mutate({
-                id: node.id,
-                patch: { metadata: { ...node.metadata, items: next } },
-              })
-            }
-          />
-          <ListEditor
-            title="Secciones del tema"
-            values={sections}
-            accent={accent}
-            isAdmin={isAdmin}
-            numbered
-            icon={<FileText className="size-3.5" style={{ color: accent }} />}
-            onChange={setSections}
-          />
-        </div>
-      )}
-
-      {presenterOpen && storedTopic && (
-        <TopicPresenter
-          topic={storedTopic}
-          accent={accent}
-          onClose={() => setPresenterOpen(false)}
-        />
-      )}
-      {editorOpen && isAdmin && (
-        <TopicEditor
-          initialTopic={storedTopic}
-          fallbackTitle={node.title}
-          accent={accent}
-          nodeId={node.id}
-          nodeTitle={node.title}
-          onClose={() => setEditorOpen(false)}
-          onSave={(t) => saveTopicMut.mutateAsync(t)}
-          saving={saveTopicMut.isPending}
-        />
-      )}
-      {deckOpen && deck && deck.slides.length > 0 && (
-        <DeckViewer
-          deck={deck}
-          title={node.title}
-          accent={accent}
-          badge={deck.status !== "published" ? DECK_STATUS_LABEL[deck.status] : undefined}
-          onClose={() => setDeckOpen(false)}
-        />
-      )}
-      {deckEditorOpen && isSuperAdmin && (
-        <DeckEditor
-          nodeId={node.id}
-          nodeTitle={node.title}
-          metadata={node.metadata}
-          initialDeck={deck}
-          accent={accent}
-          onClose={() => setDeckEditorOpen(false)}
-          onSaved={(d) => {
-            setDeck(d);
-            void qc.invalidateQueries();
-          }}
-        />
-      )}
-
-    </div>
-  );
-}
-
-/** Lista editable y persistente (subtemas / secciones). */
-function ListEditor({
-  title,
-  values,
-  accent,
-  isAdmin,
-  numbered,
-  icon,
-  onChange,
-}: {
-  title: string;
-  values: string[];
-  accent: string;
-  isAdmin: boolean;
-  numbered?: boolean;
-  icon: React.ReactNode;
-  onChange: (next: string[]) => void;
-}) {
-  const [draft, setDraft] = useState("");
-
-  return (
-    <div className="rounded-xl border border-border/50 bg-background/50 p-3">
-      <div className="flex items-center gap-1.5 mb-2">
-        {icon}
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          {title}
-        </span>
-      </div>
-      {values.length === 0 ? (
-        <p className="text-[11px] italic text-muted-foreground">
-          {isAdmin ? "Aún no hay elementos. Agrega el primero." : "Sin elementos."}
-        </p>
-      ) : (
-        <ol className="space-y-1 text-xs text-foreground/80 leading-relaxed">
-          {values.map((v, i) => (
-            <li key={`${v}-${i}`} className="flex items-start gap-1.5">
-              {numbered ? (
-                <span
-                  className="mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded text-[9px] font-bold text-white"
-                  style={{ background: accent }}
-                >
-                  {i + 1}
-                </span>
-              ) : (
-                <ChevronRight className="mt-0.5 size-3 shrink-0" style={{ color: accent }} />
-              )}
-              <span className="flex-1">{v}</span>
-              {isAdmin && (
-                <>
-                  <button
-                    onClick={() => onChange(swap(values, i, i - 1))}
-                    disabled={i === 0}
-                    className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                    aria-label="Subir"
-                  >
-                    <ChevronDown className="size-3 rotate-180" />
-                  </button>
-                  <button
-                    onClick={() => onChange(swap(values, i, i + 1))}
-                    disabled={i === values.length - 1}
-                    className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                    aria-label="Bajar"
-                  >
-                    <ChevronDown className="size-3" />
-                  </button>
-                  <button
-                    onClick={() => onChange(values.filter((_, k) => k !== i))}
-                    className="rounded p-0.5 text-muted-foreground hover:text-destructive"
-                    aria-label="Eliminar"
-                  >
-                    <X className="size-3" />
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ol>
-      )}
-      {isAdmin && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            const clean = draft.trim();
-            if (!clean) return;
-            onChange([...values, clean]);
-            setDraft("");
-          }}
-          className="mt-2 flex items-center gap-1.5"
-        >
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Agregar…"
-            className="flex-1 rounded-lg border border-border/60 bg-background/60 px-2 py-1 text-[11px] outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          <button
-            type="submit"
-            className="rounded-lg p-1 text-primary hover:bg-primary/10"
-            aria-label="Agregar"
-          >
-            <Plus className="size-3.5" />
-          </button>
-        </form>
-      )}
-    </div>
-  );
-}
-
-function swap(list: string[], i: number, j: number) {
-  if (j < 0 || j >= list.length) return list;
-  const next = [...list];
-  const tmp = next[i]!;
-  next[i] = next[j]!;
-  next[j] = tmp;
-  return next;
 }
 
 /** Barra de acciones admin de un nodo: renombrar, describir, ordenar, publicar, duplicar, eliminar. */
