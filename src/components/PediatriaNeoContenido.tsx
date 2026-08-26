@@ -763,6 +763,30 @@ function TopicDetail({
           saving={saveTopicMut.isPending}
         />
       )}
+      {deckOpen && deck && deck.slides.length > 0 && (
+        <DeckViewer
+          deck={deck}
+          title={node.title}
+          accent={accent}
+          badge={deck.status !== "published" ? DECK_STATUS_LABEL[deck.status] : undefined}
+          onClose={() => setDeckOpen(false)}
+        />
+      )}
+      {deckEditorOpen && isSuperAdmin && (
+        <DeckEditor
+          nodeId={node.id}
+          nodeTitle={node.title}
+          metadata={node.metadata}
+          initialDeck={deck}
+          accent={accent}
+          onClose={() => setDeckEditorOpen(false)}
+          onSaved={(d) => {
+            setDeck(d);
+            void qc.invalidateQueries();
+          }}
+        />
+      )}
+
     </div>
   );
 }
