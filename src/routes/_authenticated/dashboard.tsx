@@ -1,28 +1,26 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   BookOpen,
-  ClipboardList,
-  Home,
+  Brain,
+  Calculator,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Layers,
+  Library,
+  Loader2,
   Lock,
-  Mail,
+  Newspaper,
+  Play,
+  PlayCircle,
   Shield,
   Sparkles,
-  Trophy,
-  Loader2,
-  CheckCircle2,
-  ArrowRight,
-  Clock,
-  Users,
-  Newspaper,
-  CalendarDays,
-  Calculator,
-  Layers,
   Stethoscope,
-  PlayCircle,
-  Library,
   UserRound,
+  Users,
+  ArrowRight,
 } from "lucide-react";
-import kotaroLogo from "@/assets/kotaro-logo.png";
 import { supabase } from "@/integrations/supabase/client";
 import {
   isActive,
@@ -30,13 +28,19 @@ import {
   useIsAdmin,
   useMyEnrollments,
   useMyProfile,
+  useMyRoles,
   useSupabaseUser,
+  ROLE_LABELS,
   type Enrollment,
 } from "@/lib/session";
 import { useQueryClient } from "@tanstack/react-query";
-import { useProgramCatalog } from "@/lib/content-catalog";
+import { useProgramCatalog, type CatalogProgram } from "@/lib/content-catalog";
 import { useMyAdmission } from "@/lib/admission";
 import { useMyProgramEnrollments } from "@/lib/enrollments";
+import { NexusShell } from "@/components/nexus/NexusShell";
+import { MedicalCore, type CoreNode } from "@/components/nexus/MedicalCore";
+import { useNexusEnv } from "@/lib/nexus-theme";
+import { useEffect } from "react";
 
 /** Accesos incluidos en la experiencia Free (sin matrícula). */
 const FREE_ITEMS = [
@@ -53,14 +57,15 @@ const FREE_ITEMS = [
   { label: "Mi perfil", hint: "Datos y cuenta", icon: UserRound, to: "/admision" },
 ] as const;
 
-import { UserMenu } from "@/components/profile/UserMenu";
-import { useEffect } from "react";
-
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Mi panel · KotaMed" },
-      { name: "description", content: "Panel académico personal en KotaMed." },
+      { title: "Mi panel · KotaMed Nexus" },
+      {
+        name: "description",
+        content:
+          "KotaMed Nexus: tu entorno adaptativo de aprendizaje médico con progreso, clases y Kota AI.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -71,8 +76,10 @@ function DashboardPage() {
   const user = useSupabaseUser();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const env = useNexusEnv();
   const { data: isAdmin } = useIsAdmin(user?.id);
   const { data: profile } = useMyProfile(user?.id);
+  const { data: roles } = useMyRoles(user?.id);
   const enrollmentsQ = useMyEnrollments(user?.id);
   const manualQ = useMyProgramEnrollments(user?.id);
 
@@ -82,8 +89,7 @@ function DashboardPage() {
 
   /* Bienvenida post-matrícula: se muestra una sola vez tras confirmarse el acceso. */
   const justEnrolled =
-    !!user &&
-    ((enrollmentsQ.data ?? []).some(isActive) || (manualQ.data ?? []).length > 0);
+    !!user && ((enrollmentsQ.data ?? []).some(isActive) || (manualQ.data ?? []).length > 0);
   useEffect(() => {
     if (!user || !justEnrolled) return;
     let seen = true;
@@ -95,7 +101,6 @@ function DashboardPage() {
     if (!seen) navigate({ to: "/bienvenida", replace: true });
   }, [user, justEnrolled, navigate]);
 
-
   const signOut = async () => {
     await qc.cancelQueries();
     qc.clear();
@@ -105,7 +110,7 @@ function DashboardPage() {
 
   if (!user || enrollmentsQ.isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
     );
@@ -115,298 +120,497 @@ function DashboardPage() {
   const active = enrollments.filter(isActive);
   const hasAccess = isAdmin || active.length > 0 || (manualQ.data ?? []).length > 0;
   const displayName = profile?.full_name || profile?.email?.split("@")[0] || "Estudiante";
+  const roleLabel = roles?.length ? ROLE_LABELS[roles[0]] ?? roles[0] : undefined;
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-aurora"
-        style={{ background: "color-mix(in oklab, var(--primary) 20%, transparent)" }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute top-[20%] -right-[5%] w-[40%] h-[60%] rounded-full blur-[120px] animate-aurora"
-        style={{
-          background: "color-mix(in oklab, oklch(0.75 0.12 280) 18%, transparent)",
-          animationDelay: "-5s",
-        }}
-      />
-
-      <TopNav
-        displayName={displayName}
-        email={profile?.email}
-        avatarUrl={profile?.avatar_url ?? null}
-        userId={user.id}
-        isAdmin={!!isAdmin}
-        onSignOut={signOut}
-      />
-
-      <main className="pt-16 min-h-screen relative">
-        <div className="max-w-6xl mx-auto px-6 lg:px-10 py-10">
-          {isAdmin && <AdminBanner />}
-
-          {hasAccess ? (
-            <EnrolledView
-              active={active}
-              displayName={displayName}
-              isAdmin={!!isAdmin}
-              manual={manualQ.data ?? []}
-            />
-          ) : (
-            <LockedView enrollments={enrollments} email={profile?.email} userId={user.id} />
-          )}
-        </div>
-      </main>
-    </div>
-  );
-}
-
-function TopNav({
-  displayName,
-  email,
-  avatarUrl,
-  userId,
-  isAdmin,
-  onSignOut,
-}: {
-  displayName: string;
-  email?: string;
-  avatarUrl?: string | null;
-  userId: string;
-  isAdmin: boolean;
-  onSignOut: () => void;
-}) {
-  return (
-    <header className="fixed top-0 inset-x-0 h-16 glass z-40 px-6 lg:px-10 flex items-center justify-between border-b border-border/60">
-      <Link to="/" className="flex items-center gap-2.5">
-        <img src={kotaroLogo} alt="KotaMed" className="size-9 object-contain" />
-        <span className="font-extrabold tracking-tighter text-lg">KOTAMED</span>
-      </Link>
-
-      <div className="flex items-center gap-3">
-        {isAdmin && (
-          <Link
-            to="/admin"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-foreground text-background text-xs font-bold hover:-translate-y-0.5 transition-transform"
-          >
-            <Shield className="size-3.5" strokeWidth={2.5} /> Admin
-          </Link>
-        )}
-        <UserMenu
-          userId={userId}
+    <NexusShell
+      env={env}
+      userId={user.id}
+      displayName={displayName}
+      email={profile?.email}
+      avatarUrl={profile?.avatar_url ?? null}
+      roleLabel={roleLabel}
+      isAdmin={!!isAdmin}
+      onSignOut={signOut}
+    >
+      {hasAccess ? (
+        <EnrolledView
+          active={active}
           displayName={displayName}
-          email={email}
-          avatarUrl={avatarUrl}
-          onSignOut={onSignOut}
+          isAdmin={!!isAdmin}
+          manual={manualQ.data ?? []}
+          greeting={env.greeting}
+          coreIntensity={env.coreIntensity}
+          reducedMotion={env.reducedMotion}
+          lowPower={env.lowPower}
         />
-      </div>
-    </header>
+      ) : (
+        <LockedView
+          enrollments={enrollments}
+          email={profile?.email}
+          userId={user.id}
+          displayName={displayName}
+          greeting={env.greeting}
+          coreIntensity={env.coreIntensity}
+          reducedMotion={env.reducedMotion}
+          lowPower={env.lowPower}
+        />
+      )}
+    </NexusShell>
   );
 }
 
+/* ---------------------------------------------------------------- primitivos */
 
-function AdminBanner() {
+function Panel({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <section className={`nexus-card rounded-3xl ${className}`}>{children}</section>;
+}
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-6 glass rounded-2xl p-4 flex items-center gap-3 border-l-4 border-primary">
-      <Shield className="size-5 text-primary shrink-0" strokeWidth={2.25} />
-      <div className="flex-1">
-        <div className="text-sm font-bold">Cuenta administradora</div>
-        <div className="text-xs text-muted-foreground">
-          Puedes matricular estudiantes y ver todas las matrículas.
-        </div>
-      </div>
-      <Link
-        to="/admin"
-        className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold hover:-translate-y-0.5 transition-transform"
-      >
-        Abrir panel
-      </Link>
-    </div>
+    <div className="text-[10px] font-black uppercase tracking-[0.24em] opacity-55">{children}</div>
   );
 }
+
+function Ring({ value, size = 76 }: { value: number; size?: number }) {
+  const r = size / 2 - 6;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg width={size} height={size} className="shrink-0">
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke="var(--nexus-border)"
+        strokeWidth="6"
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke="var(--nexus-cyan)"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeDasharray={`${(c * value) / 100} ${c}`}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        style={{ transition: "stroke-dasharray 900ms var(--ease-out-expo)" }}
+      />
+      <text
+        x="50%"
+        y="50%"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={size / 4.6}
+        fontWeight="800"
+        fill="var(--nexus-text)"
+      >
+        {value}%
+      </text>
+    </svg>
+  );
+}
+
+const NODE_ANGLES = [0, 72, 144, 216, 288];
+
+function coreNodesFrom(programs: CatalogProgram[]): CoreNode[] {
+  return programs.slice(0, 5).map((p, i) => ({
+    label: p.title.length > 22 ? `${p.title.slice(0, 20)}…` : p.title,
+    hint: p.areas.length > 0 ? `${p.areas.length} áreas` : undefined,
+    to: "/programas/$slug",
+    params: { slug: p.slug },
+    angle: NODE_ANGLES[i] ?? i * 72,
+  }));
+}
+
+/* ------------------------------------------------------------- vista alumno */
 
 function EnrolledView({
   active,
   displayName,
   isAdmin,
   manual = [],
+  greeting,
+  coreIntensity,
+  reducedMotion,
+  lowPower,
 }: {
   active: Enrollment[];
   displayName: string;
   isAdmin: boolean;
   manual?: { node: { slug: string; title: string } | null; expires_at: string | null }[];
+  greeting: string;
+  coreIntensity: number;
+  reducedMotion: boolean;
+  lowPower: boolean;
 }) {
   // El administrador ve absolutamente todos los programas, incluidos los que
   // viven dentro de bibliotecas internas y los que están en borrador.
   const { programs } = useProgramCatalog({ includeIsolated: isAdmin });
 
+  const mine = isAdmin
+    ? programs.map((p) => ({ slug: p.slug, expires_at: null as string | null }))
+    : [
+        ...active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at })),
+        ...manual
+          .filter((m) => m.node?.slug)
+          .map((m) => ({ slug: m.node!.slug, expires_at: m.expires_at })),
+      ].filter((item, i, arr) => arr.findIndex((x) => x.slug === item.slug) === i);
+
+  const myPrograms = mine
+    .map(({ slug, expires_at }) => {
+      const cat = programs.find((p) => p.slug === slug);
+      return {
+        slug,
+        expires_at,
+        title: cat?.title ?? PROGRAM_LABELS[slug as keyof typeof PROGRAM_LABELS] ?? slug,
+        areas: cat?.areas ?? [],
+        subtitle: cat?.subtitle ?? "Programa KotaMed",
+      };
+    })
+    .filter((p) => !!p.title);
+
+  const focus = myPrograms[0];
+  const totalAreas = myPrograms.reduce((n, p) => n + p.areas.length, 0);
+
   return (
+    <div className="mx-auto w-full max-w-[1440px] animate-slide-up space-y-6 pt-4">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        {/* Columna principal */}
+        <div className="space-y-6">
+          <header>
+            <h1 className="text-[28px] font-black tracking-tight sm:text-[34px]">
+              {greeting}, {displayName} <span className="align-middle">👋</span>
+            </h1>
+            <p className="mt-1.5 text-sm opacity-60">
+              {myPrograms.length > 0
+                ? `Tienes ${myPrograms.length} programa${myPrograms.length === 1 ? "" : "s"} activo${myPrograms.length === 1 ? "" : "s"} y ${totalAreas} área${totalAreas === 1 ? "" : "s"} por explorar.`
+                : "Tu entorno de inteligencia médica está listo."}
+            </p>
+          </header>
 
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+            {/* Continúa donde lo dejaste */}
+            <Panel className="flex flex-col p-6">
+              <span className="inline-flex w-fit items-center gap-2 rounded-xl bg-[color:var(--nexus-teal)]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-[color:var(--nexus-teal)]">
+                <Play className="size-3" strokeWidth={3} /> Continúa donde lo dejaste
+              </span>
+              <h2 className="mt-4 text-[22px] font-black leading-tight tracking-tight">
+                {focus?.title ?? "Comienza tu primer módulo"}
+              </h2>
+              <p className="mt-1 text-xs font-semibold opacity-55">{focus?.subtitle}</p>
+              <div className="mt-5 flex items-center gap-4">
+                <Ring value={focus ? 0 : 0} size={64} />
+                <div className="min-w-0 flex-1">
+                  <div className="text-[10px] font-black uppercase tracking-[0.18em] opacity-55">
+                    Completado
+                  </div>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--nexus-border)]">
+                    <div className="h-full w-[6%] rounded-full bg-[color:var(--nexus-cyan)]" />
+                  </div>
+                </div>
+              </div>
+              <ul className="mt-5 space-y-2 text-[11px] font-semibold opacity-65">
+                <li className="flex items-center gap-2">
+                  <Clock className="size-3.5" /> {focus?.areas.length ?? 0} áreas disponibles
+                </li>
+                <li className="flex items-center gap-2">
+                  <CalendarDays className="size-3.5" />
+                  {focus?.expires_at
+                    ? `Acceso hasta ${new Date(focus.expires_at).toLocaleDateString()}`
+                    : "Acceso vigente"}
+                </li>
+              </ul>
+              {focus ? (
+                <Link
+                  to="/programas/$slug"
+                  params={{ slug: focus.slug }}
+                  className="mt-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-[color:var(--nexus-teal)] px-5 py-3.5 pt-3.5 text-sm font-black text-white transition hover:-translate-y-0.5"
+                  style={{ marginTop: "1.75rem" }}
+                >
+                  Continuar aprendiendo <ArrowRight className="size-4" strokeWidth={2.6} />
+                </Link>
+              ) : (
+                <Link
+                  to="/programas"
+                  className="mt-7 inline-flex items-center justify-center gap-2 rounded-2xl bg-[color:var(--nexus-teal)] px-5 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5"
+                >
+                  Explorar programas <ArrowRight className="size-4" strokeWidth={2.6} />
+                </Link>
+              )}
+            </Panel>
 
-    <div className="space-y-8 animate-slide-up">
-      <section className="glass rounded-3xl p-8">
-        <span className="text-primary font-bold text-xs uppercase tracking-widest">
-          Bienvenido de vuelta
-        </span>
-        <h1 className="mt-2 text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
-          Hola, {displayName}
-        </h1>
-        <p className="mt-3 text-muted-foreground max-w-xl">
-          {isAdmin
-            ? "Tienes acceso administrativo total. Elige un programa para explorar el contenido."
-            : `Tienes acceso a ${active.length} programa${active.length === 1 ? "" : "s"}.`}
-        </p>
-      </section>
+            {/* MEDICAL CORE */}
+            <div className="flex items-center justify-center py-6">
+              <MedicalCore
+                nodes={coreNodesFrom(programs)}
+                intensity={coreIntensity}
+                reducedMotion={reducedMotion}
+                lowPower={lowPower}
+              />
+            </div>
+          </div>
 
-      <section>
-        <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
-          {isAdmin ? "Todos los programas" : "Mis programas"}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {(isAdmin
-            ? programs.map((p) => ({ slug: p.slug, expires_at: null as string | null }))
-            : [
-                ...active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at })),
-                ...manual
-                  .filter((m) => m.node?.slug)
-                  .map((m) => ({ slug: m.node!.slug, expires_at: m.expires_at })),
-              ].filter(
-                (item, i, arr) => arr.findIndex((x) => x.slug === item.slug) === i,
-              )
-          ).map(({ slug, expires_at }) => {
-            const cat = programs.find((p) => p.slug === slug);
-            const label =
-              cat?.title ?? PROGRAM_LABELS[slug as keyof typeof PROGRAM_LABELS] ?? slug;
-            return (
+          {/* Mis cursos en progreso */}
+          <section>
+            <div className="mb-3 flex items-center justify-between">
+              <Eyebrow>Mis cursos en progreso</Eyebrow>
               <Link
-                key={slug}
-                to="/programas/$slug"
-                params={{ slug }}
-                className="glass rounded-2xl p-6 hover:-translate-y-1 hover:shadow-xl transition-all group"
+                to="/programas"
+                className="inline-flex items-center gap-1.5 text-[11px] font-black text-[color:var(--nexus-teal)]"
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                    <BookOpen className="size-5" strokeWidth={2.25} />
-                  </div>
-                  <CheckCircle2 className="size-4 text-emerald-500 ml-auto" strokeWidth={2.5} />
-                </div>
-                <h3 className="font-bold text-base tracking-tight">{label}</h3>
-                {cat && cat.areas.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {cat.areas.slice(0, 3).map((a) => (
-                      <span
-                        key={a}
-                        className="px-2 py-0.5 rounded border border-border text-[10px] font-semibold text-muted-foreground"
-                      >
-                        {a}
-                      </span>
-                    ))}
-                    {cat.areas.length > 3 && (
-                      <span className="text-[10px] font-semibold text-muted-foreground">
-                        +{cat.areas.length - 3}
-                      </span>
-                    )}
-                  </div>
-                )}
-                <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
-                  <span>{expires_at ? `Vence ${new Date(expires_at).toLocaleDateString()}` : "Acceso admin"}</span>
-                  <span className="text-primary group-hover:underline">Abrir →</span>
-                </div>
+                Ver todos mis cursos <ArrowRight className="size-3.5" />
               </Link>
-            );
-          })}
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {myPrograms.slice(0, 3).map((p) => (
+                <Link
+                  key={p.slug}
+                  to="/programas/$slug"
+                  params={{ slug: p.slug }}
+                  className="nexus-card group overflow-hidden rounded-3xl p-5 hover:-translate-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-lg bg-[color:var(--nexus-blue)]/10 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-[color:var(--nexus-blue)]">
+                      Programa
+                    </span>
+                    <BookOpen className="size-4 opacity-45" strokeWidth={2.2} />
+                  </div>
+                  <h3 className="mt-4 line-clamp-2 text-base font-black leading-tight tracking-tight">
+                    {p.title}
+                  </h3>
+                  <p className="mt-1 line-clamp-1 text-[11px] font-semibold opacity-55">
+                    {p.subtitle}
+                  </p>
+                  <div className="mt-5 flex items-center justify-between">
+                    <span className="text-[11px] font-bold opacity-60">
+                      {p.areas.length} áreas
+                    </span>
+                    <span className="inline-flex size-9 items-center justify-center rounded-full border border-[color:var(--nexus-border)] transition group-hover:border-[color:var(--nexus-cyan)]">
+                      <ChevronRight className="size-4" strokeWidth={2.5} />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
         </div>
-      </section>
 
+        {/* Columna lateral */}
+        <aside className="space-y-5">
+          <Panel className="p-6">
+            <Eyebrow>Tu progreso general</Eyebrow>
+            <div className="mt-5 flex items-center gap-5">
+              <Ring value={myPrograms.length > 0 ? Math.min(96, myPrograms.length * 12) : 0} />
+              <ul className="space-y-2 text-[11px] font-bold">
+                <Stat color="var(--nexus-teal)" label="Programas" value={myPrograms.length} />
+                <Stat color="var(--nexus-blue)" label="Áreas" value={totalAreas} />
+                <Stat
+                  color="var(--nexus-muted)"
+                  label="Vigencias"
+                  value={myPrograms.filter((p) => p.expires_at).length}
+                />
+              </ul>
+            </div>
+            <div className="mt-5 flex items-center justify-between border-t border-[color:var(--nexus-border)] pt-4">
+              <div>
+                <div className="text-[9px] font-black uppercase tracking-[0.2em] opacity-50">
+                  Nivel actual
+                </div>
+                <div className="mt-1 text-sm font-black">
+                  {isAdmin ? "Acceso total" : myPrograms.length > 1 ? "Avanzado" : "En ruta"}
+                </div>
+              </div>
+              <Link
+                to="/programas"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[color:var(--nexus-border)] px-3 py-2 text-[11px] font-black"
+              >
+                Ver mi progreso <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+          </Panel>
 
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MiniCard icon={<Home className="size-4" />} label="Continuar" value="Ictericia" />
-        <MiniCard icon={<Sparkles className="size-4" />} label="Tutor IA" value="Activo" />
-        <MiniCard icon={<ClipboardList className="size-4" />} label="Simulacros" value="0" />
-        <MiniCard icon={<Trophy className="size-4" />} label="Racha" value="—" />
-      </section>
-    </div>
-  );
-}
+          <Panel className="p-6">
+            <Eyebrow>Hoy para ti</Eyebrow>
+            <div className="mt-4 space-y-2">
+              <Action
+                icon={<BookOpen className="size-4" />}
+                title="Continuar clase"
+                hint={focus?.title ?? "Elige un programa"}
+                to={focus ? "/programas/$slug" : "/programas"}
+                params={focus ? { slug: focus.slug } : undefined}
+              />
+              <Action
+                icon={<Stethoscope className="size-4" />}
+                title="Resolver un caso"
+                hint="Casos clínicos guiados"
+                to="/programas/kotamed-apex"
+              />
+              <Action
+                icon={<Brain className="size-4" />}
+                title="Repasar flashcards"
+                hint="Repaso espaciado"
+                to="/programas"
+              />
+            </div>
+          </Panel>
 
-function MiniCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="glass rounded-2xl p-5">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        {icon}
-        <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
+          <Panel className="relative overflow-hidden p-6">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(circle, color-mix(in srgb, var(--nexus-cyan) 40%, transparent), transparent 70%)",
+                filter: "blur(18px)",
+              }}
+            />
+            <h3 className="text-lg font-black tracking-tight">KOTA AI</h3>
+            <p className="mt-1 text-[11px] font-semibold opacity-60">
+              Tu asistente médico inteligente
+            </p>
+            <Link
+              to="/anatomy-lab"
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[color:var(--nexus-border)] bg-[color:var(--nexus-teal)]/10 px-4 py-3 text-xs font-black text-[color:var(--nexus-teal)] transition hover:-translate-y-0.5"
+            >
+              Pregúntame cualquier cosa <ArrowRight className="size-3.5" />
+            </Link>
+          </Panel>
+
+          {isAdmin && (
+            <Panel className="p-5">
+              <div className="flex items-center gap-2.5">
+                <Shield className="size-4 text-[color:var(--nexus-teal)]" strokeWidth={2.4} />
+                <div className="flex-1 text-xs font-black">Cuenta administradora</div>
+              </div>
+              <Link
+                to="/admin"
+                className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[color:var(--nexus-teal)] px-3 py-2.5 text-[11px] font-black text-white"
+              >
+                Abrir panel
+              </Link>
+            </Panel>
+          )}
+        </aside>
       </div>
-      <div className="mt-1 text-lg font-extrabold tracking-tight">{value}</div>
     </div>
   );
 }
+
+function Stat({ color, label, value }: { color: string; label: string; value: number }) {
+  return (
+    <li className="flex items-center gap-2">
+      <span className="size-2 rounded-full" style={{ background: color }} />
+      <span className="opacity-65">{label}</span>
+      <span className="ml-auto font-black">{value}</span>
+    </li>
+  );
+}
+
+function Action({
+  icon,
+  title,
+  hint,
+  to,
+  params,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  hint: string;
+  to: string;
+  params?: Record<string, string>;
+}) {
+  return (
+    <Link
+      to={to}
+      params={params as never}
+      className="group flex items-center gap-3 rounded-2xl border border-transparent px-2 py-2.5 transition hover:border-[color:var(--nexus-border)]"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--nexus-teal)]/10 text-[color:var(--nexus-teal)]">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-black">{title}</span>
+        <span className="block truncate text-[10px] font-semibold opacity-55">{hint}</span>
+      </span>
+      <span className="inline-flex size-7 items-center justify-center rounded-full border border-[color:var(--nexus-border)] transition group-hover:border-[color:var(--nexus-cyan)]">
+        <ArrowRight className="size-3.5" strokeWidth={2.4} />
+      </span>
+    </Link>
+  );
+}
+
+/* ------------------------------------------------------------- vista free */
 
 function LockedView({
   enrollments,
   email,
   userId,
+  displayName,
+  greeting,
+  coreIntensity,
+  reducedMotion,
+  lowPower,
 }: {
   enrollments: Enrollment[];
   email?: string;
   userId?: string;
+  displayName: string;
+  greeting: string;
+  coreIntensity: number;
+  reducedMotion: boolean;
+  lowPower: boolean;
 }) {
   const expired = enrollments.filter((e) => !isActive(e));
   const { programs } = useProgramCatalog();
   const admissionQ = useMyAdmission(userId);
   const admission = admissionQ.data ?? null;
-  const pending =
-    admission && (admission.status === "pending" || admission.status === "reviewing");
-  const rejected =
-    admission && (admission.status === "rejected" || admission.status === "refunded");
+  const pending = admission && (admission.status === "pending" || admission.status === "reviewing");
+  const rejected = admission && (admission.status === "rejected" || admission.status === "refunded");
 
   return (
-    <div className="animate-slide-up space-y-8">
-      {/* Bienvenida FREE */}
-      <section className="glass rounded-3xl p-8 sm:p-10">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-extrabold uppercase tracking-widest">
-            <Sparkles className="size-3" /> Miembro Free
-          </span>
-          {pending && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-extrabold uppercase tracking-widest">
-              <Clock className="size-3" /> Matrícula pendiente
+    <div className="mx-auto w-full max-w-[1440px] animate-slide-up space-y-8 pt-4">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--nexus-teal)]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[color:var(--nexus-teal)]">
+              <Sparkles className="size-3" /> Miembro Free
             </span>
-          )}
-          {rejected && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 text-[10px] font-extrabold uppercase tracking-widest">
-              Matrícula por regularizar
-            </span>
-          )}
-        </div>
-        <h1 className="mt-4 text-3xl md:text-4xl font-extrabold tracking-tight">
-          Bienvenido a KotaMed
-        </h1>
-        <p className="mt-3 text-muted-foreground max-w-xl text-pretty">
-          {pending
-            ? "Tu matrícula está siendo revisada por el equipo de KotaMed. Tiempo estimado: 1–24 horas. Mientras tanto, explora todo el contenido gratuito."
-            : "Ya formas parte del ecosistema KotaMed. Explora el contenido gratuito y completa tu matrícula cuando quieras para desbloquear el acceso premium."}
-          {expired.length > 0 && " Tienes matrículas anteriores vencidas."}
-        </p>
-        <div className="mt-5 text-[11px] font-semibold text-muted-foreground">
-          Cuenta: {email}
-        </div>
-      </section>
+            {pending && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-amber-500">
+                <Clock className="size-3" /> Matrícula pendiente
+              </span>
+            )}
+            {rejected && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-rose-500">
+                Matrícula por regularizar
+              </span>
+            )}
+          </div>
+          <h1 className="mt-4 text-[28px] font-black tracking-tight sm:text-[34px]">
+            {greeting}, {displayName} 👋
+          </h1>
+          <p className="mt-2 max-w-xl text-sm opacity-60">
+            {pending
+              ? "Tu matrícula está siendo revisada por el equipo de KotaMed. Tiempo estimado: 1–24 horas. Mientras tanto, explora todo el contenido gratuito."
+              : "Ya formas parte del ecosistema KotaMed. Explora el contenido gratuito y completa tu matrícula cuando quieras para desbloquear el acceso premium."}
+            {expired.length > 0 && " Tienes matrículas anteriores vencidas."}
+          </p>
+          <div className="mt-3 text-[11px] font-bold opacity-50">Cuenta: {email}</div>
 
-      {/* Card grande: completar matrícula */}
-      <section className="glass rounded-3xl p-8 sm:p-10 relative overflow-hidden border-l-4 border-primary">
-        <div className="flex flex-col lg:flex-row items-start gap-8">
-          <div className="flex-1">
-            <span className="text-primary font-bold text-xs uppercase tracking-widest">
-              Centro de Admisión
-            </span>
-            <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <Panel className="mt-6 p-7">
+            <Eyebrow>Centro de admisión</Eyebrow>
+            <h2 className="mt-2 text-2xl font-black tracking-tight">
               {pending ? "Tu matrícula está en revisión" : "Completa tu matrícula"}
             </h2>
-            <p className="mt-3 text-sm text-muted-foreground max-w-lg">
-              Obtén acceso a Internado, Residentado, cursos, biblioteca premium y simulaciones
-              con KotaMed AI.
-            </p>
-            <ul className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <ul className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {[
                 "Internado Médico",
                 "Residentado (ENAM · ESSALUD)",
@@ -415,87 +619,76 @@ function LockedView({
                 "Simulaciones con IA",
                 "Certificados",
               ].map((t) => (
-                <li key={t} className="flex items-center gap-2 text-xs font-semibold">
-                  <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" strokeWidth={2.5} />
+                <li key={t} className="flex items-center gap-2 text-xs font-bold">
+                  <CheckCircle2
+                    className="size-3.5 shrink-0 text-[color:var(--nexus-teal)]"
+                    strokeWidth={2.5}
+                  />
                   {t}
                 </li>
               ))}
             </ul>
-            <Link
-              to="/admision"
-              className="mt-7 inline-flex items-center gap-2 px-6 py-3.5 bg-primary text-primary-foreground rounded-xl font-bold text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 transition-all"
-            >
-              {pending ? "Ver estado de mi matrícula" : "Matricularme"}
-              <ArrowRight className="size-4" strokeWidth={2.5} />
-            </Link>
-          </div>
-          <div className="w-full lg:w-64 rounded-2xl border border-border p-5 bg-background/40">
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Tu progreso de admisión
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                to="/admision"
+                className="inline-flex items-center gap-2 rounded-2xl bg-[color:var(--nexus-teal)] px-6 py-3.5 text-sm font-black text-white transition hover:-translate-y-0.5"
+              >
+                {pending ? "Ver estado de mi matrícula" : "Matricularme"}
+                <ArrowRight className="size-4" strokeWidth={2.6} />
+              </Link>
+              <div className="text-[11px] font-bold opacity-55">
+                {admission?.submitted_at ? "Solicitud enviada" : "Sin solicitud enviada"}
+              </div>
             </div>
-            <ol className="mt-4 space-y-3">
-              {[
-                { label: "Cuenta creada", done: true },
-                { label: "Miembro Free", done: true },
-                { label: "Solicitud enviada", done: !!admission?.submitted_at },
-                { label: "Validación del equipo", done: false },
-                { label: "Alumno activo", done: false },
-              ].map((s) => (
-                <li key={s.label} className="flex items-center gap-2 text-xs font-semibold">
-                  {s.done ? (
-                    <CheckCircle2 className="size-4 text-emerald-500" strokeWidth={2.5} />
-                  ) : (
-                    <span className="size-4 rounded-full border-2 border-border" />
-                  )}
-                  <span className={s.done ? "" : "text-muted-foreground"}>{s.label}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
+          </Panel>
         </div>
-      </section>
 
-      {/* Contenido gratuito */}
+        <div className="flex items-center justify-center">
+          <MedicalCore
+            nodes={programs.slice(0, 5).map((p, i) => ({
+              label: p.title.length > 22 ? `${p.title.slice(0, 20)}…` : p.title,
+              hint: "Premium",
+              angle: NODE_ANGLES[i] ?? i * 72,
+            }))}
+            intensity={coreIntensity}
+            reducedMotion={reducedMotion}
+            lowPower={lowPower}
+          />
+        </div>
+      </div>
+
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
-          Contenido gratuito · disponible ahora
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <Eyebrow>Contenido gratuito · disponible ahora</Eyebrow>
+        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {FREE_ITEMS.map((item) => (
             <Link
               key={item.label}
               to={item.to}
-              className="glass rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all"
+              className="nexus-card rounded-3xl p-5 hover:-translate-y-1"
             >
-              <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
+              <div className="mb-3 flex size-9 items-center justify-center rounded-xl bg-[color:var(--nexus-teal)]/10 text-[color:var(--nexus-teal)]">
                 <item.icon className="size-4" strokeWidth={2.25} />
               </div>
-              <div className="font-bold text-xs tracking-tight">{item.label}</div>
-              <div className="text-[10px] text-muted-foreground mt-1">{item.hint}</div>
+              <div className="text-xs font-black tracking-tight">{item.label}</div>
+              <div className="mt-1 text-[10px] font-semibold opacity-55">{item.hint}</div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Programas premium (bloqueados) */}
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
-          Programas premium · se desbloquean al aprobarse tu matrícula
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Eyebrow>Programas premium · se desbloquean al aprobarse tu matrícula</Eyebrow>
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {programs.map((p) => (
-            <div
-              key={p.slug}
-              className="glass rounded-2xl p-6 relative overflow-hidden opacity-90"
-            >
-              <div className="absolute top-3 right-3 size-7 rounded-lg bg-black/[0.04] flex items-center justify-center">
-                <Lock className="size-3.5 text-muted-foreground" strokeWidth={2.25} />
+            <div key={p.slug} className="nexus-card relative overflow-hidden rounded-3xl p-6">
+              <div className="absolute right-4 top-4 flex size-7 items-center justify-center rounded-lg border border-[color:var(--nexus-border)]">
+                <Lock className="size-3.5 opacity-55" strokeWidth={2.25} />
               </div>
-              <div className="size-10 rounded-xl bg-black/[0.04] text-muted-foreground flex items-center justify-center mb-3">
-                <BookOpen className="size-5" strokeWidth={2} />
+              <div className="mb-3 flex size-10 items-center justify-center rounded-xl border border-[color:var(--nexus-border)]">
+                <BookOpen className="size-5 opacity-60" strokeWidth={2} />
               </div>
-              <h3 className="font-bold text-sm tracking-tight">{p.title}</h3>
-              <p className="text-[11px] text-muted-foreground mt-1">
+              <h3 className="text-sm font-black tracking-tight">{p.title}</h3>
+              <p className="mt-1 text-[11px] font-semibold opacity-55">
                 Incluido en los planes Premium, Pro y Elite.
               </p>
             </div>
