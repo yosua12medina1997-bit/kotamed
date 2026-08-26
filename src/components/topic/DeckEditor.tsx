@@ -124,7 +124,8 @@ export function DeckEditor({
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex justify-end bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <>
+      <div className="fixed inset-0 z-[110] flex justify-end bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div
         className="h-full w-full max-w-2xl overflow-y-auto bg-background p-5 shadow-2xl md:p-7"
         onClick={(e) => e.stopPropagation()}
@@ -293,5 +294,6 @@ export function DeckEditor({
         onClose={() => setPreview(false)}
       />
     )}
+    </>
   );
 }
