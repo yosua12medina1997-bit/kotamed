@@ -62,7 +62,7 @@ const TYPE_ICON: Record<string, React.ElementType> = {
 
 function BibliotecaPage() {
   const user = useSupabaseUser();
-  const env = useNexusEnv(user?.id);
+  const env = useNexusEnv();
   const profile = useMyProfile(user?.id);
   const roles = useMyRoles(user?.id);
   const isAdmin = useIsAdmin(user?.id).data ?? false;
