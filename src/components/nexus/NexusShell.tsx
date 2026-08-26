@@ -54,6 +54,13 @@ export function NexusShell({
 }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [profileOpen, setProfileOpen] = useState(false);
+  const { data: nav } = useNexusNav();
+  const isSuperAdmin = useIsSuperAdmin(userId || undefined).data ?? false;
+  const navItems = visibleNavItems(nav?.items ?? [], {
+    enrolled: true,
+    isAdmin: !!isAdmin,
+    isSuperAdmin,
+  });
 
   return (
     <div
@@ -81,22 +88,29 @@ export function NexusShell({
           </Link>
 
           <nav className="mt-8 space-y-1">
-            {NAV.map((item) => {
+            {navItems.map((item) => {
               const active = pathname === item.to;
+              const Icon = NAV_ICONS[item.icon] ?? Home;
+              const cls = `flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-[13px] font-bold transition ${
+                active ? "nexus-nav-active" : "nexus-nav"
+              }`;
+              if (item.newTab || /^https?:\/\//.test(item.to)) {
+                return (
+                  <a key={item.id} href={item.to} target="_blank" rel="noreferrer" className={cls}>
+                    <Icon className="size-[18px]" strokeWidth={2.1} />
+                    {item.label}
+                  </a>
+                );
+              }
               return (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-[13px] font-bold transition ${
-                    active ? "nexus-nav-active" : "nexus-nav"
-                  }`}
-                >
-                  <item.icon className="size-[18px]" strokeWidth={2.1} />
+                <Link key={item.id} to={item.to as never} className={cls}>
+                  <Icon className="size-[18px]" strokeWidth={2.1} />
                   {item.label}
                 </Link>
               );
             })}
           </nav>
+
 
           <div className="mt-8 border-t border-[color:var(--nexus-border)] pt-5">
             <div className="text-[9px] font-bold uppercase tracking-[0.24em] opacity-45">
