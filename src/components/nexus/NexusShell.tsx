@@ -27,16 +27,9 @@ import {
 import kotaroLogo from "@/assets/kotaro-logo.png";
 import { ProfileDialog } from "@/components/profile/ProfileDialog";
 import type { Appearance, NexusEnv } from "@/lib/nexus-theme";
+import { NAV_ICONS, useNexusNav, visibleNavItems } from "@/lib/nexus-nav-cms";
+import { useIsSuperAdmin } from "@/lib/session";
 
-const NAV = [
-  { label: "Inicio", to: "/dashboard", icon: Home },
-  { label: "Mis cursos", to: "/programas", icon: GraduationCap },
-  { label: "Clínica", to: "/programas/internado/areas", icon: Stethoscope },
-  { label: "Kota AI", to: "/anatomy-lab", icon: Sparkles },
-  { label: "Evaluaciones", to: "/programas/kotamed-apex", icon: ClipboardList },
-  { label: "Biblioteca", to: "/programas", icon: Library },
-  { label: "Mi progreso", to: "/dashboard", icon: BarChart3 },
-] as const;
 
 export function NexusShell({
   env,
