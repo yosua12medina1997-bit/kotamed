@@ -121,7 +121,7 @@ export function useTopicPage(idOrSlug: string) {
       const siblings = ((siblingsRes.data ?? []) as unknown as TopicNodeRow[]).filter(
         (n) => n.kind === "chapter" || n.kind === "lesson",
       );
-      const resources = ((resourcesRes.data ?? []) as unknown as TopicResourceRow[]) ?? [];
+      const resources = (resourcesRes.data ?? []) as unknown as TopicResourceRow[];
 
       return { topic, parent, siblings, resources } as const;
     },
