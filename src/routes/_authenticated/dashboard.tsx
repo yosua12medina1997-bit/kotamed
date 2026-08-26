@@ -35,7 +35,7 @@ import {
   type Enrollment,
 } from "@/lib/session";
 import { useQueryClient } from "@tanstack/react-query";
-import { useProgramCatalog, type CatalogProgram } from "@/lib/content-catalog";
+import { useProgramCatalog } from "@/lib/content-catalog";
 import { useMyAdmission } from "@/lib/admission";
 import { useMyProgramEnrollments } from "@/lib/enrollments";
 import { NexusShell } from "@/components/nexus/NexusShell";
