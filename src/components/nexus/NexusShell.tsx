@@ -8,18 +8,12 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   Bell,
   BookOpen,
-  ClipboardList,
-  GraduationCap,
   Home,
-  Library,
   Moon,
   Search,
   Settings,
   Shield,
-  Sparkles,
-  Stethoscope,
   Sun,
-  BarChart3,
   UserRound,
   LogOut,
   ChevronDown,
@@ -148,7 +142,7 @@ export function NexusShell({
             <label className="nexus-search hidden flex-1 items-center gap-3 rounded-2xl px-4 py-2.5 md:flex">
               <Search className="size-4 opacity-55" strokeWidth={2.2} />
               <input
-                placeholder="Buscar cursos, temas, clases, casos..."
+                placeholder={nav?.searchPlaceholder ?? "Buscar cursos, temas, clases, casos..."}
                 className="w-full bg-transparent text-[13px] font-medium outline-none placeholder:opacity-45"
               />
               <kbd className="rounded-lg border border-[color:var(--nexus-border)] px-1.5 py-0.5 text-[10px] font-bold opacity-55">
@@ -342,7 +336,7 @@ function UserChip({
             <UserRound className="size-4" /> Mi perfil
           </button>
           <Link
-            to="/programas"
+            to="/mis-cursos"
             className="nexus-nav flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-xs font-bold"
             onClick={() => setOpen(false)}
           >
