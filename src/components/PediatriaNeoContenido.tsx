@@ -930,12 +930,15 @@ function TopicDetail({
   accent,
   isAdmin,
   scope,
+  autoOpen,
 }: {
   node: CmsNode;
   siblings: CmsNode[];
   accent: string;
   isAdmin: boolean;
   scope: CmsScope;
+  /** Abre automáticamente el contenido (diapositivas o texto) al montar. */
+  autoOpen?: boolean;
 }) {
   const [tab, setTab] = useState<"secciones" | "recursos">("recursos");
   const [presenterOpen, setPresenterOpen] = useState(false);
