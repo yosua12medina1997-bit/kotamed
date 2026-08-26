@@ -40,6 +40,7 @@ import { useMyAdmission } from "@/lib/admission";
 import { useMyProgramEnrollments } from "@/lib/enrollments";
 import { NexusShell } from "@/components/nexus/NexusShell";
 import { MedicalCore, type CoreNode } from "@/components/nexus/MedicalCore";
+import { AnatomicalCore } from "@/components/nexus/AnatomicalCore";
 import { useNexusEnv } from "@/lib/nexus-theme";
 import {
   DEFAULT_NEXUS_DASHBOARD,
@@ -151,6 +152,7 @@ function DashboardPage() {
           manual={manualQ.data ?? []}
           greeting={env.greeting}
           coreIntensity={env.coreIntensity}
+          envBase={env.base}
           reducedMotion={env.reducedMotion}
           lowPower={env.lowPower}
         />
@@ -162,6 +164,7 @@ function DashboardPage() {
           displayName={displayName}
           greeting={env.greeting}
           coreIntensity={env.coreIntensity}
+          envBase={env.base}
           reducedMotion={env.reducedMotion}
           lowPower={env.lowPower}
         />
@@ -260,6 +263,7 @@ function EnrolledView({
   manual = [],
   greeting,
   coreIntensity,
+  envBase,
   reducedMotion,
   lowPower,
 }: {
@@ -270,6 +274,7 @@ function EnrolledView({
   manual?: { node: { slug: string; title: string } | null; expires_at: string | null }[];
   greeting: string;
   coreIntensity: number;
+  envBase: "light" | "dark";
   reducedMotion: boolean;
   lowPower: boolean;
 }) {
@@ -376,12 +381,13 @@ function EnrolledView({
 
             {/* MEDICAL CORE */}
             {cfg.showCore && (
-            <div className="flex items-center justify-center py-6">
-              <MedicalCore
-                nodes={coreNodesFrom(programs, cfg.coreMaxNodes)}
+            <div className="flex items-center justify-center py-4">
+              <AnatomicalCore
                 intensity={coreIntensity}
+                base={envBase}
                 reducedMotion={reducedMotion}
                 lowPower={lowPower}
+                contextLabel={focus ? focus.title : undefined}
               />
             </div>
             )}
@@ -585,6 +591,7 @@ function LockedView({
   displayName,
   greeting,
   coreIntensity,
+  envBase,
   reducedMotion,
   lowPower,
 }: {
@@ -594,6 +601,7 @@ function LockedView({
   displayName: string;
   greeting: string;
   coreIntensity: number;
+  envBase: "light" | "dark";
   reducedMotion: boolean;
   lowPower: boolean;
 }) {
@@ -673,13 +681,9 @@ function LockedView({
         </div>
 
         <div className="flex items-center justify-center">
-          <MedicalCore
-            nodes={programs.slice(0, 5).map((p, i) => ({
-              label: p.title.length > 22 ? `${p.title.slice(0, 20)}…` : p.title,
-              hint: "Premium",
-              angle: NODE_ANGLES[i] ?? i * 72,
-            }))}
+          <AnatomicalCore
             intensity={coreIntensity}
+            base={envBase}
             reducedMotion={reducedMotion}
             lowPower={lowPower}
           />
