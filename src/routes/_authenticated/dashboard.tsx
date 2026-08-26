@@ -29,6 +29,7 @@ import {
   useMyEnrollments,
   useMyProfile,
   useMyRoles,
+  useIsSuperAdmin,
   useSupabaseUser,
   ROLE_LABELS,
   type Enrollment,
@@ -40,6 +41,13 @@ import { useMyProgramEnrollments } from "@/lib/enrollments";
 import { NexusShell } from "@/components/nexus/NexusShell";
 import { MedicalCore, type CoreNode } from "@/components/nexus/MedicalCore";
 import { useNexusEnv } from "@/lib/nexus-theme";
+import {
+  DEFAULT_NEXUS_DASHBOARD,
+  fillTemplate,
+  useNexusDashboardConfig,
+  type DashboardAction,
+  type NexusDashboardConfig,
+} from "@/lib/nexus-dashboard-cms";
 import { useEffect } from "react";
 
 /** Accesos incluidos en la experiencia Free (sin matrícula). */
@@ -78,6 +86,7 @@ function DashboardPage() {
   const qc = useQueryClient();
   const env = useNexusEnv();
   const { data: isAdmin } = useIsAdmin(user?.id);
+  const { data: isSuperAdmin } = useIsSuperAdmin(user?.id);
   const { data: profile } = useMyProfile(user?.id);
   const { data: roles } = useMyRoles(user?.id);
   const enrollmentsQ = useMyEnrollments(user?.id);
@@ -138,6 +147,7 @@ function DashboardPage() {
           active={active}
           displayName={displayName}
           isAdmin={!!isAdmin}
+          isSuperAdmin={!!isSuperAdmin}
           manual={manualQ.data ?? []}
           greeting={env.greeting}
           coreIntensity={env.coreIntensity}
@@ -220,13 +230,14 @@ function Ring({ value, size = 76 }: { value: number; size?: number }) {
 
 const NODE_ANGLES = [0, 72, 144, 216, 288];
 
-function coreNodesFrom(programs: CatalogProgram[]): CoreNode[] {
-  return programs.slice(0, 5).map((p, i) => ({
+function coreNodesFrom(programs: CatalogProgram[], max = 5): CoreNode[] {
+  const step = 360 / Math.max(1, Math.min(8, max));
+  return programs.slice(0, Math.max(3, Math.min(8, max))).map((p, i) => ({
     label: p.title.length > 22 ? `${p.title.slice(0, 20)}…` : p.title,
     hint: p.areas.length > 0 ? `${p.areas.length} áreas` : undefined,
     to: "/programas/$slug",
     params: { slug: p.slug },
-    angle: NODE_ANGLES[i] ?? i * 72,
+    angle: max === 5 ? NODE_ANGLES[i] ?? i * step : i * step,
   }));
 }
 
@@ -236,6 +247,7 @@ function EnrolledView({
   active,
   displayName,
   isAdmin,
+  isSuperAdmin,
   manual = [],
   greeting,
   coreIntensity,
@@ -245,17 +257,20 @@ function EnrolledView({
   active: Enrollment[];
   displayName: string;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   manual?: { node: { slug: string; title: string } | null; expires_at: string | null }[];
   greeting: string;
   coreIntensity: number;
   reducedMotion: boolean;
   lowPower: boolean;
 }) {
-  // El administrador ve absolutamente todos los programas, incluidos los que
+  // Solo el Super Admin ve absolutamente todos los programas, incluidos los que
   // viven dentro de bibliotecas internas y los que están en borrador.
-  const { programs } = useProgramCatalog({ includeIsolated: isAdmin });
+  const { data: cfgData } = useNexusDashboardConfig();
+  const cfg: NexusDashboardConfig = cfgData ?? DEFAULT_NEXUS_DASHBOARD;
+  const { programs } = useProgramCatalog({ includeIsolated: isSuperAdmin });
 
-  const mine = isAdmin
+  const mine = isSuperAdmin
     ? programs.map((p) => ({ slug: p.slug, expires_at: null as string | null }))
     : [
         ...active.map((e) => ({ slug: e.program as string, expires_at: e.expires_at })),
