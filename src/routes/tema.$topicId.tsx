@@ -6,7 +6,7 @@
  * principal grande, diapositivas, bloques de recursos y siguiente tema).
  * El super admin gestiona portada, banner, diapositivas y recursos aquí mismo.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -672,15 +672,21 @@ function AdminTopicSettings({
 /** URL firmada temporal para recursos almacenados en Storage. */
 function useSignedUrl(path: string | null) {
   const [url, setUrl] = useState<string | null>(null);
-  const [asked, setAsked] = useState<string | null>(null);
 
-  if (path && asked !== path) {
-    setAsked(path);
+  useEffect(() => {
+    let alive = true;
+    setUrl(null);
+    if (!path) return;
     void supabase.storage
       .from("content")
       .createSignedUrl(path, 60 * 60)
-      .then(({ data }) => setUrl(data?.signedUrl ?? null));
-  }
+      .then(({ data }) => {
+        if (alive) setUrl(data?.signedUrl ?? null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [path]);
 
-  return path ? url : null;
+  return url;
 }
