@@ -118,6 +118,7 @@ export function PediatriaNeoContenido({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [pharmaOpen, setPharmaOpen] = useState(false);
+  const [orgOpen, setOrgOpen] = useState(false);
   const [newBlock, setNewBlock] = useState("");
 
   useEffect(() => {
