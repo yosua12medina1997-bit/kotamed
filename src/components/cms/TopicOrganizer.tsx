@@ -186,8 +186,62 @@ export function TopicOrganizer({
           Arrastra un tema por el asa (⠿). Suelta en el borde superior o inferior de otro tema
           para reordenar, o en el centro para convertirlo en subtema. Suelta al final de la lista
           para devolverlo al nivel principal. Además puedes renombrar (✏️), publicar u ocultar (👁)
-          y eliminar temas aquí mismo; esos cambios se guardan al instante.
+          y eliminar temas aquí mismo; esos cambios se guardan al instante. Con «＋» creas un tema
+          nuevo en el nivel principal o un subtema dentro de cualquier tema.
         </p>
+
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            onClick={() => {
+              setAddTarget({ parentId: null, label: blockTitle });
+              setAddDraft("");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-extrabold text-white shadow-sm"
+            style={{ background: accent }}
+          >
+            <Plus className="size-3.5" /> Nuevo tema
+          </button>
+        </div>
+
+        {addTarget && (
+          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-primary/40 bg-primary/[0.04] p-2">
+            <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+              en {addTarget.label}
+            </span>
+            <input
+              autoFocus
+              value={addDraft}
+              onChange={(e) => setAddDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitAdd();
+                if (e.key === "Escape") setAddTarget(null);
+              }}
+              placeholder="Título del nuevo tema…"
+              className="min-w-0 flex-1 rounded-lg border border-border/60 bg-background px-2 py-1.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/30"
+              aria-label="Título del nuevo tema"
+            />
+            <button
+              onClick={submitAdd}
+              disabled={creating || !addDraft.trim()}
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold text-white disabled:opacity-50"
+              style={{ background: accent }}
+            >
+              {creating ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Check className="size-3.5" />
+              )}
+              Crear
+            </button>
+            <button
+              onClick={() => setAddTarget(null)}
+              className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-foreground/[0.05]"
+              aria-label="Cancelar"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        )}
 
         <div className="mt-4 space-y-1 rounded-2xl border border-border/50 bg-background/40 p-2">
           {tree.length === 0 && (
