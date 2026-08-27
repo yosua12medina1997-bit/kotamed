@@ -86,7 +86,6 @@ export function TopicOrganizer({
       setTree((prev) => appendChild(prev, addTarget.parentId, node));
       setAddDraft("");
       toast.success(`«${title}» creado`);
-      onSaved();
     } catch (err: any) {
       toast.error(err?.message ?? "No se pudo crear el tema");
     } finally {
