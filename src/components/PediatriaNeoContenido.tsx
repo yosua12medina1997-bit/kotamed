@@ -20,6 +20,7 @@ import {
   Eye,
   EyeOff,
   FileText,
+  FolderTree,
   GraduationCap,
   ListChecks,
   Loader2,
