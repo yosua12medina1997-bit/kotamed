@@ -95,6 +95,7 @@ import {
 } from "@/lib/content-catalog";
 import { ModuleGate } from "@/components/access/ModuleGate";
 import { RotationModules } from "@/components/programs/RotationModules";
+import { ProgramEnvironmentHero } from "@/components/programs/ProgramEnvironmentHero";
 import {
   RotationLearningFlow,
   RotationProgress,
@@ -301,7 +302,7 @@ function ProgramDetailInner() {
           ]}
           continueTo={
             areas.length > 0
-              ? { to: "/programas/$slug/areas", params: { slug: program.slug }, label: "Continuar aprendiendo" }
+              ? { to: "/programas/$slug_/areas", params: { slug: program.slug }, label: "Continuar aprendiendo" }
               : undefined
           }
           programNodeId={programNode?.id}
