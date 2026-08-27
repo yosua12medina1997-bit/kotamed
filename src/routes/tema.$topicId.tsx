@@ -46,6 +46,9 @@ import type { Topic } from "@/lib/topic-schema";
 import { useTrackActivity } from "@/lib/learning-activity";
 
 export const Route = createFileRoute("/tema/$topicId")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    from: typeof search.from === "string" && search.from.startsWith("/") ? search.from : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Tema · Biblioteca clínica · KotaMed" },
