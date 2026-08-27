@@ -60,8 +60,39 @@ export function TopicOrganizer({
   const [dragId, setDragId] = useState<string | null>(null);
   const [over, setOver] = useState<{ id: string | null; mode: DropMode } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [addTarget, setAddTarget] = useState<{ parentId: string | null; label: string } | null>(
+    null,
+  );
+  const [addDraft, setAddDraft] = useState("");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => setTree(original), [original]);
+
+  /** Crea un tema / subtema / sub-subtema directamente aquí. */
+  const submitAdd = async () => {
+    if (!addTarget) return;
+    const title = addDraft.trim();
+    if (!title) return;
+    const parent = addTarget.parentId ? findNode(tree, addTarget.parentId) : null;
+    const siblings = parent ? parent.children : tree;
+    setCreating(true);
+    try {
+      const node = await createTopic({
+        parentId: addTarget.parentId ?? blockId,
+        title,
+        kind: parent && !parent.fixed ? "lesson" : "chapter",
+        sortOrder: siblings.length,
+      });
+      setTree((prev) => appendChild(prev, addTarget.parentId, node));
+      setAddDraft("");
+      toast.success(`«${title}» creado`);
+      onSaved();
+    } catch (err: any) {
+      toast.error(err?.message ?? "No se pudo crear el tema");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const dirty = useMemo(
     () => structureSignature(tree) !== structureSignature(original),
