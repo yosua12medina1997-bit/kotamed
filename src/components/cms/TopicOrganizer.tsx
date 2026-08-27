@@ -170,6 +170,9 @@ export function TopicOrganizer({
               setDragId={setDragId}
               setOver={setOver}
               onDrop={applyDrop}
+              onRename={rename}
+              onTogglePublished={togglePublished}
+              onDelete={remove}
             />
           ))}
           <div
