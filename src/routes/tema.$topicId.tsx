@@ -94,6 +94,11 @@ function TopicPage() {
 
   const topic = q.data?.topic ?? null;
   const parent = q.data?.parent ?? null;
+  const children = useMemo(
+    () => (q.data?.children ?? []).filter((c) => c.is_published || isAdmin),
+    [q.data?.children, isAdmin],
+  );
+
   const resources = useMemo(
     () => (q.data?.resources ?? []).filter((r) => r.is_published || isAdmin),
     [q.data?.resources, isAdmin],
