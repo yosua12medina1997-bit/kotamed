@@ -20,6 +20,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PROGRAMS } from "@/lib/pediatria-programs";
 import { ImagePicker } from "@/components/cms/ImagePicker";
 import {
   CORE_IMAGES,
@@ -217,6 +218,37 @@ export function ProgramsStudio() {
     onError: (e) => toast.error(String((e as { message?: string })?.message ?? e)),
   });
 
+  /** Inserta en el CMS los programas del catálogo base que aún no existen. */
+  const sync = useMutation({
+    mutationFn: async () => {
+      const taken = new Set((programs ?? []).map((p) => p.slug));
+      const missing = PROGRAMS.filter((p) => !taken.has(p.slug));
+      if (missing.length === 0) return 0;
+      const { error } = await supabase.from("content_nodes").insert(
+        missing.map((p, i) => ({
+          kind: "program",
+          slug: p.slug,
+          title: p.title,
+          description: p.description ?? "",
+          is_published: true,
+          sort_order: p.order ?? (programs?.length ?? 0) + i + 1,
+          metadata: {
+            subtitle: p.subtitle ?? "",
+            tagline: p.tagline ?? "",
+            audience: p.audience ?? "",
+          } as never,
+        })),
+      );
+      if (error) throw error;
+      return missing.length;
+    },
+    onSuccess: (n) => {
+      qc.invalidateQueries({ queryKey: ["cms-all-programs"] });
+      toast.success(n ? `${n} programas añadidos al CMS` : "Todos los programas ya están en el CMS");
+    },
+    onError: (e) => toast.error(String((e as { message?: string })?.message ?? e)),
+  });
+
   const togglePublish = useMutation({
     mutationFn: async (row: ProgramRow) => {
       const { error } = await supabase
@@ -256,6 +288,15 @@ export function ProgramsStudio() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-xs font-semibold hover:bg-muted/50"
+            onClick={() => sync.mutate()}
+            disabled={sync.isPending}
+            title="Añade al CMS los programas del catálogo base que falten"
+          >
+            {sync.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <RotateCcw className="size-3.5" />} Sincronizar
+            catálogo
+          </button>
           <button
             className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 px-2.5 py-1.5 text-xs font-semibold hover:bg-muted/50"
             onClick={() => create.mutate()}
