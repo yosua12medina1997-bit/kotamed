@@ -6,22 +6,32 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import {
+  Check,
   ChevronRight,
   CornerDownRight,
+  Eye,
   EyeOff,
   FolderTree,
   GripVertical,
   Loader2,
+  Pencil,
   RotateCcw,
   Save,
+  Trash2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { CmsNode } from "@/lib/pednn-cms";
 import {
   buildOrgTree,
+  deleteTopic,
+  dropNode,
   moveNode,
+  patchNode,
+  renameTopic,
   saveOrganization,
+  setTopicPublished,
+  structureSignature,
   type DropMode,
   type OrgNode,
 } from "@/lib/topic-organizer";
