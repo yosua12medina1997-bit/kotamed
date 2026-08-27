@@ -158,6 +158,11 @@ type AreaNode = {
 type ProgramNodeMeta = {
   chapterFeatures?: string[];
   chapterTemplate?: string[];
+  subtitle?: string;
+  tagline?: string;
+  audience?: string;
+  cover?: string;
+  banner?: string;
 };
 
 function slugify(s: string) {
@@ -235,6 +240,9 @@ function ProgramDetailInner() {
     : program.areas;
   const liveTitle = programNode?.title || program.title;
   const liveDescription = programNode?.description || program.description;
+  const liveSubtitle = meta.subtitle || program.subtitle;
+  const liveTagline = meta.tagline || program.tagline;
+  const liveAudience = meta.audience || program.audience;
   const chapterFeatures = meta.chapterFeatures ?? program.chapterFeatures;
   const chapterTemplate = meta.chapterTemplate ?? CHAPTER_TEMPLATE.map((c) => c.title);
   const isRotationHnsebPage = routeProgramSlug === "rotacion-pediatria-hnseb";
@@ -270,7 +278,7 @@ function ProgramDetailInner() {
           </Link>
           <span className="text-muted-foreground/40">/</span>
           <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${accent.chip}`}>
-            {program.subtitle}
+            {liveSubtitle}
           </span>
           {isAdmin && (
             <span className="ml-auto inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold border border-primary/30 bg-primary/10 text-primary">
@@ -282,10 +290,10 @@ function ProgramDetailInner() {
         <ProgramEnvironmentHero
           slug={program.slug}
           title={liveTitle}
-          subtitle={program.subtitle}
-          tagline={program.tagline}
+          subtitle={liveSubtitle}
+          tagline={liveTagline}
           description={liveDescription}
-          audience={program.audience}
+          audience={liveAudience}
           progressPct={
             areas.length > 0
               ? Math.round(

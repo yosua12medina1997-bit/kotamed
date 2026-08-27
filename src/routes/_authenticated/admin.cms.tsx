@@ -90,6 +90,7 @@ import { InternadoEditor } from "@/components/cms/InternadoEditor";
 import { EnamEditor } from "@/components/cms/EnamEditor";
 
 import { ProgramHubEditor } from "@/components/cms/ProgramHubEditor";
+import { ProgramsStudio } from "@/components/cms/ProgramsStudio";
 import { NexusDashboardEditor } from "@/components/cms/NexusDashboardEditor";
 import { NexusNavEditor } from "@/components/cms/NexusNavEditor";
 import { LibraryStudio } from "@/components/cms/LibraryStudio";
@@ -123,6 +124,7 @@ type StudioView =
   | "rutas"
   | "navegacion"
   | "colecciones"
+  | "programas-todos"
   | "constructor"
   | "hero"
   | "bienvenida"
@@ -154,6 +156,7 @@ const MODULES: { id: StudioView; label: string; hint: string; icon: React.Elemen
   { id: "nav-alumno", label: "Menú del alumno", hint: "Accesos y rutas del panel", icon: Compass },
   { id: "biblioteca", label: "Biblioteca Universal", hint: "Categorías y recursos /biblioteca", icon: Recycle },
   { id: "programas", label: "Programas (Hub)", hint: "Página pública /programas", icon: Sparkles },
+  { id: "programas-todos", label: "Todos los programas", hint: "Edición total: textos, imágenes y ambiente", icon: Layers },
   { id: "constructor", label: "Constructor de contenido", hint: "Programas, bloques, temas y recursos", icon: Layers },
   { id: "colecciones", label: "Colecciones", hint: "Contenido reutilizable", icon: Recycle },
   { id: "sitio", label: "KOTAMED.APP", hint: "Sitio en producción", icon: Globe },
@@ -793,6 +796,11 @@ function CmsStudioPage() {
       ) : view === "programas" ? (
         <div className="p-3">
           <ProgramHubEditor />
+        </div>
+
+      ) : view === "programas-todos" ? (
+        <div className="p-3">
+          <ProgramsStudio />
         </div>
 
       ) : view === "constructor" ? (
