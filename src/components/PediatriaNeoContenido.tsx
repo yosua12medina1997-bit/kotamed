@@ -183,15 +183,26 @@ export function PediatriaNeoContenido({
             <Stat label="Categorías" value={stats.categories} accent={meta.accent} />
             <Stat label="Temas" value={stats.topics} accent={meta.accent} />
           </div>
-          {showPharma && (
-            <button
-              onClick={() => setPharmaOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
-            >
-              <Calculator className="size-3.5" style={{ color: meta.accent }} />
-              Calculadora farmacológica
-            </button>
-          )}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {isSuperAdmin && block && (
+              <button
+                onClick={() => setOrgOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
+              >
+                <FolderTree className="size-3.5" style={{ color: meta.accent }} />
+                Organizar temas
+              </button>
+            )}
+            {showPharma && (
+              <button
+                onClick={() => setPharmaOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
+              >
+                <Calculator className="size-3.5" style={{ color: meta.accent }} />
+                Calculadora farmacológica
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
