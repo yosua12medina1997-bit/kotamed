@@ -280,7 +280,7 @@ export function ProgramEnvironmentHero({
                   borderColor: `rgba(${env.accent},0.3)`,
                   background: "rgba(255,255,255,0.72)",
                   boxShadow: `0 16px 40px -28px rgba(${env.accent2},0.9)`,
-                  animation: env.motion > 0 ? `float-slow ${7 + i}s ease-in-out ${i * 0.4}s infinite` : undefined,
+                  animation: env.motion > 0 ? `kotaro-float ${7 + i}s ease-in-out ${i * 0.4}s infinite` : undefined,
                 }}
               >
                 <Icon className="size-4" strokeWidth={1.6} style={{ color: `rgb(${env.accent})` }} />
