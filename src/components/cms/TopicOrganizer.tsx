@@ -261,6 +261,10 @@ export function TopicOrganizer({
               onRename={rename}
               onTogglePublished={togglePublished}
               onDelete={remove}
+              onAddChild={(t) => {
+                setAddTarget({ parentId: t.id, label: t.title });
+                setAddDraft("");
+              }}
             />
           ))}
           <div
@@ -318,6 +322,7 @@ function Row({
   onRename,
   onTogglePublished,
   onDelete,
+  onAddChild,
 }: {
   node: OrgNode;
   depth: number;
@@ -330,6 +335,7 @@ function Row({
   onRename: (id: string, title: string) => void;
   onTogglePublished: (id: string, next: boolean) => void;
   onDelete: (node: OrgNode) => void;
+  onAddChild: (node: OrgNode) => void;
 }) {
   const isOver = over?.id === node.id;
   const [editing, setEditing] = useState(false);
@@ -446,6 +452,13 @@ function Row({
           )}
         </button>
         <button
+          onClick={() => onAddChild(node)}
+          className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"
+          aria-label={`Agregar subtema dentro de ${node.title}`}
+        >
+          <Plus className="size-3.5" />
+        </button>
+        <button
           onClick={() => onDelete(node)}
           className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           aria-label={`Eliminar ${node.title}`}
@@ -469,6 +482,7 @@ function Row({
               onRename={onRename}
               onTogglePublished={onTogglePublished}
               onDelete={onDelete}
+              onAddChild={onAddChild}
             />
           ))}
         </div>
