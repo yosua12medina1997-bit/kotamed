@@ -340,7 +340,7 @@ function EnvironmentEditor({
     setError(null);
     const { error } = await supabase
       .from("content_nodes")
-      .update({ metadata: { ...metadata, environment: draft } })
+      .update({ metadata: { ...metadata, environment: draft } as never })
       .eq("id", programNodeId);
     setSaving(false);
     if (error) {
