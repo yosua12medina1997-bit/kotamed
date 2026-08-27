@@ -24,6 +24,7 @@ import {
   ArrowUp,
   ArrowDown,
   DownloadCloud,
+  GripVertical,
 } from "lucide-react";
 import {
   ACCENT_CLASSES,
@@ -34,6 +35,7 @@ import {
 } from "@/lib/pediatria-programs";
 import { ENAM_AREAS, type EnamAreaSlug } from "@/lib/enam-modules";
 import { INTERNADO_AREAS } from "@/lib/internado-modules";
+import { useModuleDnd } from "@/lib/module-reorder";
 
 function normalize(s: string) {
   return s
@@ -590,6 +592,13 @@ function AreasSection({
     reorder.mutate({ id: b.id, sort_order: a.sort_order });
   };
 
+  /** Arrastrar y soltar módulos (solo admin, dentro del modo edición). */
+  const dnd = useModuleDnd(dbAreas, {
+    enabled: isAdmin,
+    onPersisted: () => qc.invalidateQueries({ queryKey: ["program-areas", programNodeId] }),
+  });
+
+
   return (
     <section className="glass rounded-3xl p-7 animate-slide-up" style={{ animationDelay: "60ms" }}>
       <div className="flex items-center justify-between gap-3">
@@ -693,23 +702,41 @@ function AreasSection({
               Aún no hay áreas persistidas. Pulsa "Sembrar plantilla" para importar las áreas por defecto y empezar a editar.
             </p>
           )}
-          {dbAreas.map((a, i) => (
-            <AreaEditRow
+          {hasDb && (
+            <p className="text-[11px] text-muted-foreground">
+              Arrastra un módulo desde <span className="font-semibold">⠿</span> para moverlo a otra
+              posición; el nuevo orden se guarda automáticamente.
+            </p>
+          )}
+          {dnd.order.map((a, i) => (
+            <div
               key={a.id}
-              area={a}
-              index={i}
-              total={dbAreas.length}
-              accent={accent}
-              onSave={(title) => updateArea.mutate({ id: a.id, title })}
-              onDelete={() => {
-                if (confirm(`¿Eliminar "${a.title}"? Esto borra también su contenido en cascada.`)) {
-                  deleteArea.mutate(a.id);
-                }
-              }}
-              onMoveUp={() => move(i, -1)}
-              onMoveDown={() => move(i, 1)}
-            />
+              draggable
+              onDragStart={dnd.onDragStart(i)}
+              onDragOver={dnd.onDragOver(i)}
+              onDrop={dnd.onDrop(i)}
+              onDragEnd={dnd.onDragEnd}
+              className={`rounded-xl transition ${dnd.dragging === i ? "opacity-50" : ""} ${
+                dnd.overIndex === i && dnd.dragging !== i ? "ring-2 ring-primary/50" : ""
+              }`}
+            >
+              <AreaEditRow
+                area={a}
+                index={i}
+                total={dnd.order.length}
+                accent={accent}
+                onSave={(title) => updateArea.mutate({ id: a.id, title })}
+                onDelete={() => {
+                  if (confirm(`¿Eliminar "${a.title}"? Esto borra también su contenido en cascada.`)) {
+                    deleteArea.mutate(a.id);
+                  }
+                }}
+                onMoveUp={() => move(i, -1)}
+                onMoveDown={() => move(i, 1)}
+              />
+            </div>
           ))}
+
           {hasDb && (
             <form
               onSubmit={(e) => {
@@ -811,6 +838,10 @@ function AreaEditRow({
 
   return (
     <div className="flex items-center gap-2 rounded-xl border border-border bg-white/70 p-2">
+      <GripVertical
+        className="size-3.5 shrink-0 cursor-grab text-muted-foreground/70"
+        aria-hidden
+      />
       <span className={`size-7 rounded-lg flex items-center justify-center text-[10px] font-bold tabular-nums ${accent.chip} border shrink-0`}>
         {String(index + 1).padStart(2, "0")}
       </span>
