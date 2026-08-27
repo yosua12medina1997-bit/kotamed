@@ -138,7 +138,7 @@ export function ProgramsStudio() {
 
   useEffect(() => {
     if (selected) setDraft(toDraft(selected));
-  }, [selectedId, selected?.updated_at as never]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = useMutation({
     mutationFn: async () => {
