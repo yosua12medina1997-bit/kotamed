@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ModuleGate } from "@/components/access/ModuleGate";
 import { buildModuleMeta, defaultProgramModules } from "@/lib/program-modules";
 import { getProgram } from "@/lib/pediatria-programs";
+import { useModuleDnd } from "@/lib/module-reorder";
+import { useIsSuperAdmin, useSupabaseUser } from "@/lib/session";
 
 export const Route = createFileRoute("/programas/$slug_/areas/")({
   loader: ({ params }) => ({ slug: params.slug }),
@@ -54,10 +56,14 @@ function useProgramModules(programSlug: string) {
         .eq("slug", programSlug)
         .maybeSingle();
       if (pe) throw pe;
-      if (!parent) return { program: null, areas: [] as { slug: string; title: string; description: string | null }[] };
+      if (!parent)
+        return {
+          program: null,
+          areas: [] as { id: string; slug: string; title: string; description: string | null }[],
+        };
       const { data, error } = await supabase
         .from("content_nodes")
-        .select("slug,title,description,sort_order")
+        .select("id,slug,title,description,sort_order")
         .eq("parent_id", parent.id)
         .eq("kind", "area")
         .order("sort_order", { ascending: true });
@@ -71,6 +77,13 @@ function ProgramModulesHub() {
   const { slug } = Route.useLoaderData();
   const q = useProgramModules(slug);
   const staticProgram = getProgram(slug);
+  const user = useSupabaseUser();
+  const { data: isSuperAdmin } = useIsSuperAdmin(user?.id);
+  const dbAreas = q.data?.areas ?? [];
+  const dnd = useModuleDnd(dbAreas, {
+    enabled: !!isSuperAdmin && dbAreas.length > 0,
+    onPersisted: () => q.refetch(),
+  });
 
   const programTitle = q.data?.program?.title ?? staticProgram?.title ?? "Programa";
   const programDescription =
@@ -79,9 +92,9 @@ function ProgramModulesHub() {
     "Cada módulo funciona como una plataforma independiente: ruta académica, contenido, casos, banco de preguntas, flashcards, simuladores, biblioteca y tutor IA.";
 
   const modules =
-    q.data && q.data.areas.length > 0
-      ? q.data.areas.map((a, i) => buildModuleMeta(a, i))
-      : defaultProgramModules(slug);
+    dbAreas.length > 0
+      ? (isSuperAdmin ? dnd.order : dbAreas).map((a, i) => ({ ...buildModuleMeta(a, i), id: a.id }))
+      : defaultProgramModules(slug).map((m) => ({ ...m, id: undefined as string | undefined }));
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -129,6 +142,13 @@ function ProgramModulesHub() {
           </div>
         )}
 
+        {isSuperAdmin && dbAreas.length > 0 && (
+          <p className="mt-6 text-xs text-muted-foreground">
+            Arrastra una tarjeta de módulo para cambiar su posición; el orden se guarda
+            automáticamente.
+          </p>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mt-8">
           {modules.map((a, i) => {
             const Icon = a.icon;
@@ -137,7 +157,21 @@ function ProgramModulesHub() {
                 key={a.slug}
                 to="/programas/$slug/areas/$area"
                 params={{ slug, area: a.slug }}
-                className="group glass rounded-3xl p-6 relative overflow-hidden animate-slide-up hover:-translate-y-0.5 transition"
+                draggable={dnd.enabled}
+                onDragStart={dnd.onDragStart(i)}
+                onDragOver={dnd.onDragOver(i)}
+                onDrop={(e) => {
+                  if (!dnd.enabled) return;
+                  e.stopPropagation();
+                  void dnd.onDrop(i)(e);
+                }}
+                onDragEnd={dnd.onDragEnd}
+                onClick={(e) => {
+                  if (dnd.dragging !== null) e.preventDefault();
+                }}
+                className={`group glass rounded-3xl p-6 relative overflow-hidden animate-slide-up hover:-translate-y-0.5 transition ${
+                  dnd.dragging === i ? "opacity-50" : ""
+                } ${dnd.overIndex === i && dnd.dragging !== i ? "ring-2 ring-primary/60" : ""}`}
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <div
