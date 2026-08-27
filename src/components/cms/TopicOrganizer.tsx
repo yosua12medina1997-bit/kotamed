@@ -15,6 +15,7 @@ import {
   GripVertical,
   Loader2,
   Pencil,
+  Plus,
   RotateCcw,
   Save,
   Trash2,
@@ -23,9 +24,12 @@ import {
 import { toast } from "sonner";
 import type { CmsNode } from "@/lib/pednn-cms";
 import {
+  appendChild,
   buildOrgTree,
+  createTopic,
   deleteTopic,
   dropNode,
+  findNode,
   moveNode,
   patchNode,
   renameTopic,
@@ -56,8 +60,38 @@ export function TopicOrganizer({
   const [dragId, setDragId] = useState<string | null>(null);
   const [over, setOver] = useState<{ id: string | null; mode: DropMode } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [addTarget, setAddTarget] = useState<{ parentId: string | null; label: string } | null>(
+    null,
+  );
+  const [addDraft, setAddDraft] = useState("");
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => setTree(original), [original]);
+
+  /** Crea un tema / subtema / sub-subtema directamente aquí. */
+  const submitAdd = async () => {
+    if (!addTarget) return;
+    const title = addDraft.trim();
+    if (!title) return;
+    const parent = addTarget.parentId ? findNode(tree, addTarget.parentId) : null;
+    const siblings = parent ? parent.children : tree;
+    setCreating(true);
+    try {
+      const node = await createTopic({
+        parentId: addTarget.parentId ?? blockId,
+        title,
+        kind: parent && !parent.fixed ? "lesson" : "chapter",
+        sortOrder: siblings.length,
+      });
+      setTree((prev) => appendChild(prev, addTarget.parentId, node));
+      setAddDraft("");
+      toast.success(`«${title}» creado`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "No se pudo crear el tema");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const dirty = useMemo(
     () => structureSignature(tree) !== structureSignature(original),
@@ -152,8 +186,62 @@ export function TopicOrganizer({
           Arrastra un tema por el asa (⠿). Suelta en el borde superior o inferior de otro tema
           para reordenar, o en el centro para convertirlo en subtema. Suelta al final de la lista
           para devolverlo al nivel principal. Además puedes renombrar (✏️), publicar u ocultar (👁)
-          y eliminar temas aquí mismo; esos cambios se guardan al instante.
+          y eliminar temas aquí mismo; esos cambios se guardan al instante. Con «＋» creas un tema
+          nuevo en el nivel principal o un subtema dentro de cualquier tema.
         </p>
+
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            onClick={() => {
+              setAddTarget({ parentId: null, label: blockTitle });
+              setAddDraft("");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] font-extrabold text-white shadow-sm"
+            style={{ background: accent }}
+          >
+            <Plus className="size-3.5" /> Nuevo tema
+          </button>
+        </div>
+
+        {addTarget && (
+          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-primary/40 bg-primary/[0.04] p-2">
+            <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+              en {addTarget.label}
+            </span>
+            <input
+              autoFocus
+              value={addDraft}
+              onChange={(e) => setAddDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitAdd();
+                if (e.key === "Escape") setAddTarget(null);
+              }}
+              placeholder="Título del nuevo tema…"
+              className="min-w-0 flex-1 rounded-lg border border-border/60 bg-background px-2 py-1.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/30"
+              aria-label="Título del nuevo tema"
+            />
+            <button
+              onClick={submitAdd}
+              disabled={creating || !addDraft.trim()}
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-extrabold text-white disabled:opacity-50"
+              style={{ background: accent }}
+            >
+              {creating ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Check className="size-3.5" />
+              )}
+              Crear
+            </button>
+            <button
+              onClick={() => setAddTarget(null)}
+              className="shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-foreground/[0.05]"
+              aria-label="Cancelar"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        )}
 
         <div className="mt-4 space-y-1 rounded-2xl border border-border/50 bg-background/40 p-2">
           {tree.length === 0 && (
@@ -173,6 +261,10 @@ export function TopicOrganizer({
               onRename={rename}
               onTogglePublished={togglePublished}
               onDelete={remove}
+              onAddChild={(t) => {
+                setAddTarget({ parentId: t.id, label: t.title });
+                setAddDraft("");
+              }}
             />
           ))}
           <div
@@ -230,6 +322,7 @@ function Row({
   onRename,
   onTogglePublished,
   onDelete,
+  onAddChild,
 }: {
   node: OrgNode;
   depth: number;
@@ -242,6 +335,7 @@ function Row({
   onRename: (id: string, title: string) => void;
   onTogglePublished: (id: string, next: boolean) => void;
   onDelete: (node: OrgNode) => void;
+  onAddChild: (node: OrgNode) => void;
 }) {
   const isOver = over?.id === node.id;
   const [editing, setEditing] = useState(false);
@@ -358,6 +452,13 @@ function Row({
           )}
         </button>
         <button
+          onClick={() => onAddChild(node)}
+          className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"
+          aria-label={`Agregar subtema dentro de ${node.title}`}
+        >
+          <Plus className="size-3.5" />
+        </button>
+        <button
           onClick={() => onDelete(node)}
           className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           aria-label={`Eliminar ${node.title}`}
@@ -381,6 +482,7 @@ function Row({
               onRename={onRename}
               onTogglePublished={onTogglePublished}
               onDelete={onDelete}
+              onAddChild={onAddChild}
             />
           ))}
         </div>

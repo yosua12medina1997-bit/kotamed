@@ -107,6 +107,62 @@ export async function deleteTopic(id: string) {
   if (error) throw error;
 }
 
+function slugify(title: string) {
+  const base = title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  return `${base || "tema"}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+/**
+ * Crea un tema nuevo directamente desde el organizador.
+ * `parentId` = id del bloque (nivel principal) o del tema padre (subtema).
+ */
+export async function createTopic(input: {
+  parentId: string;
+  title: string;
+  kind: NodeKind;
+  sortOrder: number;
+}): Promise<OrgNode> {
+  const { data, error } = await supabase
+    .from("content_nodes")
+    .insert({
+      parent_id: input.parentId,
+      kind: input.kind,
+      title: input.title,
+      slug: slugify(input.title),
+      sort_order: input.sortOrder,
+      is_published: true,
+      metadata: {} as never,
+    })
+    .select("id,title,kind,is_published")
+    .single();
+  if (error) throw error;
+  const row = data as unknown as { id: string; title: string; kind: NodeKind; is_published: boolean };
+  return {
+    id: row.id,
+    title: row.title,
+    fixed: false,
+    kind: row.kind,
+    published: row.is_published,
+    children: [],
+  };
+}
+
+/** Inserta un nodo recién creado en el árbol local. */
+export function appendChild(tree: OrgNode[], parentId: string | null, node: OrgNode): OrgNode[] {
+  if (!parentId) return [...tree, node];
+  return tree.map((n) =>
+    n.id === parentId
+      ? { ...n, children: [...n.children, node] }
+      : { ...n, children: appendChild(n.children, parentId, node) },
+  );
+}
+
 /** Mueve un nodo respecto a un objetivo. Devuelve el árbol nuevo. */
 export function moveNode(
   tree: OrgNode[],
