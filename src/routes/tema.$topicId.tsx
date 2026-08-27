@@ -73,7 +73,12 @@ const ACCENT_FALLBACK = "hsl(var(--primary))";
 
 function TopicPage() {
   const { topicId } = Route.useParams();
+  const { from } = Route.useSearch();
   const router = useRouter();
+  const goBack = () => {
+    if (from) void router.navigate({ href: from });
+    else router.history.back();
+  };
   const qc = useQueryClient();
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
@@ -165,7 +170,7 @@ function TopicPage() {
           Este tema no existe o aún no está publicado.
         </p>
         <button
-          onClick={() => router.history.back()}
+          onClick={goBack}
           className="mt-6 inline-flex items-center gap-2 rounded-xl border border-border/60 bg-background/60 px-4 py-2 text-sm font-bold hover:border-primary/40"
         >
           <ArrowLeft className="size-4" /> Volver
@@ -194,7 +199,7 @@ function TopicPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/20" />
         <div className="relative mx-auto max-w-6xl px-4 pb-8 pt-8 md:pt-12">
           <button
-            onClick={() => router.history.back()}
+            onClick={goBack}
             className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-background/70 px-3 py-1.5 text-xs font-bold backdrop-blur hover:border-primary/40"
           >
             <ArrowLeft className="size-3.5" />
@@ -424,6 +429,7 @@ function TopicPage() {
           <Link
             to="/tema/$topicId"
             params={{ topicId: next.id }}
+            search={{ from }}
             className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-card/60 px-5 py-4 backdrop-blur transition hover:border-primary/40"
           >
             <span className="min-w-0 flex-1">
