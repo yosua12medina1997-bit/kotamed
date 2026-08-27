@@ -151,7 +151,8 @@ export function TopicOrganizer({
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
           Arrastra un tema por el asa (⠿). Suelta en el borde superior o inferior de otro tema
           para reordenar, o en el centro para convertirlo en subtema. Suelta al final de la lista
-          para devolverlo al nivel principal. No se modifica ningún contenido interno.
+          para devolverlo al nivel principal. Además puedes renombrar (✏️), publicar u ocultar (👁)
+          y eliminar temas aquí mismo; esos cambios se guardan al instante.
         </p>
 
         <div className="mt-4 space-y-1 rounded-2xl border border-border/50 bg-background/40 p-2">
