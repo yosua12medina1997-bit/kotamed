@@ -278,31 +278,37 @@ function ProgramDetailInner() {
           )}
         </div>
 
-        <section className="glass rounded-3xl p-8 md:p-10 relative overflow-hidden animate-slide-up">
-          <div className="max-w-3xl">
-            <span
-              className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${accent.chip}`}
-            >
-              <span className={`size-1.5 rounded-full ${accent.dot}`} />
-              Programa académico
-            </span>
-            <h1 className="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight text-balance leading-[1.05]">
-              {liveTitle}
-            </h1>
-            <p className="mt-4 text-lg text-foreground/85 font-medium text-pretty">
-              {program.tagline}
-            </p>
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed text-pretty">
-              {liveDescription}
-            </p>
+        <ProgramEnvironmentHero
+          slug={program.slug}
+          title={liveTitle}
+          subtitle={program.subtitle}
+          tagline={program.tagline}
+          description={liveDescription}
+          audience={program.audience}
+          progressPct={
+            areas.length > 0
+              ? Math.round(
+                  ((dbAreas ?? []).filter((a) => a.is_published).length /
+                    Math.max(areas.length, 1)) *
+                    100,
+                )
+              : 0
+          }
+          stats={[
+            { value: String(areas.length), label: "Módulos y áreas" },
+            { value: String(chapterTemplate.length), label: "Bloques por capítulo" },
+            { value: String((chapterFeatures ?? []).length || 6), label: "Recursos por tema" },
+          ]}
+          continueTo={
+            areas.length > 0
+              ? { to: "/programas/$slug/areas", params: { slug: program.slug }, label: "Continuar aprendiendo" }
+              : undefined
+          }
+          programNodeId={programNode?.id}
+          metadata={meta as Record<string, unknown>}
+          isAdmin={!!isAdmin}
+        />
 
-            <div className="mt-6 inline-flex items-center gap-2 text-xs text-muted-foreground">
-              <Target className="size-3.5" />
-              <span className="font-semibold">Dirigido a:</span>
-              <span>{program.audience}</span>
-            </div>
-          </div>
-        </section>
 
         <div className="grid grid-cols-12 gap-6 mt-8">
           <div className="col-span-12 xl:col-span-8 space-y-6">
