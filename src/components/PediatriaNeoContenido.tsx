@@ -351,6 +351,21 @@ export function PediatriaNeoContenido({
         archivos, videos, enlaces y notas — guardados en base de datos.
       </div>
 
+      {orgOpen && block && isSuperAdmin && (
+        <TopicOrganizer
+          blockId={block.id}
+          blockTitle={block.title}
+          nodes={childrenOf(block, true)}
+          accent={accent}
+          onClose={() => setOrgOpen(false)}
+          onSaved={() => {
+            tree.invalidate();
+            setOrgOpen(false);
+          }}
+        />
+      )}
+
+
       {pharmaOpen && (
         <div
           className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 backdrop-blur p-4"
