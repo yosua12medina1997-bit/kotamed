@@ -378,6 +378,9 @@ function Row({
               setDragId={setDragId}
               setOver={setOver}
               onDrop={onDrop}
+              onRename={onRename}
+              onTogglePublished={onTogglePublished}
+              onDelete={onDelete}
             />
           ))}
         </div>
