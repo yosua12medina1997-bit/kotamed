@@ -693,23 +693,41 @@ function AreasSection({
               Aún no hay áreas persistidas. Pulsa "Sembrar plantilla" para importar las áreas por defecto y empezar a editar.
             </p>
           )}
-          {dbAreas.map((a, i) => (
-            <AreaEditRow
+          {hasDb && (
+            <p className="text-[11px] text-muted-foreground">
+              Arrastra un módulo desde <span className="font-semibold">⠿</span> para moverlo a otra
+              posición; el nuevo orden se guarda automáticamente.
+            </p>
+          )}
+          {dnd.order.map((a, i) => (
+            <div
               key={a.id}
-              area={a}
-              index={i}
-              total={dbAreas.length}
-              accent={accent}
-              onSave={(title) => updateArea.mutate({ id: a.id, title })}
-              onDelete={() => {
-                if (confirm(`¿Eliminar "${a.title}"? Esto borra también su contenido en cascada.`)) {
-                  deleteArea.mutate(a.id);
-                }
-              }}
-              onMoveUp={() => move(i, -1)}
-              onMoveDown={() => move(i, 1)}
-            />
+              draggable
+              onDragStart={dnd.onDragStart(i)}
+              onDragOver={dnd.onDragOver(i)}
+              onDrop={dnd.onDrop(i)}
+              onDragEnd={dnd.onDragEnd}
+              className={`rounded-xl transition ${dnd.dragging === i ? "opacity-50" : ""} ${
+                dnd.overIndex === i && dnd.dragging !== i ? "ring-2 ring-primary/50" : ""
+              }`}
+            >
+              <AreaEditRow
+                area={a}
+                index={i}
+                total={dnd.order.length}
+                accent={accent}
+                onSave={(title) => updateArea.mutate({ id: a.id, title })}
+                onDelete={() => {
+                  if (confirm(`¿Eliminar "${a.title}"? Esto borra también su contenido en cascada.`)) {
+                    deleteArea.mutate(a.id);
+                  }
+                }}
+                onMoveUp={() => move(i, -1)}
+                onMoveDown={() => move(i, 1)}
+              />
+            </div>
           ))}
+
           {hasDb && (
             <form
               onSubmit={(e) => {
