@@ -20,6 +20,7 @@ import {
   Eye,
   EyeOff,
   FileText,
+  FolderTree,
   GraduationCap,
   ListChecks,
   Loader2,
@@ -38,7 +39,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { useIsAdmin, useIsSuperAdmin, useSupabaseUser } from "@/lib/session";
+import { TopicOrganizer } from "@/components/cms/TopicOrganizer";
 import {
   PEDIATRIA_NEONATOLOGIA_BLUEPRINT,
   type BlueprintBlock,
@@ -94,6 +96,7 @@ export function PediatriaNeoContenido({
 }) {
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
+  const { data: isSuperAdmin } = useIsSuperAdmin(user?.id);
 
   const cmsScope: CmsScope = useMemo(
     () => ({
@@ -117,6 +120,7 @@ export function PediatriaNeoContenido({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [pharmaOpen, setPharmaOpen] = useState(false);
+  const [orgOpen, setOrgOpen] = useState(false);
   const [newBlock, setNewBlock] = useState("");
 
   useEffect(() => {
@@ -180,15 +184,26 @@ export function PediatriaNeoContenido({
             <Stat label="Categorías" value={stats.categories} accent={meta.accent} />
             <Stat label="Temas" value={stats.topics} accent={meta.accent} />
           </div>
-          {showPharma && (
-            <button
-              onClick={() => setPharmaOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
-            >
-              <Calculator className="size-3.5" style={{ color: meta.accent }} />
-              Calculadora farmacológica
-            </button>
-          )}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {isSuperAdmin && block && (
+              <button
+                onClick={() => setOrgOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
+              >
+                <FolderTree className="size-3.5" style={{ color: meta.accent }} />
+                Organizar temas
+              </button>
+            )}
+            {showPharma && (
+              <button
+                onClick={() => setPharmaOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/60 px-3 py-1.5 text-[11px] font-bold hover:border-primary/40"
+              >
+                <Calculator className="size-3.5" style={{ color: meta.accent }} />
+                Calculadora farmacológica
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -335,6 +350,21 @@ export function PediatriaNeoContenido({
         tratamiento por guías, caso clínico, flashcards, banco de preguntas…) y sus recursos —
         archivos, videos, enlaces y notas — guardados en base de datos.
       </div>
+
+      {orgOpen && block && isSuperAdmin && (
+        <TopicOrganizer
+          blockId={block.id}
+          blockTitle={block.title}
+          nodes={childrenOf(block, true)}
+          accent={accent}
+          onClose={() => setOrgOpen(false)}
+          onSaved={() => {
+            tree.invalidate();
+            setOrgOpen(false);
+          }}
+        />
+      )}
+
 
       {pharmaOpen && (
         <div
