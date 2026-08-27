@@ -309,17 +309,61 @@ function Row({
         {depth > 0 && !node.fixed && (
           <CornerDownRight className="size-3.5 shrink-0" style={{ color: accent }} />
         )}
-        <span
-          className={`min-w-0 flex-1 truncate text-xs ${
-            node.fixed ? "font-extrabold uppercase tracking-widest" : "font-semibold"
-          }`}
-        >
-          {node.title}
-        </span>
-        {!node.published && <EyeOff className="size-3.5 shrink-0 text-muted-foreground" />}
+        {editing ? (
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commit();
+              if (e.key === "Escape") {
+                setDraft(node.title);
+                setEditing(false);
+              }
+            }}
+            className="min-w-0 flex-1 rounded-lg border border-primary/40 bg-background px-2 py-1 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/30"
+            aria-label={`Renombrar ${node.title}`}
+          />
+        ) : (
+          <span
+            onDoubleClick={() => setEditing(true)}
+            className={`min-w-0 flex-1 truncate text-xs ${
+              node.fixed ? "font-extrabold uppercase tracking-widest" : "font-semibold"
+            }`}
+            title="Doble clic para renombrar"
+          >
+            {node.title}
+          </span>
+        )}
         <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
           {node.fixed ? "categoría" : depth === 0 ? "tema" : depth === 1 ? "subtema" : "sub-subtema"}
         </span>
+        <button
+          onClick={() => (editing ? commit() : setEditing(true))}
+          className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"
+          aria-label={editing ? "Guardar título" : `Renombrar ${node.title}`}
+        >
+          {editing ? <Check className="size-3.5" /> : <Pencil className="size-3.5" />}
+        </button>
+        <button
+          onClick={() => onTogglePublished(node.id, !node.published)}
+          className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"
+          aria-label={node.published ? "Ocultar" : "Publicar"}
+        >
+          {node.published ? (
+            <Eye className="size-3.5" style={{ color: accent }} />
+          ) : (
+            <EyeOff className="size-3.5" />
+          )}
+        </button>
+        <button
+          onClick={() => onDelete(node)}
+          className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          aria-label={`Eliminar ${node.title}`}
+        >
+          <Trash2 className="size-3.5" />
+        </button>
       </div>
       {node.children.length > 0 && (
         <div className="mt-1 space-y-1">
