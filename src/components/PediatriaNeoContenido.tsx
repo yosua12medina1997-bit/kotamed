@@ -95,6 +95,7 @@ export function PediatriaNeoContenido({
 }) {
   const user = useSupabaseUser();
   const { data: isAdmin } = useIsAdmin(user?.id);
+  const { data: isSuperAdmin } = useIsSuperAdmin(user?.id);
 
   const cmsScope: CmsScope = useMemo(
     () => ({
