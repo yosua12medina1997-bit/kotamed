@@ -60,7 +60,7 @@ export function TopicOrganizer({
   useEffect(() => setTree(original), [original]);
 
   const dirty = useMemo(
-    () => JSON.stringify(tree) !== JSON.stringify(original),
+    () => structureSignature(tree) !== structureSignature(original),
     [tree, original],
   );
 
@@ -69,6 +69,43 @@ export function TopicOrganizer({
     setTree((prev) => moveNode(prev, dragId, targetId, mode));
     setDragId(null);
     setOver(null);
+  };
+
+  /** Renombrar en línea: guarda de inmediato solo el título. */
+  const rename = async (id: string, title: string) => {
+    const clean = title.trim();
+    if (!clean) return;
+    setTree((prev) => patchNode(prev, id, { title: clean }));
+    try {
+      await renameTopic(id, clean);
+      toast.success("Título actualizado");
+    } catch (err: any) {
+      toast.error(err?.message ?? "No se pudo renombrar");
+      onSaved();
+    }
+  };
+
+  const togglePublished = async (id: string, next: boolean) => {
+    setTree((prev) => patchNode(prev, id, { published: next }));
+    try {
+      await setTopicPublished(id, next);
+      toast.success(next ? "Tema publicado" : "Tema oculto");
+    } catch (err: any) {
+      toast.error(err?.message ?? "No se pudo cambiar la visibilidad");
+      onSaved();
+    }
+  };
+
+  const remove = async (node: OrgNode) => {
+    if (!confirm(`¿Eliminar «${node.title}»? Se eliminarán también sus subtemas.`)) return;
+    setTree((prev) => dropNode(prev, node.id));
+    try {
+      await deleteTopic(node.id);
+      toast.success("Tema eliminado");
+    } catch (err: any) {
+      toast.error(err?.message ?? "No se pudo eliminar");
+      onSaved();
+    }
   };
 
   const save = async () => {
