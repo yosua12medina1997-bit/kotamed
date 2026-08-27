@@ -24,6 +24,7 @@ import {
   ArrowUp,
   ArrowDown,
   DownloadCloud,
+  GripVertical,
 } from "lucide-react";
 import {
   ACCENT_CLASSES,
@@ -34,6 +35,7 @@ import {
 } from "@/lib/pediatria-programs";
 import { ENAM_AREAS, type EnamAreaSlug } from "@/lib/enam-modules";
 import { INTERNADO_AREAS } from "@/lib/internado-modules";
+import { useModuleDnd } from "@/lib/module-reorder";
 
 function normalize(s: string) {
   return s
@@ -836,6 +838,10 @@ function AreaEditRow({
 
   return (
     <div className="flex items-center gap-2 rounded-xl border border-border bg-white/70 p-2">
+      <GripVertical
+        className="size-3.5 shrink-0 cursor-grab text-muted-foreground/70"
+        aria-hidden
+      />
       <span className={`size-7 rounded-lg flex items-center justify-center text-[10px] font-bold tabular-nums ${accent.chip} border shrink-0`}>
         {String(index + 1).padStart(2, "0")}
       </span>
