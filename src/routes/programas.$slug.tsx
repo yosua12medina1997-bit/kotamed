@@ -590,6 +590,13 @@ function AreasSection({
     reorder.mutate({ id: b.id, sort_order: a.sort_order });
   };
 
+  /** Arrastrar y soltar módulos (solo admin, dentro del modo edición). */
+  const dnd = useModuleDnd(dbAreas, {
+    enabled: isAdmin,
+    onPersisted: () => qc.invalidateQueries({ queryKey: ["program-areas", programNodeId] }),
+  });
+
+
   return (
     <section className="glass rounded-3xl p-7 animate-slide-up" style={{ animationDelay: "60ms" }}>
       <div className="flex items-center justify-between gap-3">
