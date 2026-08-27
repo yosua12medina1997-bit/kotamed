@@ -95,7 +95,7 @@ export function useTopicPage(idOrSlug: string) {
       const topic = await fetchNode(idOrSlug);
       if (!topic) return { topic: null } as const;
 
-      const [parentRes, siblingsRes, resourcesRes] = await Promise.all([
+      const [parentRes, siblingsRes, childrenRes, resourcesRes] = await Promise.all([
         topic.parent_id
           ? supabase.from("content_nodes").select(NODE_SELECT).eq("id", topic.parent_id).limit(1)
           : Promise.resolve({ data: [], error: null } as any),
@@ -106,6 +106,11 @@ export function useTopicPage(idOrSlug: string) {
               .eq("parent_id", topic.parent_id)
               .order("sort_order", { ascending: true })
           : Promise.resolve({ data: [], error: null } as any),
+        supabase
+          .from("content_nodes")
+          .select(NODE_SELECT)
+          .eq("parent_id", topic.id)
+          .order("sort_order", { ascending: true }),
         supabase
           .from("content_resources")
           .select(
@@ -121,9 +126,13 @@ export function useTopicPage(idOrSlug: string) {
       const siblings = ((siblingsRes.data ?? []) as unknown as TopicNodeRow[]).filter(
         (n) => n.kind === "chapter" || n.kind === "lesson",
       );
+      const children = ((childrenRes.data ?? []) as unknown as TopicNodeRow[]).filter(
+        (n) => n.kind === "chapter" || n.kind === "lesson",
+      );
       const resources = (resourcesRes.data ?? []) as unknown as TopicResourceRow[];
 
-      return { topic, parent, siblings, resources } as const;
+      return { topic, parent, siblings, children, resources } as const;
+
     },
   });
 }
