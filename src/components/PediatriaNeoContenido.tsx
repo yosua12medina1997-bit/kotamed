@@ -9,6 +9,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { useTopicLinkSearch } from "@/lib/topic-nav";
 import {
   Baby,
   BookMarked,
@@ -665,12 +666,14 @@ function TopicCard({
   const hasText = !!node.metadata?.topic;
   const cover = topicCover(node);
   const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
+  const backSearch = useTopicLinkSearch();
 
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-border/50 bg-background/40 backdrop-blur transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-xl">
       <Link
         to="/tema/$topicId"
         params={{ topicId: node.id }}
+        search={backSearch}
         className="relative block h-40 w-full overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${accent}, transparent)` }}
       >
@@ -740,6 +743,7 @@ function TopicCard({
           <Link
             to="/tema/$topicId"
             params={{ topicId: node.id }}
+            search={backSearch}
             className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-extrabold text-white shadow-sm transition hover:opacity-90"
             style={{ background: accent }}
           >
@@ -877,12 +881,14 @@ function BranchCard({
 
 function TopicRow({ node, accent }: { node: CmsNode; accent: string }) {
   const items: string[] = Array.isArray(node.metadata?.items) ? node.metadata.items : [];
+  const backSearch = useTopicLinkSearch();
 
   return (
     <li className="bg-background/20">
       <Link
         to="/tema/$topicId"
         params={{ topicId: node.id }}
+        search={backSearch}
         className="w-full min-w-0 flex items-center gap-3 px-4 py-2.5 text-left hover:bg-background/40 transition"
       >
         <span className="size-1.5 rounded-full shrink-0" style={{ background: accent }} />
