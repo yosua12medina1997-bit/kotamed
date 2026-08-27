@@ -38,7 +38,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useIsAdmin, useSupabaseUser } from "@/lib/session";
+import { useIsAdmin, useIsSuperAdmin, useSupabaseUser } from "@/lib/session";
+import { TopicOrganizer } from "@/components/cms/TopicOrganizer";
 import {
   PEDIATRIA_NEONATOLOGIA_BLUEPRINT,
   type BlueprintBlock,
