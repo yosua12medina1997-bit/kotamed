@@ -304,7 +304,36 @@ function TopicPage() {
           />
         )}
 
+        {children.length > 0 && (
+          <Block icon={<Layers className="size-4" />} title="Subtemas" accent={accent}>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {children.map((c) => (
+                <Link
+                  key={c.id}
+                  to="/tema/$topicId"
+                  params={{ topicId: c.id }}
+                  search={{ from }}
+                  className="group flex items-center gap-3 rounded-2xl border border-border/60 bg-card/60 px-4 py-3 backdrop-blur transition hover:border-primary/40"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-extrabold tracking-tight">
+                      {c.title}
+                    </span>
+                    {!c.is_published && (
+                      <span className="block text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Oculto para usuarios
+                      </span>
+                    )}
+                  </span>
+                  <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                </Link>
+              ))}
+            </div>
+          </Block>
+        )}
+
         {/* VIDEO PRINCIPAL */}
+
         {mainVideo ? (
           <Block icon={<Film className="size-4" />} title="Video principal" accent={accent}>
             <VideoPlayer resource={mainVideo} />
