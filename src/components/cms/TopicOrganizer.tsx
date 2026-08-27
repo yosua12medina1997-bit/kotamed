@@ -15,6 +15,7 @@ import {
   GripVertical,
   Loader2,
   Pencil,
+  Plus,
   RotateCcw,
   Save,
   Trash2,
@@ -23,9 +24,12 @@ import {
 import { toast } from "sonner";
 import type { CmsNode } from "@/lib/pednn-cms";
 import {
+  appendChild,
   buildOrgTree,
+  createTopic,
   deleteTopic,
   dropNode,
+  findNode,
   moveNode,
   patchNode,
   renameTopic,
