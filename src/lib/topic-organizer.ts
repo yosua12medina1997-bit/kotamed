@@ -68,6 +68,45 @@ function removeNode(tree: OrgNode[], id: string): { tree: OrgNode[]; removed: Or
 
 export type DropMode = "before" | "after" | "inside";
 
+/** Aplica un cambio superficial (título / publicado) a un nodo del árbol. */
+export function patchNode(tree: OrgNode[], id: string, patch: Partial<OrgNode>): OrgNode[] {
+  return tree.map((n) =>
+    n.id === id
+      ? { ...n, ...patch }
+      : { ...n, children: patchNode(n.children, id, patch) },
+  );
+}
+
+/** Elimina un nodo del árbol (usado tras borrarlo en base de datos). */
+export function dropNode(tree: OrgNode[], id: string): OrgNode[] {
+  return removeNode(tree, id).tree;
+}
+
+/** Firma de la ESTRUCTURA (ignora título y publicación) para detectar cambios. */
+export function structureSignature(tree: OrgNode[]): string {
+  const walk = (list: OrgNode[]): string =>
+    list.map((n) => `${n.id}:${n.kind}[${walk(n.children)}]`).join(",");
+  return walk(tree);
+}
+
+/** Renombra un tema. Solo toca el título. */
+export async function renameTopic(id: string, title: string) {
+  const { error } = await supabase.from("content_nodes").update({ title }).eq("id", id);
+  if (error) throw error;
+}
+
+/** Publica u oculta un tema. */
+export async function setTopicPublished(id: string, is_published: boolean) {
+  const { error } = await supabase.from("content_nodes").update({ is_published }).eq("id", id);
+  if (error) throw error;
+}
+
+/** Elimina un tema (y en cascada sus hijos según la base de datos). */
+export async function deleteTopic(id: string) {
+  const { error } = await supabase.from("content_nodes").delete().eq("id", id);
+  if (error) throw error;
+}
+
 /** Mueve un nodo respecto a un objetivo. Devuelve el árbol nuevo. */
 export function moveNode(
   tree: OrgNode[],

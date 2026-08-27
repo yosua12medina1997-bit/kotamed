@@ -6,22 +6,32 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import {
+  Check,
   ChevronRight,
   CornerDownRight,
+  Eye,
   EyeOff,
   FolderTree,
   GripVertical,
   Loader2,
+  Pencil,
   RotateCcw,
   Save,
+  Trash2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { CmsNode } from "@/lib/pednn-cms";
 import {
   buildOrgTree,
+  deleteTopic,
+  dropNode,
   moveNode,
+  patchNode,
+  renameTopic,
   saveOrganization,
+  setTopicPublished,
+  structureSignature,
   type DropMode,
   type OrgNode,
 } from "@/lib/topic-organizer";
@@ -50,7 +60,7 @@ export function TopicOrganizer({
   useEffect(() => setTree(original), [original]);
 
   const dirty = useMemo(
-    () => JSON.stringify(tree) !== JSON.stringify(original),
+    () => structureSignature(tree) !== structureSignature(original),
     [tree, original],
   );
 
@@ -59,6 +69,43 @@ export function TopicOrganizer({
     setTree((prev) => moveNode(prev, dragId, targetId, mode));
     setDragId(null);
     setOver(null);
+  };
+
+  /** Renombrar en línea: guarda de inmediato solo el título. */
+  const rename = async (id: string, title: string) => {
+    const clean = title.trim();
+    if (!clean) return;
+    setTree((prev) => patchNode(prev, id, { title: clean }));
+    try {
+      await renameTopic(id, clean);
+      toast.success("Título actualizado");
+    } catch (err: any) {
+      toast.error(err?.message ?? "No se pudo renombrar");
+      onSaved();
+    }
+  };
+
+  const togglePublished = async (id: string, next: boolean) => {
+    setTree((prev) => patchNode(prev, id, { published: next }));
+    try {
+      await setTopicPublished(id, next);
+      toast.success(next ? "Tema publicado" : "Tema oculto");
+    } catch (err: any) {
+      toast.error(err?.message ?? "No se pudo cambiar la visibilidad");
+      onSaved();
+    }
+  };
+
+  const remove = async (node: OrgNode) => {
+    if (!confirm(`¿Eliminar «${node.title}»? Se eliminarán también sus subtemas.`)) return;
+    setTree((prev) => dropNode(prev, node.id));
+    try {
+      await deleteTopic(node.id);
+      toast.success("Tema eliminado");
+    } catch (err: any) {
+      toast.error(err?.message ?? "No se pudo eliminar");
+      onSaved();
+    }
   };
 
   const save = async () => {
@@ -104,7 +151,8 @@ export function TopicOrganizer({
         <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
           Arrastra un tema por el asa (⠿). Suelta en el borde superior o inferior de otro tema
           para reordenar, o en el centro para convertirlo en subtema. Suelta al final de la lista
-          para devolverlo al nivel principal. No se modifica ningún contenido interno.
+          para devolverlo al nivel principal. Además puedes renombrar (✏️), publicar u ocultar (👁)
+          y eliminar temas aquí mismo; esos cambios se guardan al instante.
         </p>
 
         <div className="mt-4 space-y-1 rounded-2xl border border-border/50 bg-background/40 p-2">
@@ -122,6 +170,9 @@ export function TopicOrganizer({
               setDragId={setDragId}
               setOver={setOver}
               onDrop={applyDrop}
+              onRename={rename}
+              onTogglePublished={togglePublished}
+              onDelete={remove}
             />
           ))}
           <div
@@ -176,6 +227,9 @@ function Row({
   setDragId,
   setOver,
   onDrop,
+  onRename,
+  onTogglePublished,
+  onDelete,
 }: {
   node: OrgNode;
   depth: number;
@@ -185,8 +239,21 @@ function Row({
   setDragId: (id: string | null) => void;
   setOver: (v: { id: string | null; mode: DropMode } | null) => void;
   onDrop: (targetId: string | null, mode: DropMode) => void;
+  onRename: (id: string, title: string) => void;
+  onTogglePublished: (id: string, next: boolean) => void;
+  onDelete: (node: OrgNode) => void;
 }) {
   const isOver = over?.id === node.id;
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(node.title);
+
+  useEffect(() => setDraft(node.title), [node.title]);
+
+  const commit = () => {
+    setEditing(false);
+    if (draft.trim() && draft.trim() !== node.title) onRename(node.id, draft);
+    else setDraft(node.title);
+  };
 
   const zoneFor = (e: React.DragEvent<HTMLDivElement>): DropMode => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -242,17 +309,61 @@ function Row({
         {depth > 0 && !node.fixed && (
           <CornerDownRight className="size-3.5 shrink-0" style={{ color: accent }} />
         )}
-        <span
-          className={`min-w-0 flex-1 truncate text-xs ${
-            node.fixed ? "font-extrabold uppercase tracking-widest" : "font-semibold"
-          }`}
-        >
-          {node.title}
-        </span>
-        {!node.published && <EyeOff className="size-3.5 shrink-0 text-muted-foreground" />}
+        {editing ? (
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commit();
+              if (e.key === "Escape") {
+                setDraft(node.title);
+                setEditing(false);
+              }
+            }}
+            className="min-w-0 flex-1 rounded-lg border border-primary/40 bg-background px-2 py-1 text-xs font-semibold outline-none focus:ring-2 focus:ring-primary/30"
+            aria-label={`Renombrar ${node.title}`}
+          />
+        ) : (
+          <span
+            onDoubleClick={() => setEditing(true)}
+            className={`min-w-0 flex-1 truncate text-xs ${
+              node.fixed ? "font-extrabold uppercase tracking-widest" : "font-semibold"
+            }`}
+            title="Doble clic para renombrar"
+          >
+            {node.title}
+          </span>
+        )}
         <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
           {node.fixed ? "categoría" : depth === 0 ? "tema" : depth === 1 ? "subtema" : "sub-subtema"}
         </span>
+        <button
+          onClick={() => (editing ? commit() : setEditing(true))}
+          className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"
+          aria-label={editing ? "Guardar título" : `Renombrar ${node.title}`}
+        >
+          {editing ? <Check className="size-3.5" /> : <Pencil className="size-3.5" />}
+        </button>
+        <button
+          onClick={() => onTogglePublished(node.id, !node.published)}
+          className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-foreground/[0.05] hover:text-foreground"
+          aria-label={node.published ? "Ocultar" : "Publicar"}
+        >
+          {node.published ? (
+            <Eye className="size-3.5" style={{ color: accent }} />
+          ) : (
+            <EyeOff className="size-3.5" />
+          )}
+        </button>
+        <button
+          onClick={() => onDelete(node)}
+          className="shrink-0 rounded-lg p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          aria-label={`Eliminar ${node.title}`}
+        >
+          <Trash2 className="size-3.5" />
+        </button>
       </div>
       {node.children.length > 0 && (
         <div className="mt-1 space-y-1">
@@ -267,6 +378,9 @@ function Row({
               setDragId={setDragId}
               setOver={setOver}
               onDrop={onDrop}
+              onRename={onRename}
+              onTogglePublished={onTogglePublished}
+              onDelete={onDelete}
             />
           ))}
         </div>
