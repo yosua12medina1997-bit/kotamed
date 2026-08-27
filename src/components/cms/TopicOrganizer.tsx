@@ -227,6 +227,9 @@ function Row({
   setDragId,
   setOver,
   onDrop,
+  onRename,
+  onTogglePublished,
+  onDelete,
 }: {
   node: OrgNode;
   depth: number;
@@ -236,8 +239,21 @@ function Row({
   setDragId: (id: string | null) => void;
   setOver: (v: { id: string | null; mode: DropMode } | null) => void;
   onDrop: (targetId: string | null, mode: DropMode) => void;
+  onRename: (id: string, title: string) => void;
+  onTogglePublished: (id: string, next: boolean) => void;
+  onDelete: (node: OrgNode) => void;
 }) {
   const isOver = over?.id === node.id;
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(node.title);
+
+  useEffect(() => setDraft(node.title), [node.title]);
+
+  const commit = () => {
+    setEditing(false);
+    if (draft.trim() && draft.trim() !== node.title) onRename(node.id, draft);
+    else setDraft(node.title);
+  };
 
   const zoneFor = (e: React.DragEvent<HTMLDivElement>): DropMode => {
     const rect = e.currentTarget.getBoundingClientRect();
