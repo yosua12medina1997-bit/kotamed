@@ -11,7 +11,7 @@ import { Link } from "@tanstack/react-router";
 import * as Icons from "lucide-react";
 import { ArrowRight, ChevronRight, Clock, Map, Play, Sparkles } from "lucide-react";
 import labScene from "@/assets/kotamed-lab-hero.png.asset.json";
-import kotaMedLogo from "@/assets/kotaro-logo.png";
+import kotaMedLogo from "@/assets/kotamed-logo-light.png";
 import { EnvironmentSwitcher, useEnvironment } from "@/components/hero/DynamicEnvironment";
 import { SiteFooterNav, SiteNavActions, SiteNavLinks } from "@/components/cms/SiteNav";
 import { useHubConfig, type HubConfig, type HubProgram, type HubSectionId } from "@/lib/programas-cms";
@@ -144,7 +144,7 @@ function Hero({ cfg, isAdmin }: { cfg: HubConfig; isAdmin: boolean }) {
       <header className="relative z-20 border-b border-white/10 backdrop-blur-sm">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-3 lg:grid-cols-[auto_1fr_auto]">
           <Link to="/" className="flex min-w-0 items-center gap-2">
-            <img src={kotaMedLogo} alt="KotaMed" className="size-8 shrink-0 rounded-lg object-contain" />
+            <img src={kotaMedLogo} alt="KotaMed" className="size-8 shrink-0 object-contain" />
             <span className="truncate text-sm font-black tracking-tight text-white">KotaMed</span>
           </Link>
           <SiteNavLinks />
