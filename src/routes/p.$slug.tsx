@@ -113,7 +113,7 @@ function CmsBlocksPage({ slug, isDraft }: { slug: string; isDraft: boolean }) {
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur">
         <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-3 lg:grid-cols-[auto_1fr_auto]">
           <Link to="/" className="flex min-w-0 items-center gap-2">
-            <img src={kotaMedLogo} alt="KotaMed" className="size-8 shrink-0 rounded-lg object-contain" />
+            <img src={kotaMedLogo} alt="KotaMed" className="size-8 shrink-0 object-contain" />
             <span className="truncate text-sm font-black tracking-tight">KotaMed</span>
           </Link>
           <SiteNavLinks />
