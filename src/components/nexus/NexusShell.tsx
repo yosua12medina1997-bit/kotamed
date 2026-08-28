@@ -19,6 +19,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import kotaroLogo from "@/assets/kotaro-logo.png";
+import kotaroLogoLight from "@/assets/kotamed-logo-light.png";
 import { ProfileDialog } from "@/components/profile/ProfileDialog";
 import type { Appearance, NexusEnv } from "@/lib/nexus-theme";
 import { NAV_ICONS, useNexusNav, visibleNavItems } from "@/lib/nexus-nav-cms";
@@ -49,6 +50,7 @@ export function NexusShell({
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const [profileOpen, setProfileOpen] = useState(false);
   const { data: nav } = useNexusNav();
+  const brandLogo = env.base === "dark" ? kotaroLogoLight : kotaroLogo;
   const isSuperAdmin = useIsSuperAdmin(userId || undefined).data ?? false;
   const navItems = visibleNavItems(nav?.items ?? [], {
     enrolled: true,
@@ -67,7 +69,7 @@ export function NexusShell({
         {/* SIDEBAR */}
         <aside className="nexus-sidebar hidden w-[248px] shrink-0 flex-col px-5 py-7 lg:flex">
           <Link to="/" className="flex flex-col items-center gap-2 text-center">
-            <img src={kotaroLogo} alt="KotaMed" className="size-14 object-contain" />
+            <img src={brandLogo} alt="KotaMed" className="size-14 object-contain" />
             <span className="text-lg font-black tracking-tight">
               KOTA<span className="text-[color:var(--nexus-teal)]">MED</span>
             </span>
@@ -137,7 +139,7 @@ export function NexusShell({
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="nexus-topbar sticky top-0 z-30 flex items-center gap-4 px-5 py-4 lg:px-8">
             <Link to="/dashboard" className="lg:hidden">
-              <img src={kotaroLogo} alt="KotaMed" className="size-8 object-contain" />
+              <img src={brandLogo} alt="KotaMed" className="size-8 object-contain" />
             </Link>
             <label className="nexus-search hidden flex-1 items-center gap-3 rounded-2xl px-4 py-2.5 md:flex">
               <Search className="size-4 opacity-55" strokeWidth={2.2} />
