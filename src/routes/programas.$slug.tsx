@@ -97,7 +97,7 @@ import {
 } from "@/lib/content-catalog";
 import { ModuleGate } from "@/components/access/ModuleGate";
 import { RotationModules } from "@/components/programs/RotationModules";
-import { ProgramEnvironmentHero } from "@/components/programs/ProgramEnvironmentHero";
+import { ProgramHeader } from "@/components/programs/ProgramHeader";
 import {
   RotationLearningFlow,
   RotationProgress,
@@ -289,7 +289,7 @@ function ProgramDetailInner() {
           )}
         </div>
 
-        <ProgramEnvironmentHero
+        <ProgramHeader
           slug={program.slug}
           title={liveTitle}
           subtitle={liveSubtitle}
@@ -518,7 +518,6 @@ function AreasSection({
   const [editing, setEditing] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const hasDb = dbAreas.length > 0;
-  const isRotationHnseb = routeProgramSlug === "rotacion-pediatria-hnseb";
 
   const seed = useMutation({
     mutationFn: async () => {
@@ -631,11 +630,11 @@ function AreasSection({
         )}
       </div>
 
-      {!editing && isRotationHnseb && dbAreas.length > 0 && (
+      {!editing && dbAreas.length > 0 && (
         <RotationModules programSlug={routeProgramSlug} areas={dbAreas} isAdmin={isAdmin} />
       )}
 
-      {!editing && !(isRotationHnseb && dbAreas.length > 0) && (
+      {!editing && dbAreas.length === 0 && (
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {areas.map((area, i) => {
             const enamSlug = program.id === "residentado" ? matchEnamSlug(area) : null;
