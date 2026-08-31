@@ -3,7 +3,7 @@
  * administrador edita en el Editor de contenido (`content_nodes`).
  * Así el dashboard y el índice de programas reflejan los cambios al instante.
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PROGRAMS, type Program } from "@/lib/pediatria-programs";
 
@@ -57,7 +57,7 @@ const ACCENTS: Program["accent"][] = ["teal", "indigo", "violet", "rose", "amber
 
 export function buildProgramCatalog(
   nodes: CatalogNode[] | undefined,
-  opts?: { includeIsolated?: boolean },
+  opts?: { includeIsolated?: boolean; onlyPublished?: boolean },
 ): CatalogProgram[] {
   const list = nodes ?? [];
   const byId = new Map(list.map((n) => [n.id, n]));
@@ -118,11 +118,11 @@ export function buildProgramCatalog(
 
   // Si el administrador ya definió programas en el editor, esos mandan:
   // los estáticos sin nodo equivalente dejan de mostrarse.
-  if (programNodes.length > 0) {
-    return [...merged.filter((p) => p.nodeId), ...extras];
-  }
+  const out =
+    programNodes.length > 0 ? [...merged.filter((p) => p.nodeId), ...extras] : [...merged, ...extras];
 
-  return [...merged, ...extras];
+  // Visibilidad: los usuarios normales solo ven programas publicados.
+  return opts?.onlyPublished ? out.filter((p) => p.isPublished) : out;
 }
 
 /**
@@ -130,9 +130,30 @@ export function buildProgramCatalog(
  * `includeIsolated` (para administradores) también muestra los programas que
  * viven dentro de bibliotecas internas, de modo que no se oculte ninguno.
  */
-export function useProgramCatalog(opts?: { includeIsolated?: boolean }) {
+export function useProgramCatalog(opts?: { includeIsolated?: boolean; onlyPublished?: boolean }) {
   const q = useContentNodes();
   return { ...q, programs: buildProgramCatalog(q.data, opts) };
+}
+
+/**
+ * Visibilidad de un programa (solo administración).
+ * `is_published = true` → visible para los usuarios; `false` → oculto (borrador).
+ */
+export function useSetProgramVisibility() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ nodeId, visible }: { nodeId: string; visible: boolean }) => {
+      const { error } = await supabase
+        .from("content_nodes")
+        .update({ is_published: visible })
+        .eq("id", nodeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["content-catalog-nodes"] });
+      qc.invalidateQueries({ queryKey: ["program-node"] });
+    },
+  });
 }
 
 

@@ -468,7 +468,7 @@ function AudienceAndTestimonial() {
 /* --------------------------- Programas ---------------------------- */
 
 function Programs() {
-  const { programs } = useProgramCatalog();
+  const { programs } = useProgramCatalog({ onlyPublished: true });
   const items = programs;
 
   if (items.length === 0) return null;

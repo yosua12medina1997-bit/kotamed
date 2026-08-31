@@ -183,7 +183,7 @@ function useProgramNode(slug: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("content_nodes")
-        .select("id,title,slug,description,metadata")
+        .select("id,title,slug,description,metadata,is_published")
         .eq("kind", "program")
         .eq("slug", slug)
         .maybeSingle();
@@ -318,6 +318,7 @@ function ProgramDetailInner() {
           programNodeId={programNode?.id}
           metadata={meta as Record<string, unknown>}
           isAdmin={!!isAdmin}
+          isPublished={programNode?.is_published !== false}
         />
 
 

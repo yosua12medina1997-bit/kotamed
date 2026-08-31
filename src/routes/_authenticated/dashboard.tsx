@@ -268,7 +268,10 @@ function EnrolledView({
   // viven dentro de bibliotecas internas y los que están en borrador.
   const { data: cfgData } = useNexusDashboardConfig();
   const cfg: NexusDashboardConfig = cfgData ?? DEFAULT_NEXUS_DASHBOARD;
-  const { programs } = useProgramCatalog({ includeIsolated: isSuperAdmin });
+  const { programs } = useProgramCatalog({
+    includeIsolated: isSuperAdmin,
+    onlyPublished: !isSuperAdmin,
+  });
 
   const mine = isSuperAdmin
     ? programs.map((p) => ({ slug: p.slug, expires_at: null as string | null }))
@@ -592,7 +595,7 @@ function LockedView({
   lowPower: boolean;
 }) {
   const expired = enrollments.filter((e) => !isActive(e));
-  const { programs } = useProgramCatalog();
+  const { programs } = useProgramCatalog({ onlyPublished: true });
   const admissionQ = useMyAdmission(userId);
   const admission = admissionQ.data ?? null;
   const pending = admission && (admission.status === "pending" || admission.status === "reviewing");
