@@ -3512,6 +3512,7 @@ export type Database = {
           color: string
           created_at: string
           created_by: string | null
+          culqi_url: string | null
           currency: string
           description: string | null
           features: Json
@@ -3529,6 +3530,7 @@ export type Database = {
           color?: string
           created_at?: string
           created_by?: string | null
+          culqi_url?: string | null
           currency?: string
           description?: string | null
           features?: Json
@@ -3546,6 +3548,7 @@ export type Database = {
           color?: string
           created_at?: string
           created_by?: string | null
+          culqi_url?: string | null
           currency?: string
           description?: string | null
           features?: Json

@@ -1,0 +1,1 @@
+ALTER TABLE public.membership_plans ADD COLUMN IF NOT EXISTS culqi_url text;
