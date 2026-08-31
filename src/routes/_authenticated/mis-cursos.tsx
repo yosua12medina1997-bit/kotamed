@@ -3,7 +3,17 @@
  * con su última actividad real y avance. El Super Admin ve además el catálogo.
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, BookOpen, Clock, GraduationCap, Loader2, Play } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  ArrowRight,
+  BookOpen,
+  Clock,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Loader2,
+  Play,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NexusShell } from "@/components/nexus/NexusShell";
 import { useNexusEnv } from "@/lib/nexus-theme";
@@ -17,7 +27,11 @@ import {
 } from "@/lib/session";
 import { useMyProgramEnrollments } from "@/lib/enrollments";
 import { useMyLearningActivity } from "@/lib/learning-activity";
-import { useProgramCatalog } from "@/lib/content-catalog";
+import {
+  useProgramCatalog,
+  useSetProgramVisibility,
+  type CatalogProgram,
+} from "@/lib/content-catalog";
 
 export const Route = createFileRoute("/_authenticated/mis-cursos")({
   head: () => ({
@@ -171,26 +185,132 @@ function MisCursosPage() {
           </section>
         )}
 
-        {isSuperAdmin && (
-          <section>
-            <div className="text-[9px] font-black uppercase tracking-[0.28em] opacity-50">
-              Catálogo completo · solo Super Admin
-            </div>
-            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-              {programs.map((p) => (
+        {isSuperAdmin && <AdminCatalog programs={programs} />}
+      </div>
+    </NexusShell>
+  );
+}
+
+type VisibilityFilter = "all" | "published" | "hidden";
+
+/** Catálogo completo de programas con gestión de visibilidad (solo Super Admin). */
+function AdminCatalog({ programs }: { programs: CatalogProgram[] }) {
+  const [filter, setFilter] = useState<VisibilityFilter>("all");
+  const setVisibility = useSetProgramVisibility();
+
+  const counts = useMemo(
+    () => ({
+      all: programs.length,
+      published: programs.filter((p) => p.isPublished).length,
+      hidden: programs.filter((p) => !p.isPublished).length,
+    }),
+    [programs],
+  );
+
+  const list = useMemo(
+    () =>
+      programs.filter((p) =>
+        filter === "all" ? true : filter === "published" ? p.isPublished : !p.isPublished,
+      ),
+    [programs, filter],
+  );
+
+  const tabs: { id: VisibilityFilter; label: string }[] = [
+    { id: "all", label: `Todos (${counts.all})` },
+    { id: "published", label: `Publicados (${counts.published})` },
+    { id: "hidden", label: `Ocultos (${counts.hidden})` },
+  ];
+
+  return (
+    <section>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="min-w-0">
+          <div className="text-[9px] font-black uppercase tracking-[0.28em] opacity-50">
+            Catálogo completo · solo Super Admin
+          </div>
+          <p className="mt-1 text-[11px] font-semibold opacity-55">
+            🟢 Visible para usuarios · ⚪ Oculto, solo administración.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1 rounded-2xl border border-[color:var(--nexus-border)] p-1">
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setFilter(t.id)}
+              className={`rounded-xl px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] transition ${
+                filter === t.id
+                  ? "bg-[color:var(--nexus-teal)] text-white"
+                  : "opacity-60 hover:opacity-100"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {list.map((p) => (
+          <div
+            key={p.slug}
+            className={`nexus-card rounded-2xl p-4 ${p.isPublished ? "" : "opacity-75"}`}
+          >
+            <div className="flex items-start gap-2">
+              <span
+                className={`mt-1 size-2.5 shrink-0 rounded-full ${
+                  p.isPublished
+                    ? "bg-emerald-500"
+                    : "border border-[color:var(--nexus-border)] bg-transparent"
+                }`}
+                aria-hidden
+              />
+              <div className="min-w-0 flex-1">
                 <Link
-                  key={p.slug}
                   to="/programas/$slug"
                   params={{ slug: p.slug }}
-                  className="nexus-card rounded-2xl p-4 text-xs font-black hover:-translate-y-0.5"
+                  className="block truncate text-xs font-black hover:underline"
                 >
                   {p.title}
                 </Link>
-              ))}
+                <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.14em] opacity-50">
+                  {p.isPublished ? "Visible / Publicado" : "Oculto / No publicado"}
+                </span>
+              </div>
             </div>
-          </section>
+
+            <div className="mt-3 flex items-center gap-2">
+              {p.nodeId ? (
+                <button
+                  type="button"
+                  disabled={setVisibility.isPending}
+                  onClick={() =>
+                    setVisibility.mutate({ nodeId: p.nodeId!, visible: !p.isPublished })
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[color:var(--nexus-border)] px-2.5 py-1.5 text-[10px] font-black transition hover:bg-[color:var(--nexus-teal)]/10 disabled:opacity-50"
+                >
+                  {p.isPublished ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                  {p.isPublished ? "Ocultar" : "Publicar"}
+                </button>
+              ) : (
+                <span className="text-[10px] font-bold opacity-45">Programa base (siempre visible)</span>
+              )}
+              <Link
+                to="/programas/$slug"
+                params={{ slug: p.slug }}
+                className="inline-flex items-center gap-1 rounded-xl px-2 py-1.5 text-[10px] font-black opacity-70 hover:opacity-100"
+              >
+                Editar programa <ArrowRight className="size-3" />
+              </Link>
+            </div>
+          </div>
+        ))}
+        {list.length === 0 && (
+          <div className="nexus-card rounded-2xl p-5 text-xs font-semibold opacity-60">
+            No hay programas en este filtro.
+          </div>
         )}
       </div>
-    </NexusShell>
+    </section>
   );
 }
