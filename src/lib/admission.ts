@@ -122,6 +122,7 @@ export const FALLBACK_PLANS = [
     period: "anual",
     features: ["Acceso total", "Mentoría", "Certificados", "Soporte prioritario"],
     months: 12,
+    culqi_url: null as string | null,
   },
 ];
 
@@ -134,7 +135,7 @@ export function useAdmissionPlans() {
     queryFn: async (): Promise<WizardPlan[]> => {
       const { data, error } = await db
         .from("membership_plans")
-        .select("id,slug,name,description,price_amount,currency,period,features,is_active,sort_order")
+        .select("id,slug,name,description,price_amount,currency,period,features,is_active,sort_order,culqi_url")
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
       if (error) throw error;
@@ -150,6 +151,7 @@ export function useAdmissionPlans() {
         period: p.period ?? "mensual",
         features: Array.isArray(p.features) ? p.features : [],
         months: /anual|year/i.test(String(p.period)) ? 12 : 6,
+        culqi_url: (p.culqi_url ?? null) as string | null,
       }));
     },
   });
