@@ -13,6 +13,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check, ImageIcon, Loader2, Palette, Settings2, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSetProgramVisibility } from "@/lib/content-catalog";
 
 export type ProgramHeaderConfig = {
   image?: string | null;
@@ -71,6 +72,7 @@ export function ProgramHeader({
   programNodeId,
   metadata,
   isAdmin = false,
+  isPublished = true,
   eyebrow = "Programa académico",
 }: {
   slug: string;
@@ -85,6 +87,7 @@ export function ProgramHeader({
   programNodeId?: string;
   metadata?: Record<string, unknown>;
   isAdmin?: boolean;
+  isPublished?: boolean;
   eyebrow?: string;
 }) {
   const cfg = (metadata?.["header"] ?? null) as ProgramHeaderConfig | null;
@@ -219,6 +222,7 @@ export function ProgramHeader({
 
       {editing && isAdmin && programNodeId && (
         <HeaderEditor
+          isPublished={isPublished}
           programNodeId={programNodeId}
           metadata={metadata ?? {}}
           initial={{ image, color }}
@@ -233,14 +237,17 @@ function HeaderEditor({
   programNodeId,
   metadata,
   initial,
+  isPublished,
   onClose,
 }: {
   programNodeId: string;
+  isPublished: boolean;
   metadata: Record<string, unknown>;
   initial: ProgramHeaderConfig;
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const setVisibility = useSetProgramVisibility();
   const [image, setImage] = useState(initial.image ?? "");
   const [color, setColor] = useState(initial.color ?? "");
   useEffect(() => {
@@ -330,7 +337,19 @@ function HeaderEditor({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center gap-2">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={setVisibility.isPending}
+          onClick={() => setVisibility.mutate({ nodeId: programNodeId, visible: !isPublished })}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 px-3.5 py-2 text-[11.5px] font-bold transition hover:bg-background disabled:opacity-50"
+        >
+          <span
+            aria-hidden
+            className={`size-2.5 rounded-full ${isPublished ? "bg-emerald-500" : "border border-border bg-transparent"}`}
+          />
+          {isPublished ? "Visible / Publicado — ocultar" : "Oculto — publicar"}
+        </button>
         <button
           type="button"
           onClick={() => save.mutate()}
