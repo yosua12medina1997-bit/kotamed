@@ -91,6 +91,7 @@ import { EnamEditor } from "@/components/cms/EnamEditor";
 
 import { ProgramHubEditor } from "@/components/cms/ProgramHubEditor";
 import { ProgramsStudio } from "@/components/cms/ProgramsStudio";
+import AdminPlans from "@/components/admin/AdminPlans";
 import { NexusDashboardEditor } from "@/components/cms/NexusDashboardEditor";
 import { NexusNavEditor } from "@/components/cms/NexusNavEditor";
 import { LibraryStudio } from "@/components/cms/LibraryStudio";
@@ -125,6 +126,7 @@ type StudioView =
   | "navegacion"
   | "colecciones"
   | "programas-todos"
+  | "membresias"
   | "constructor"
   | "hero"
   | "bienvenida"
@@ -158,6 +160,7 @@ const MODULES: { id: StudioView; label: string; hint: string; icon: React.Elemen
   { id: "programas", label: "Programas (Hub)", hint: "Página pública /programas", icon: Sparkles },
   { id: "programas-todos", label: "Todos los programas", hint: "Edición total: textos, imágenes y ambiente", icon: Layers },
   { id: "constructor", label: "Constructor de contenido", hint: "Programas, bloques, temas y recursos", icon: Layers },
+  { id: "membresias", label: "Membresías y pagos", hint: "Planes, precios y link de pago Culqi", icon: Crown },
   { id: "colecciones", label: "Colecciones", hint: "Contenido reutilizable", icon: Recycle },
   { id: "sitio", label: "KOTAMED.APP", hint: "Sitio en producción", icon: Globe },
 ];
@@ -803,6 +806,10 @@ function CmsStudioPage() {
           <ProgramsStudio />
         </div>
 
+      ) : view === "membresias" ? (
+        <div className="p-3">
+          <AdminPlans />
+        </div>
       ) : view === "constructor" ? (
         <div className="p-3">
           <ContentBuilder />
