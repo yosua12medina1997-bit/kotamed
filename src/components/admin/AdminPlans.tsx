@@ -22,6 +22,8 @@ export type Plan = {
   features: string[];
   is_active: boolean;
   sort_order: number;
+  /** Enlace de pago Culqi propio de este plan (independiente por membresía). */
+  culqi_url: string | null;
 };
 
 function slugify(s: string) {
@@ -46,6 +48,7 @@ export function usePlans() {
       return (data ?? []).map((p: any) => ({
         ...p,
         features: Array.isArray(p.features) ? p.features : [],
+        culqi_url: p.culqi_url ?? null,
       })) as Plan[];
     },
   });
@@ -77,6 +80,7 @@ const EMPTY: Omit<Plan, "id"> = {
   features: [],
   is_active: true,
   sort_order: 100,
+  culqi_url: "",
 };
 
 export default function AdminPlans() {
@@ -113,6 +117,7 @@ export default function AdminPlans() {
         features: p.features,
         is_active: p.is_active,
         sort_order: Number(p.sort_order) || 0,
+        culqi_url: (p.culqi_url ?? "").trim() || null,
       };
       if (p.id) {
         const { error } = await db.from("membership_plans").update(payload).eq("id", p.id);
@@ -206,6 +211,20 @@ export default function AdminPlans() {
             <div className="text-sm font-bold">
               {p.currency} {Number(p.price_amount).toFixed(2)}{" "}
               <span className="text-xs font-medium text-muted-foreground">/ {p.period}</span>
+            </div>
+            <div className="text-[11px]">
+              {p.culqi_url ? (
+                <a
+                  href={p.culqi_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-bold text-primary underline underline-offset-2 break-all"
+                >
+                  Link Culqi de este plan
+                </a>
+              ) : (
+                <span className="text-muted-foreground">Sin link de pago Culqi</span>
+              )}
             </div>
             {p.features.length > 0 && (
               <ul className="text-xs text-muted-foreground space-y-0.5">
@@ -385,6 +404,20 @@ export default function AdminPlans() {
                 onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) })}
               />
             </Field>
+            <div className="sm:col-span-2">
+              <Field label="Link de pago Culqi (exclusivo de este plan)">
+                <input
+                  className={inputCls}
+                  type="url"
+                  placeholder="https://pago.culqi.com/..."
+                  value={editing.culqi_url ?? ""}
+                  onChange={(e) => setEditing({ ...editing, culqi_url: e.target.value })}
+                />
+              </Field>
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                El botón “Pagar” de esta membresía usará únicamente este enlace. No se comparte con otros planes.
+              </p>
+            </div>
             <div className="sm:col-span-2">
               <Field label="Beneficios (uno por línea)">
                 <textarea

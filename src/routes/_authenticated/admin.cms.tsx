@@ -49,6 +49,7 @@ import {
   Upload,
   Wand2,
   Compass,
+  Crown,
   Files,
   Globe,
   LayoutDashboard,
