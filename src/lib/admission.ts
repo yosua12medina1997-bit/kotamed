@@ -89,6 +89,7 @@ export const FALLBACK_PLANS = [
     period: "mensual",
     features: ["Biblioteca gratuita", "Casos demo", "Comunidad"],
     months: 12,
+    culqi_url: null as string | null,
   },
   {
     id: null as string | null,
@@ -100,6 +101,7 @@ export const FALLBACK_PLANS = [
     period: "mensual",
     features: ["1 programa completo", "Biblioteca premium", "Flashcards", "QBank"],
     months: 6,
+    culqi_url: null as string | null,
   },
   {
     id: null as string | null,
@@ -111,6 +113,7 @@ export const FALLBACK_PLANS = [
     period: "mensual",
     features: ["Todo Premium", "Simuladores clínicos", "KotaMed AI", "Progreso avanzado"],
     months: 12,
+    culqi_url: null as string | null,
   },
   {
     id: null as string | null,
