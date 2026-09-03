@@ -364,6 +364,8 @@ function WizardBody({
           userId={userId}
           amount={plan?.price_amount ?? app?.amount ?? 0}
           currency={plan?.currency ?? app?.currency ?? "PEN"}
+          culqiUrl={plan?.culqi_url ?? null}
+          planName={plan?.name ?? app?.plan_name ?? null}
           onBack={() => setStep(4)}
         />
       )}
@@ -499,6 +501,28 @@ function PlanCard({
           </li>
         ))}
       </ul>
+      {plan.culqi_url && plan.price_amount > 0 && (
+        <span
+          role="link"
+          tabIndex={0}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect();
+            window.open(plan.culqi_url as string, "_blank", "noopener,noreferrer");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              onSelect();
+              window.open(plan.culqi_url as string, "_blank", "noopener,noreferrer");
+            }
+          }}
+          className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold cursor-pointer hover:-translate-y-0.5 transition-all"
+        >
+          Pagar <ArrowRight className="size-3.5" strokeWidth={2.5} />
+        </span>
+      )}
     </button>
   );
 }
@@ -558,12 +582,16 @@ function PaymentStep({
   userId,
   amount,
   currency,
+  culqiUrl,
+  planName,
   onBack,
 }: {
   app: AdmissionApplication | null;
   userId: string;
   amount: number;
   currency: string;
+  culqiUrl?: string | null;
+  planName?: string | null;
   onBack: () => void;
 }) {
   const settingsQ = usePaymentSettings();
@@ -625,6 +653,27 @@ function PaymentStep({
       <p className="text-sm text-muted-foreground mt-1.5">
         Paga con Yape, Plin o transferencia y sube tu comprobante.
       </p>
+
+      {culqiUrl && amount > 0 && (
+        <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/[0.05] p-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-extrabold tracking-tight">
+              Pago en línea con tarjeta{planName ? ` · ${planName}` : ""}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Se abrirá el enlace de pago exclusivo de esta membresía.
+            </p>
+          </div>
+          <a
+            href={culqiUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/25 transition-all"
+          >
+            Pagar <ArrowRight className="size-4" strokeWidth={2.5} />
+          </a>
+        </div>
+      )}
 
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Columna izquierda: QR */}
